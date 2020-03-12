@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -23,6 +24,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
+        // Mix manifest
+        if (array_key_exists('REMOTE_ADDR', $_SERVER) && $_SERVER['REMOTE_ADDR'] != '127.0.0.1') {
+            $this->app->bind('path.public', function() {
+                return base_path().'/../public_html';
+            });
+        }
+
+        Schema::defaultStringLength(191);
     }
 }

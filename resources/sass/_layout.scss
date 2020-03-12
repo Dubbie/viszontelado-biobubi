@@ -1,0 +1,156 @@
+body {
+  color: $text-base;
+}
+
+.body-fullscreen {
+  min-height: 100vh;
+  background: url('/storage/bg_office.jpg') #29004e no-repeat fixed;
+}
+
+.text-small {
+  font-size: 0.8rem;
+}
+
+.text-teal {
+  color: $teal !important;
+}
+
+.text-normal {
+  color: $text-base !important;
+}
+
+a.text-normal {
+  color: $text-base !important;
+  &:hover {
+    color: $text-darker-1 !important;
+  }
+}
+
+.bg-muted {
+  background-color: $light-grey-1 !important;
+}
+
+.bg-info-pastel {
+  background-color: $pastel-blue-lighter !important;
+}
+
+.text-info-pastel {
+  color: $pastel-blue !important;
+}
+
+.bg-danger-pastel {
+  background-color: $pastel-red-lighter !important;
+}
+
+.text-danger-pastel {
+  color: $pastel-red !important;
+}
+
+.bg-success-pastel {
+  background-color: $pastel-green-lighter !important;
+}
+
+.text-success-pastel {
+  color: $pastel-green !important;
+}
+
+.bg-warning-pastel {
+  background-color: $pastel-orange-lighter !important;
+}
+
+.text-warning-pastel {
+  color: $pastel-orange !important;
+}
+
+$navbar-height: 80px;
+$mdy-green: #3baa34;
+$sidebar-width: 140px;
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: $white;
+  min-height: 100vh;
+  width: $sidebar-width;
+  border-right: 2px solid $border;
+  z-index: 1;
+
+  .nav-link {
+    font-weight: 700;
+    color: $text-lighter-1;
+    padding: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 25rem;
+
+    &.active {
+      color: $green;
+      background-color: $body-bg;
+
+      &:hover {
+        color: $green;
+        background-color: $body-bg;
+      }
+    }
+
+    &:hover {
+      color: $green;
+    }
+  }
+
+  a {
+    color: $text-lighter-1;
+  }
+}
+
+.admin-content {
+  margin-left: $sidebar-width;
+  color: $text-base;
+
+  & .text-muted {
+    color: #8a8ca6 !important;
+  }
+
+  & .shadow {
+    box-shadow: 0 0.5rem 1rem rgba(96, 0, 255, 0.15) !important;
+  }
+}
+
+#mobile-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 1;
+}
+
+@media (screen and max-width: map_get($grid-breakpoints, 'md')) {
+  .page-wrapper {
+    position: relative;
+  }
+
+  .sidebar {
+    width: calc(#{$sidebar-width} + 100px);
+    display: none;
+
+    .nav-link {
+      display: block;
+      padding: 0.5rem 1rem;
+    }
+  }
+
+  .sidebar.show {
+    display: flex;
+    left: auto;
+    right: 0;
+    z-index: 99;
+  }
+
+  .admin-content {
+    margin-left: 0;
+  }
+}

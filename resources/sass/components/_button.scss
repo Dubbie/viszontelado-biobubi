@@ -1,0 +1,47 @@
+.btn {
+  font-weight: 700;
+  transition: all 250ms ease-in-out;
+}
+
+.btn-outline-secondary {
+  color: $gray-600;
+  border-color: $gray-400;
+
+  &:not(:disabled):hover,
+  &:not(:disabled):active {
+    color: $gray-700;
+    background-color: $gray-100;
+    border-color: $gray-300;
+  }
+
+  &:disabled:hover,
+  &:disabled:active {
+    border-color: $gray-400;
+  }
+}
+
+.btn-teal {
+  background-color: $teal;
+  color: #ffffff;
+
+  &:hover {
+    background-color: $teal-lighter;
+    color: #ffffff;
+  }
+}
+
+.btn-outline-teal {
+  background-color: transparent;
+  border-color: $teal;
+  color: $teal;
+
+  &:hover {
+    background-color: transparent;
+    border-color: $teal-lighter;
+    color: $teal-lighter;
+  }
+}
+
+.btn-toolbar .btn-sm {
+  padding: 0.5rem 0.75rem;
+}

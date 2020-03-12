@@ -13,6 +13,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Auth::routes(['register' => false]);
+
+Route::group(['middleware' => 'auth'], function() {
+    Route::get('/', function () {
+        return view('home');
+    });
+
+    /**
+     * Adminisztrátori jogot igénylő routeok.
+     */
+    Route::group(['middleware' => 'admin'], function() {
+        Route::get('/felhasznalok', 'UserController@index');
+        Route::get('/felhasznalok/uj', 'UserController@create');
+        Route::post('/felhasznalok/mentes', 'UserController@store');
+        Route::get('/felhasznalok/{userId}', 'UserController@show');
+    });
 });
