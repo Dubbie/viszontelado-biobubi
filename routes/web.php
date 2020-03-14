@@ -35,6 +35,8 @@ Route::group(['middleware' => 'auth'], function() {
     });
 });
 
+Route::get('/api/megrendeles/uj', 'OrderController@handleWebhook');
+
 /**
  * Runs database migrations
  */

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -41,5 +43,15 @@ class OrderController extends Controller
         return view('order.show')->with([
             'order' => $order,
         ]);
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function handleWebhook(Request $request) {
+        Log::info('- Shoprenter Új Megrendelés Webhook -');
+        foreach ($request->all() as $k => $v) {
+            Log::info(sprintf('-- %s: %v', $k, $v));
+        }
     }
 }
