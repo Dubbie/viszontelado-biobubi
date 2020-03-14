@@ -69,7 +69,7 @@ class OrderController extends Controller
             $order->email = $_order['email'];
             $order->shipping_method_name = $_order['shippingMethodName'];
             $order->payment_method_name = $_order['paymentMethodName'];
-            $order->statusText = $_order['orderHistory']['statusText'];
+            $order->status_text = $_order['orderHistory']['statusText'];
 
             $order->save();
         }
