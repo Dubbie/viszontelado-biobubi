@@ -1,9 +1,7 @@
 <div class="sidebar-sticky d-flex flex-column vh-100 w-100">
     {{-- Nagy navi --}}
-    <a href="/" class="d-none d-md-flex justify-content-center my-5">
-        <div style="width: 56px; height: 56px; border-radius: 8px; background-color: grey" class="rounded shadow-sm">
-            <img src="//placehold.it/56/56" alt="Viszonteladó Portál Logó" class="d-block">
-        </div>
+    <a href="/" class="d-none d-md-flex justify-content-center text-center my-5 text-dark">
+        <p class="mb-0">Viszonteladó<b class="d-block">Portál</b></p>
     </a>
     {{-- Telós gomb --}}
     <a href="#!" class="nav-link btn-toggle-sidebar d-md-none text-decoration-none text-dark p-4 text-right">
@@ -15,22 +13,34 @@
     <ul class="nav flex-column align-items-center">
         <li class="nav-item mb-0 mb-md-3">
             <a href="/" class="nav-link has-tooltip @if(Request::is('/')) active @endif"
-               data-toggle="tooltip" data-placement="right" title="Irányítópult">
+               data-toggle="tooltip" data-placement="right" title="Főoldal">
                 <span class="icon icon-lg d-none d-md-inline-flex">
                     <i class="fas fa-home"></i>
                 </span>
-                <span class="d-md-none">Irányítópult</span>
+                <span class="d-md-none">Főoldal</span>
             </a>
         </li>
         <li class="nav-item mb-0 mb-md-3">
-            <a href="{{ action('UserController@index') }}" class="nav-link has-tooltip @if(Request::is('felhasznalok*')) active @endif"
-               data-toggle="tooltip" data-placement="right" title="Felhasználók">
+            <a href="{{ action('OrderController@index') }}" class="nav-link has-tooltip @if(Request::is('megrendelesek*')) active @endif"
+               data-toggle="tooltip" data-placement="right" title="Megrendelések">
+                <span class="icon icon-lg d-none d-md-inline-flex">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </span>
+                <span class="d-md-none">Megrendelések</span>
+            </a>
+        </li>
+
+        @if(Auth()->user()->admin)
+            <li class="nav-item mb-0 mb-md-3">
+                <a href="{{ action('UserController@index') }}" class="nav-link has-tooltip @if(Request::is('felhasznalok*')) active @endif"
+                   data-toggle="tooltip" data-placement="right" title="Felhasználók">
                 <span class="icon icon-lg d-none d-md-inline-flex">
                     <i class="fas fa-users"></i>
                 </span>
-                <span class="d-md-none">Felhasználók</span>
-            </a>
-        </li>
+                    <span class="d-md-none">Felhasználók</span>
+                </a>
+            </li>
+        @endif
     </ul>
 
     @auth

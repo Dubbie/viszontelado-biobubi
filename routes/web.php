@@ -20,6 +20,9 @@ Route::group(['middleware' => 'auth'], function() {
         return view('home');
     });
 
+    Route::get('/megrendelesek', 'OrderController@index');
+    Route::get('/megrendelesek/{orderId}', 'OrderController@show');
+
     /**
      * Adminisztrátori jogot igénylő routeok.
      */
