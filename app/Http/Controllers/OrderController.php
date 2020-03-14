@@ -50,8 +50,10 @@ class OrderController extends Controller
      */
     public function handleWebhook(Request $request) {
         Log::info('- Shoprenter Új Megrendelés Webhook -');
-        foreach ($request->all() as $k => $v) {
-            Log::info(sprintf('-- %s: %v', $k, $v));
+        $array = json_decode($request->input('data'), true);
+        Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
+        foreach ($array['orders']['order'] as $order) {
+            Log::info(dump($order));
         }
     }
 }
