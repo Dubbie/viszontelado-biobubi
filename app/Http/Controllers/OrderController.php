@@ -64,6 +64,12 @@ class OrderController extends Controller
             $order->total = $_order['total'];
             $order->total_gross = $_order['totalGross'];
             $order->tax_price = $_order['taxPrice'];
+            $order->firstname = $_order['firstname'];
+            $order->lastname = $_order['lastname'];
+            $order->email = $_order['email'];
+            $order->shipping_method_name = $_order['shippingMethodName'];
+            $order->payment_method_name = $_order['paymentMethodName'];
+            $order->statusText = $_order['orderHistory']['statusText'];
 
             $order->save();
         }
