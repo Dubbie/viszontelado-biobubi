@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -32,4 +33,16 @@ Route::group(['middleware' => 'auth'], function() {
         Route::post('/felhasznalok/mentes', 'UserController@store');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
     });
+});
+
+/**
+ * Runs database migrations
+ */
+Route::get("/migrate/{secret}", function ($secret) {
+    if ($secret != env("MAINTENANCE_TOKEN")) {
+        abort(403, "Invalid maintenance token.");
+    }
+    echo "DB maintenance starts <br>";
+    echo Artisan::call('migrate', ['--force' => true]);
+    echo "DB maintenance Over";
 });
