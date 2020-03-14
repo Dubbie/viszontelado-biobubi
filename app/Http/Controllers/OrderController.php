@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -52,8 +53,19 @@ class OrderController extends Controller
         Log::info('- Shoprenter Új Megrendelés Webhook -');
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
-        foreach ($array['orders']['order'] as $order) {
-            Log::info(dump($order));
+        foreach ($array['orders']['order'] as $_order) {
+            Log::info(dump($_order));
+
+            // Elmentése a Megrendelésnek db-be
+            $order = new Order();
+            $order->postcode = $_order['shippingPostcode'];
+            $order->inner_id = $_order['innerId'];
+            $order->inner_resource_id = $_order['innerResourceId'];
+            $order->total = $_order['total'];
+            $order->total_gross = $_order['totalGross'];
+            $order->tax_price = $_order['taxPrice'];
+
+            $order->save();
         }
     }
 }
