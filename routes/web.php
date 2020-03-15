@@ -17,13 +17,6 @@ use Illuminate\Support\Facades\Route;
 Auth::routes(['register' => false]);
 
 Route::group(['middleware' => 'auth'], function() {
-    Route::get('/', function () {
-        return view('home');
-    });
-
-    Route::get('/megrendelesek', 'OrderController@index');
-    Route::get('/megrendelesek/{orderId}', 'OrderController@show');
-
     /**
      * Adminisztrátori jogot igénylő routeok.
      */
@@ -32,7 +25,18 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/uj', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
+
+        Route::get('/megrendelesek/frissites', 'ShoprenterController@updateOrders');
+        Route::get('/allapotok/frissites', 'ShoprenterController@updateOrderStatuses');
     });
+
+    Route::get('/', function () {
+        return view('home');
+    });
+
+    Route::get('/megrendelesek', 'OrderController@index');
+    Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
+    Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 });
 
 Route::post('/api/megrendeles/uj', 'OrderController@handleWebhook');

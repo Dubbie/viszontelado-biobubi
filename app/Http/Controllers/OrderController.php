@@ -26,10 +26,10 @@ class OrderController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function index() {
-        $orders = $this->shoprenter->getOrders();
+        $orders = $this->shoprenter->getAllOrders();
 
         return view('order.index')->with([
-            'orders' => $orders->items,
+            'orders' => $orders,
         ]);
     }
 
@@ -39,10 +39,11 @@ class OrderController extends Controller
      */
     public function show($orderId) {
         $order = $this->shoprenter->getOrder($orderId);
+        $statuses = $this->shoprenter->getAllStatuses();
 
-        dd($order);
         return view('order.show')->with([
             'order' => $order,
+            'statuses' => $statuses->items,
         ]);
     }
 
@@ -58,7 +59,9 @@ class OrderController extends Controller
 
             // Elmentése a Megrendelésnek db-be
             $order = new Order();
-            $order->postcode = $_order['shippingPostcode'];
+            $order->shipping_postcode = $_order['shippingPostcode'];
+            $order->shipping_city = $_order['shippingCity'];
+            $order->shipping_address = $_order['shippingAddress1'];
             $order->inner_id = $_order['innerId'];
             $order->inner_resource_id = $_order['innerResourceId'];
             $order->total = $_order['total'];
@@ -73,5 +76,15 @@ class OrderController extends Controller
 
             $order->save();
         }
+    }
+
+    public function updateStatus(Request $request) {
+        $data = $request->validate([
+           'order-id' => 'required',
+           'order-status-href' => 'required',
+        ]);
+
+        $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
+        dd($this->shoprenter->updateOrder($data['order-id'], $statusId));
     }
 }

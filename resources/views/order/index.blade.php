@@ -2,7 +2,11 @@
 
 @section('content')
     <div class="container">
-{{--        @dump($orders[0])--}}
+        @if(Auth()->user()->admin)
+            <div class="btn-toolbar mb-3">
+                <a href="{{ action('ShoprenterController@updateOrders') }}" class="btn btn-outline-secondary">Megrendelések frissítése</a>
+            </div>
+        @endif
         <div class="alert alert-info">
             <p class="mb-0">Jelenleg az összes megrendelés látható (max. 200), a szűrés implementálása jelenleg aktívan zajlik.</p>
         </div>
