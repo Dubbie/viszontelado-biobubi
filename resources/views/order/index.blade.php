@@ -33,11 +33,8 @@
                         <small class="font-weight-bold">Állapot</small>
                     </th>
                     <th scope="col">
-                        <small class="font-weight-bold">Szállítási mód</small>
+                        <small class="font-weight-bold">Város</small>
                     </th>
-                    {{--<th scope="col">--}}
-                        {{--<small class="font-weight-bold">Fizetési mód</small>--}}
-                    {{--</th>--}}
                     <th scope="col">
                         <small class="font-weight-bold">Kezdő dátum</small>
                     </th>
@@ -53,8 +50,8 @@
                         <td class="align-middle">
                             <div class="custom-control custom-checkbox">
                                 <input type="checkbox" class="custom-control-input ch-order-select"
-                                       id="ch-select-order-{{ $order->innerId }}">
-                                <label class="custom-control-label" for="ch-select-order-{{ $order->innerId }}"></label>
+                                       id="ch-select-order-{{ $order->inner_id }}">
+                                <label class="custom-control-label" for="ch-select-order-{{ $order->inner_id }}"></label>
                             </div>
                         </td>
                         <td>
@@ -63,9 +60,7 @@
                             </p>
                         </td>
                         <td class="align-middle"><p class="mb-0">{{ $order->status_text }}</p></td>
-{{--                        <td class="align-middle"><p class="mb-0">{{ $order->shipping_postcode }}</p></td>--}}
-                        <td class="align-middle"><p class="mb-0">{{ $order->shipping_method_name }}</p></td>
-{{--                        <td class="align-middle"><p class="mb-0">{{ $order->payment_method_name }}</p></td>--}}
+                        <td class="align-middle"><p class="mb-0">{{ $order->getFormattedAddress() }}</p></td>
                         <td class="align-middle"><p class="mb-0">{{ $order->created_at->format('Y. m. d. H:i') }}</p></td>
                         <td class="text-right align-middle"><p class="mb-0">{{ number_format($order->total, 0, '.', ' ') }} Ft</p>
                         </td>

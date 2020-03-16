@@ -7,6 +7,7 @@ use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
@@ -33,7 +34,7 @@ class OrderController extends Controller
      */
     public function index()
     {
-        $orders = $this->orderService->getOrders();
+        $orders = $this->orderService->getOrdersByUserId(Auth::user()->id);
 
         return view('order.index')->with([
             'orders' => $orders,
