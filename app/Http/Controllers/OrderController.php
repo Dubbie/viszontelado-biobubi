@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Order;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
@@ -30,14 +31,29 @@ class OrderController extends Controller
     }
 
     /**
+     * @param Request $request
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders = $this->orderService->getOrdersByUserId(Auth::user()->id);
+        $filter = [];
+        $userId = Auth::user()->id;
+
+        if ($request->has('filter-reseller')) {
+            $filter['reseller'] = $request->input('filter-reseller');
+            $userId = $filter['reseller'];
+        }
+        if ($request->has('filter-status')) {
+            $filter['status'] = $request->input('filter-status');
+        }
+
+        $orders = $this->orderService->getOrdersByUserId($userId);
+        $resellers = User::where('admin', 0)->get();
 
         return view('order.index')->with([
             'orders' => $orders,
+            'resellers' => $resellers,
+            'statuses' => $this->shoprenter->getAllStatuses()->items,
         ]);
     }
 

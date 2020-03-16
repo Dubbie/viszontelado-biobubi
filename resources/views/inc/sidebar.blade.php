@@ -6,47 +6,24 @@
                 <p class="mb-0">BioBubi<span class="d-block text-primary">Viszonteladó Portál</span></p>
             </a>
             <button type="button" class="btn-mobile-nav d-block d-md-none">
-                    <span class="icon">
-                        <i class="fas fa-bars"></i>
-                    </span>
+                <span class="icon">
+                    <i class="fas fa-bars"></i>
+                </span>
             </button>
         </div>
 
         <ul class="sidebar-menu">
             <li class="nav-title">Menü</li>
-            @if(Auth()->user()->admin)
-                <li class="nav-item">
-                    <a href="#order-collapse"
-                       class="nav-link @if(!Request::is('felhasznalok/*/megrendelesek')) collapsed @endif"
-                       data-toggle="collapse">
+            <li class="nav-item">
+                <a href="{{ action('OrderController@index') }}"
+                   class="nav-link @if(Request::is('megrendelesek*')) active @endif d-flex align-items-center">
                         <span class="icon">
                             <i class="far fa-clipboard"></i>
                         </span>
-                        <span>Megrendelések</span>
-                    </a>
-
-                    <div id="order-collapse"
-                         class="collapse @if(Request::is('felhasznalok/*/megrendelesek')) show @endif">
-                        @foreach($resellers as $reseller)
-                            <a class="nav-link @if(Request::is('felhasznalok/' . $reseller->id . '/megrendelesek')) active @endif"
-                               href="{{ action('UserController@orders', ['userId' => $reseller->id]) }}">
-                                <span>{{ $reseller->name }}</span>
-                            </a>
-                        @endforeach
-                    </div>
-                </li>
-            @else
-                <li class="nav-item">
-                    <a href="{{ action('OrderController@index') }}"
-                       class="nav-link @if(Request::is('felhasznalok/' . $reseller->id . '/megrendelesek')) active @endif d-flex align-items-center">
-                        <span class="icon">
-                            <i class="far fa-clipboard"></i>
-                        </span>
-                        <span class="flex-grow-1">Megrendelések</span>
-                        {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
-                    </a>
-                </li>
-            @endif
+                    <span class="flex-grow-1">Megrendelések</span>
+                    {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
+                </a>
+            </li>
 
             {{-- Admin dolgok --}}
             @if(Auth()->user() && Auth()->user()->admin)

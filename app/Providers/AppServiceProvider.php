@@ -34,8 +34,6 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        View::share('resellers', User::all());
-
         Schema::defaultStringLength(191);
     }
 }
