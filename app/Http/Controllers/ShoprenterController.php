@@ -32,30 +32,22 @@ class ShoprenterController extends Controller
             ];
         }
 
-        dump($statusMap);
-        foreach ($this->shoprenterApi->getAllOrders() as $order) {
-            $tax = ($order->paymentMethodTaxRate + 100) / 100;
-            $total = $order->total / $tax;
-            $taxPrice = intval($order->total) - $total;
-            $totalGross = intval($order->total);
-            echo $order->shippingPostcode . '<br>';
-            echo $order->shippingCity . '<br>';
-            echo $order->shippingAddress1 . '<br>';
-            echo $order->innerId . '<br>';
-            echo $order->id . '<br>';
-            echo $total . '<br>';
-            echo $totalGross . '<br>';
-            echo $taxPrice . '<br>';
-            echo $order->firstname . '<br>';
-            echo $order->lastname . '<br>';
-            echo $order->email . '<br>';
-            echo $order->shippingMethodName . '<br>';
-            echo $order->paymentMethodName . '<br>';
-            if ($order->orderStatus) {
-                $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
-                echo $statusMap[$orderStatusId]['name'] . '<br>';
+        $orders = $this->shoprenterApi->getAllOrders();
+        $succesCount = 0;
+        foreach ($orders as $order) {
+            if ($this->shoprenterApi->updateLocalOrder($order)) {
+                $succesCount++;
             }
-            echo '<hr>';
+        }
+
+        if ($succesCount == count($orders)) {
+            return redirect(action('OrderController@index'))->with([
+                'success' => sprintf('%s db megrendelés sikeresen frissítve', $succesCount),
+            ]);
+        } else {
+            return redirect(action('OrderController@index'))->with([
+                'error' => 'Hiba történt a megrendelések frissítésekor',
+            ]);
         }
     }
 

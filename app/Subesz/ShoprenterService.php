@@ -3,10 +3,39 @@
 namespace App\Subesz;
 
 
+use App\Order;
+
 class ShoprenterService
 {
+    /** @var array */
+    private $statusMap;
+
+    /**
+     * ShoprenterService constructor.
+     */
+    public function __construct()
+    {
+        $osds = $this->getAllStatuses();
+
+        foreach ($osds->items as $osd) {
+            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
+
+            $this->statusMap[$orderStatusId] = [
+                'name' => $osd->name,
+                'color' => $osd->color,
+            ];
+        }
+    }
+
+    /**
+     * Visszad egy oldalnyi megrendelést a megadottak alapján
+     *
+     * @param int $page
+     * @param int $limit
+     * @return mixed
+     */
     public function getOrdersByPage($page = 0, $limit = 25) {
-        $apiUrl = sprintf('%s/orders?full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $page, $limit);
+        $apiUrl = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $page, $limit);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
@@ -22,6 +51,11 @@ class ShoprenterService
         return json_decode($return);
     }
 
+    /**
+     * Visszaadja az összes megrendelést
+     *
+     * @return array
+     */
     public function getAllOrders() {
         $page = 0;
 
@@ -39,6 +73,12 @@ class ShoprenterService
         return $orders;
     }
 
+    /**
+     * Visszaadja a megrendelés részleteit
+     *
+     * @param $orderId
+     * @return array
+     */
     public function getOrder($orderId) {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
         $result = [];
@@ -80,7 +120,42 @@ class ShoprenterService
         return $result;
     }
 
-    public function updateOrder($orderId, $statusId) {
+    public function updateLocalOrder($order) {
+        $tax = ($order->paymentMethodTaxRate + 100) / 100;
+        $total = $order->total / $tax;
+        $taxPrice = intval($order->total) - $total;
+        $totalGross = intval($order->total);
+        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
+
+        $local = Order::where('inner_resource_id', $order->id)->first();
+        if (!$local) {
+            $local = new Order();
+        }
+
+        $local->inner_id = $order->innerId;
+        $local->inner_resource_id = $order->id;
+        $local->total = $total;
+        $local->total_gross = $totalGross;
+        $local->tax_price = $taxPrice;
+        $local->firstname = $order->firstname;
+        $local->lastname = $order->lastname;
+        $local->email = $order->email;
+        $local->status_text = $this->statusMap[$orderStatusId]['name'];
+        $local->shipping_method_name = $order->shippingMethodName;
+        $local->payment_method_name = $order->paymentMethodName;
+        $local->shipping_postcode = $order->shippingPostcode;
+        $local->shipping_city = $order->shippingCity;
+        $local->shipping_address = $order->shippingAddress1;
+        $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
+
+        if ($local->save()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function updateOrderStatusId($orderId, $statusId) {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
 
         $ch = curl_init();
@@ -105,6 +180,10 @@ class ShoprenterService
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
         $response = curl_exec($ch);
         curl_close($ch);
+
+        if (strpos(json_decode($response)->orderStatus->href, $statusId) != -1) {
+            return true;
+        }
 
         return json_decode($response);
     }

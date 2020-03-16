@@ -24,6 +24,8 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok', 'UserController@index');
         Route::get('/felhasznalok/uj', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
+        Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
+        Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
 
         Route::get('/megrendelesek/frissites', 'ShoprenterController@updateOrders');
@@ -36,6 +38,7 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
+    Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 });
 

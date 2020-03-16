@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Order;
+use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
@@ -13,20 +14,26 @@ class OrderController extends Controller
     /** @var ShoprenterService */
     private $shoprenter;
 
+    /** @var OrderService */
+    private $orderService;
+
     /**
      * OrderController constructor.
      * @param ShoprenterService $shoprenterService
+     * @param OrderService $orderService
      */
-    public function __construct(ShoprenterService $shoprenterService)
+    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService)
     {
         $this->shoprenter = $shoprenterService;
+        $this->orderService = $orderService;
     }
 
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index() {
-        $orders = $this->shoprenter->getAllOrders();
+    public function index()
+    {
+        $orders = $this->orderService->getOrders();
 
         return view('order.index')->with([
             'orders' => $orders,
@@ -37,11 +44,26 @@ class OrderController extends Controller
      * @param $orderId
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function show($orderId) {
+    public function show($orderId)
+    {
+        $order = $this->shoprenter->getOrder($orderId);
+        $this->shoprenter->updateLocalOrder($order['order']);
+
+        return view('order.show')->with([
+            'order' => $order,
+        ]);
+    }
+
+    /**
+     * @param $orderId
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function showStatus($orderId)
+    {
         $order = $this->shoprenter->getOrder($orderId);
         $statuses = $this->shoprenter->getAllStatuses();
 
-        return view('order.show')->with([
+        return view('inc.order-status-content')->with([
             'order' => $order,
             'statuses' => $statuses->items,
         ]);
@@ -50,7 +72,8 @@ class OrderController extends Controller
     /**
      * @param Request $request
      */
-    public function handleWebhook(Request $request) {
+    public function handleWebhook(Request $request)
+    {
         Log::info('- Shoprenter Új Megrendelés Webhook -');
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
@@ -73,18 +96,30 @@ class OrderController extends Controller
             $order->shipping_method_name = $_order['shippingMethodName'];
             $order->payment_method_name = $_order['paymentMethodName'];
             $order->status_text = $_order['orderHistory']['statusText'];
+            $order->created_at = date('Y-m-d H:i:s', strtotime($_order['orderCreated']));
 
             $order->save();
         }
     }
 
-    public function updateStatus(Request $request) {
+    public function updateStatus(Request $request)
+    {
         $data = $request->validate([
-           'order-id' => 'required',
-           'order-status-href' => 'required',
+            'order-id' => 'required',
+            'order-status-href' => 'required',
+            'notify-customer' => 'nullable'
         ]);
 
         $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
-        dd($this->shoprenter->updateOrder($data['order-id'], $statusId));
+
+        if ($this->shoprenter->updateOrderStatusId($data['order-id'], $statusId)) {
+            return redirect(url()->previous())->with([
+                'success' => 'Állapot sikeresen frissítve',
+            ]);
+        }
+
+        return redirect(url()->previous())->with([
+            'error' => 'Ismeretlen hiba történt az állapot frissítésekor',
+        ]);
     }
 }
