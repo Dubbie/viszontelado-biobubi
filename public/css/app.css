@@ -11102,6 +11102,12 @@ body {
   padding: 4rem;
 }
 
+.page-content .container {
+  flex: 1;
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
 #footer {
   border-top: 1px solid #e9ecef;
 }

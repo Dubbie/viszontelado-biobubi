@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <div class="row">
             <div class="col">
                 <h3 class="font-weight-bold mb-4">Megrendelések</h3>
@@ -39,7 +39,8 @@
                             <select name="filter-status" id="filter-status" class="custom-select">
                                 <option value="">Mindegy</option>
                                 @foreach($statuses as $status)
-                                    <option value="{{ $status->name }}">{{ $status->name }}</option>
+                                    <option value="{{ $status->name }}"
+                                            @if(array_key_exists('status', $filter) && $filter['status'] == $status->name) selected @endif>{{ $status->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -50,7 +51,8 @@
                             <select name="filter-reseller" id="filter-reseller" class="custom-select">
                                 <option value="">Saját megrendeléseim</option>
                                 @foreach($resellers as $reseller)
-                                    <option value="{{ $reseller->id }}">{{ $reseller->name }}</option>
+                                    <option value="{{ $reseller->id }}"
+                                            @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -101,10 +103,11 @@
                         </td>
                         <td class="align-middle"><p class="mb-0">{{ $order->status_text }}</p></td>
                         <td class="align-middle"><p class="mb-0">{{ $order->getFormattedAddress() }}</p></td>
-                        <td class="align-middle"><p class="mb-0">{{ $order->created_at->format('Y. m. d. H:i') }}</p>
+                        <td class="align-middle"><p
+                                    class="mb-0 text-nowrap">{{ $order->created_at->format('Y. m. d. H:i') }}</p>
                         </td>
-                        <td class="text-right align-middle"><p
-                                    class="mb-0">{{ number_format($order->total_gross, 0, '.', ' ') }} Ft</p>
+                        <td class="text-right align-middle">
+                            <p class="mb-0 text-nowrap">{{ number_format($order->total_gross, 0, '.', ' ') }} Ft</p>
                         </td>
                         <td class="align-middle text-right">
                             <a href="{{ action('OrderController@show', ['orderId' => $order->inner_resource_id]) }}"
@@ -124,7 +127,7 @@
 
 @section('scripts')
     <script>
-        $(function() {
+        $(function () {
             $('form').submit(function () {
                 var $empty_fields = $(this).find(':input').filter(function () {
                     return $(this).val() === '';

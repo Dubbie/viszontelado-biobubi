@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container-fluid">
+    <div class="container">
         <div class="row">
             <div class="col">
                 <h1 class="font-weight-bold mb-4">Felhasználók</h1>

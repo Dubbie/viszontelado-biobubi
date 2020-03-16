@@ -37,23 +37,25 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $filter = [];
-        $userId = Auth::user()->id;
 
         if ($request->has('filter-reseller')) {
             $filter['reseller'] = $request->input('filter-reseller');
-            $userId = $filter['reseller'];
         }
         if ($request->has('filter-status')) {
             $filter['status'] = $request->input('filter-status');
         }
+        if ($request->has('filter-query')) {
+            $filter['query'] = $request->input('filter-query');
+        }
 
-        $orders = $this->orderService->getOrdersByUserId($userId);
+        $orders = $this->orderService->getOrdersFiltered($filter);
         $resellers = User::where('admin', 0)->get();
 
         return view('order.index')->with([
             'orders' => $orders,
             'resellers' => $resellers,
             'statuses' => $this->shoprenter->getAllStatuses()->items,
+            'filter' => $filter,
         ]);
     }
 
