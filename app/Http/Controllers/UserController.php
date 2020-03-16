@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Subesz\OrderService;
 use App\User;
 use App\UserZip;
 use Illuminate\Http\Request;
@@ -11,6 +12,18 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    /** @var OrderService */
+    private $orderService;
+
+    /**
+     * UserController constructor.
+     * @param OrderService $orderService
+     */
+    public function __construct(OrderService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
@@ -159,5 +172,13 @@ class UserController extends Controller
                 'store' => 'Hiba történt a felhasználó frissítésekor!',
             ]);
         }
+    }
+
+    public function orders($userId) {
+        $orders = $this->orderService->getOrdersByUserId($userId);
+
+        return view('order.index')->with([
+            'orders' => $orders
+        ]);
     }
 }

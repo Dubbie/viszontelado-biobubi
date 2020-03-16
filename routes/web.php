@@ -24,6 +24,7 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok', 'UserController@index');
         Route::get('/felhasznalok/uj', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
+        Route::get('/felhasznalok/{userId}/megrendelesek', 'UserController@orders');
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');

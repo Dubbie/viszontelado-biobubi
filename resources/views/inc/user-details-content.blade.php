@@ -5,6 +5,7 @@
     </div>
     <div class="col-md-4 text-right">
         <a href="{{ action('UserController@edit', ['userId' => $user->id]) }}" class="btn btn-sm btn-outline-secondary">Szerkesztés</a>
+        <a href="{{ action('UserController@orders', ['userId' => $user->id]) }}" class="btn btn-sm btn-link">Megrendelések</a>
     </div>
 </div>
 

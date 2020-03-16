@@ -2,6 +2,11 @@
 
 @section('content')
     <div class="container-fluid">
+        <div class="row">
+            <div class="col">
+                <h3 class="font-weight-bold mb-4">Megrendelés</h3>
+            </div>
+        </div>
         <div class="card card-body">
             <div class="row">
                 <div class="col-md-4">

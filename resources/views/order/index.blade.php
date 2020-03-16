@@ -25,7 +25,6 @@
             <table class="table table-sm table-borderless mb-0">
                 <thead>
                 <tr>
-                    <th></th>
                     <th scope="col">
                         <small class="font-weight-bold">Ügyfél</small>
                     </th>
@@ -47,13 +46,13 @@
                 <tbody>
                 @foreach($orders as $order)
                     <tr>
-                        <td class="align-middle">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input ch-order-select"
-                                       id="ch-select-order-{{ $order->inner_id }}">
-                                <label class="custom-control-label" for="ch-select-order-{{ $order->inner_id }}"></label>
-                            </div>
-                        </td>
+                        {{--<td class="align-middle">--}}
+                            {{--<div class="custom-control custom-checkbox">--}}
+                                {{--<input type="checkbox" class="custom-control-input ch-order-select"--}}
+                                       {{--id="ch-select-order-{{ $order->inner_id }}">--}}
+                                {{--<label class="custom-control-label" for="ch-select-order-{{ $order->inner_id }}"></label>--}}
+                            {{--</div>--}}
+                        {{--</td>--}}
                         <td>
                             <p class="mb-0">{{ $order->lastname }} {{ $order->firstname }}
                                 <small class="d-block">{{ $order->email }}</small>
@@ -64,7 +63,7 @@
                         <td class="align-middle"><p class="mb-0">{{ $order->created_at->format('Y. m. d. H:i') }}</p></td>
                         <td class="text-right align-middle"><p class="mb-0">{{ number_format($order->total_gross, 0, '.', ' ') }} Ft</p>
                         </td>
-                        <td class="align-middle">
+                        <td class="align-middle text-right">
                             <a href="{{ action('OrderController@show', ['orderId' => $order->inner_resource_id]) }}"
                                class="btn-icon">
                                 <span class="icon">
