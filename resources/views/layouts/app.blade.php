@@ -23,35 +23,55 @@
 
     {{-- Tagify CSS --}}
     <link href="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.css" rel="stylesheet" type="text/css" />
+
+    {{-- Select2 --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
 </head>
 <body>
-<div class="page-wrapper mw-100">
-    <nav id="sidebar" class="sidebar">
-        @include('inc.sidebar')
-    </nav>
-    <main id="page-content" role="main" class="admin-content min-vh-100 p-0 p-md-5">
-        {{-- Overlay hack --}}
-        <div id="mobile-overlay" class="d-none"></div>
-        {{-- Telefonos menü --}}
-        <div class="d-flex d-md-none justify-content-between align-items-center mb-0 p-4">
-            <a href="/" class="h5 text-uppercase text-dark text-decoration-none mb-0">Viszonteladó<b>Portál</b></a>
-            <button type="button" class="btn-icon btn-toggle-sidebar d-block d-md-none">
+<div class="page-wrapper">
+    @include('inc.sidebar')
+    <div class="d-flex d-md-none mobile-nav align-items-center justify-content-between">
+        <a href="/" class="h5 text-dark"><b>Motor Insurance Platform</b></a>
+        <button type="button" class="btn-mobile-nav">
+            <span class="icon">
                 <i class="fas fa-bars"></i>
-            </button>
-        </div>
+            </span>
+        </button>
+    </div>
+
+    <div id="page-content-overlay" style="display: none;"></div>
+    <div class="page-content">
         @include('inc.messages')
         @yield('content')
-    </main>
+
+        <footer id="footer">
+            <p class="mb-0 px-5 my-2">
+                <small>
+                    <a href="https://dubbie.github.io">MihóDániel</a>
+                    <span class="ml-4">&copy;{{ date('Y') }} BioBubi Viszonteladó Portál</span>
+                </small>
+            </p>
+        </footer>
+    </div>
 </div>
+
+{{-- Bootstrap --}}
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"
         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
         crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"
-        integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1"
+{{-- jQuery UI --}}
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+        integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
         crossorigin="anonymous"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"
-        integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM"
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
         crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"></script>
+
+{{-- Select2 --}}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/js/select2.min.js"></script>
 
 {{-- Tagify --}}
 <script src="https://cdn.jsdelivr.net/npm/@yaireo/tagify/dist/tagify.min.js"></script>

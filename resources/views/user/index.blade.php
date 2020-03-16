@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
+    <div class="container-fluid">
         <div class="row">
             <div class="col">
                 <h1 class="font-weight-bold mb-4">Felhasználók</h1>
@@ -25,7 +25,7 @@
                 @foreach($users as $user)
                     <tr>
                         <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }}</td>
+                        <td>{{ $user->name }} @if($user->admin) <span class="badge badge-success">Admin</span> @endif</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ count($user->zips) }} db</td>
                         <td class="text-right">

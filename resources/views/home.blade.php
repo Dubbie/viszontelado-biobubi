@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container">
+<div class="container-fluid">
     <div class="card card-body">
         <h3>Üdvözöljük a <b class="text-primary">BioBubi Viszonteladó Portálján</b>!</h3>
 
