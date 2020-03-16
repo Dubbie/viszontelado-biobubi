@@ -1,9 +1,9 @@
 <div class="sidebar">
     <nav class="sidebar-nav">
         <div class="d-flex align-items-center justify-content-between">
-            <a class="navbar-brand" href="{{ url('/') }}">
+            <a class="navbar-brand mr-0" href="{{ url('/') }}">
                 {{--<img src="//placehold.it/48/48" alt="">--}}
-                <p class="mb-0">BioBubi<span class="d-block text-primary">Viszonteladó Portál</span></p>
+                <p class="mb-0">BioBubi<small class="d-block font-weight-bold text-primary">Viszonteladó Portál</small></p>
             </a>
             <button type="button" class="btn-mobile-nav d-block d-md-none">
                 <span class="icon">

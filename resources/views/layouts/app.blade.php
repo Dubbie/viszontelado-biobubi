@@ -30,8 +30,9 @@
 <body>
 <div class="page-wrapper">
     @include('inc.sidebar')
+
     <div class="d-flex d-md-none mobile-nav align-items-center justify-content-between">
-        <a href="/" class="h5 text-dark"><b>Motor Insurance Platform</b></a>
+        <a href="/" class="h5 text-dark"><b>Viszonteladó Portál</b></a>
         <button type="button" class="btn-mobile-nav">
             <span class="icon">
                 <i class="fas fa-bars"></i>
@@ -79,24 +80,36 @@
 
 {{-- Tooltipek a sidebarnak --}}
 <script>
-    $(function () {
-        const $btnToggleSidebar = $('.btn-toggle-sidebar');
-        const elSidebar = document.getElementById('sidebar');
-        const elMobileOverlay = document.getElementById('mobile-overlay');
-        // Menügomb bind
-        function toggleSidebar() {
-            elSidebar.classList.toggle('show');
-            elMobileOverlay.classList.toggle('d-none');
+    $(document).ready(function() {
+        function showSidebar() {
+            body.classList.add('sidebar-on');
+            sidebar.classList.add('show');
+            pageOverlay.show();
         }
-        function init() {
-            // Tooltipek
-            $('.has-tooltip').tooltip();
-            // Sidebar toggle with button and page content
-            $btnToggleSidebar.add($(elMobileOverlay)).on('click', (e) => {
-                toggleSidebar();
-            });
+        function hideSidebar() {
+            body.classList.remove('sidebar-on');
+            sidebar.classList.remove('show');
+            pageOverlay.hide();
         }
-        init();
+        var body = $('body')[0];
+        var sidebar = $('.sidebar')[0];
+        var btnMobileToggle = $('.btn-mobile-nav');
+        var pageOverlay = $('#page-content-overlay');
+        btnMobileToggle.on('click', function (e) {
+            if (body.classList.contains('sidebar-on')) {
+                hideSidebar();
+            } else {
+                showSidebar();
+            }
+        });
+        pageOverlay.on('click', function (e) {
+            hideSidebar();
+        });
+
+        $('.has-tooltip[data-toggle="tooltip"]').tooltip();
+
+        // Inicializálja a custom file inputot.
+        bsCustomFileInput.init();
     });
 </script>
 @yield('scripts')

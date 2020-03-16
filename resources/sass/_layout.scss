@@ -1,3 +1,5 @@
+$sidebar-width: 250px;
+
 .body-fullscreen {
   min-height: 100vh;
   background: url('/storage/bg_office.jpg') #29004e no-repeat fixed;
@@ -57,7 +59,6 @@ a.text-normal {
 .text-warning-pastel {
   color: $pastel-orange !important;
 }
-$sidebar-width: 250px;
 
 body {
   color: $text-base;
