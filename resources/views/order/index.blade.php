@@ -62,7 +62,7 @@
                         <td class="align-middle"><p class="mb-0">{{ $order->status_text }}</p></td>
                         <td class="align-middle"><p class="mb-0">{{ $order->getFormattedAddress() }}</p></td>
                         <td class="align-middle"><p class="mb-0">{{ $order->created_at->format('Y. m. d. H:i') }}</p></td>
-                        <td class="text-right align-middle"><p class="mb-0">{{ number_format($order->total, 0, '.', ' ') }} Ft</p>
+                        <td class="text-right align-middle"><p class="mb-0">{{ number_format($order->total_gross, 0, '.', ' ') }} Ft</p>
                         </td>
                         <td class="align-middle">
                             <a href="{{ action('OrderController@show', ['orderId' => $order->inner_resource_id]) }}"
