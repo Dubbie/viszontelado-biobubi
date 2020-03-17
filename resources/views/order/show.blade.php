@@ -17,7 +17,7 @@
                 <div class="col-lg-9">
                     <div class="row mb-2">
                         <div class="col-md-6 col-lg-4">
-                            <p class="font-weight-bold mb-0">Rendelésazonosító:</p>
+                            <p class="mb-0">Rendelésazonosító:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">
                             <p class="mb-0">#{{ $order['order']->innerId }}</p>
@@ -25,7 +25,7 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-md-6 col-lg-4">
-                            <p class="font-weight-bold mb-0">Vásárló:</p>
+                            <p class="mb-0">Vásárló:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">
                             <p class="mb-0">{{ $order['order']->firstname }} {{ $order['order']->lastname }}</p>
@@ -36,7 +36,7 @@
 
                     <div class="row">
                         <div class="col-md-6 col-lg-4">
-                            <p class="font-weight-bold mb-0">Szállítási cím:</p>
+                            <p class="mb-0">Szállítási cím:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">
                             @if (resolve('App\Subesz\OrderService')->getFormattedAddress($order['order']) != '')
@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <div class="row mt-4">
+            <div class="row mt-5">
                 <div class="col-lg-3">
                     <h5 class="font-weight-bold mb-2">Termékek</h5>
                     <p class="text-muted">A megrendeléshez tartozó termékek</p>
