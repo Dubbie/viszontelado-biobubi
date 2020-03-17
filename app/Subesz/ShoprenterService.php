@@ -127,8 +127,11 @@ class ShoprenterService
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['products'] = json_decode(curl_exec($ch));
+            $result['subtotal'] = 0;
+            foreach ($result['products']->items as $product) {
+                $result['subtotal'] += $product->total;
+            }
         }
-        dd($result);
 
         curl_close($ch);
         return $result;

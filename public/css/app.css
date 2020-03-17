@@ -11158,6 +11158,10 @@ body {
   .page-content .container-xl {
     padding: 2rem;
   }
+
+  .page-content .container {
+    padding: 2rem;
+  }
 }
 
 .btn {
