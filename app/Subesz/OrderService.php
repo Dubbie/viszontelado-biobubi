@@ -68,6 +68,32 @@ class OrderService
 
     /**
      * @param $userId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function getOrdersQueryByUserId($userId) {
+        $user = User::find(Auth::user()->id);
+
+        $userZips = array_column($user->zips->toArray(), 'zip');
+        $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
+
+        $orders = Order::query();
+
+        if ($user->admin && count($user->zips) > 0) {
+            // Kiszedjük azokat amik megfeleltek a feltételeknek
+            $orders = $orders->where(function ($query) use ($userZips, $resellerZips) {
+                $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
+            });
+        } else if (!$user->admin) {
+            $orders = $orders->where(function ($query) use ($userZips) {
+                $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');
+            });
+        }
+
+        return $orders;
+    }
+
+    /**
+     * @param $userId
      * @return mixed
      */
     public function getOrdersByUserId($userId)

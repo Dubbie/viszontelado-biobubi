@@ -37,6 +37,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/fiok', 'UserController@profile');
     Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
 
+    Route::get('/bevetel', 'RevenueController@income');
+
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');

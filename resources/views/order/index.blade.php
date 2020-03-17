@@ -9,7 +9,8 @@
             @if(Auth()->user()->admin)
                 <div class="col text-right">
                     <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                       data-toggle="tooltip" title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+                       data-toggle="tooltip"
+                       title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
                        data-placement="left"
                        class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
                 </div>
@@ -104,7 +105,7 @@
                         {{--</div>--}}
                         {{--</td>--}}
                         <td>
-                            <p class="mb-0">{{ $order->lastname }} {{ $order->firstname }}
+                            <p class="mb-0">{{ $order->firstname }} {{ $order->lastname }}
                                 <small class="d-block">{{ $order->email }}</small>
                             </p>
                         </td>
