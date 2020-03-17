@@ -121,13 +121,11 @@ class OrderController extends Controller
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
-            Log::info(dump($_order));
-
             // Elmentése a Megrendelésnek db-be
             $order = new Order();
             $order->shipping_postcode = $_order['shippingPostcode'];
             $order->shipping_city = $_order['shippingCity'];
-            $order->shipping_address = $_order['shippingAddress1'];
+            $order->shipping_address = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
             $order->inner_id = $_order['innerId'];
             $order->inner_resource_id = $_order['innerResourceId'];
             $order->total = $_order['total'];
@@ -143,6 +141,8 @@ class OrderController extends Controller
 
             $order->save();
         }
+
+        return ['success' => true];
     }
 
     /**

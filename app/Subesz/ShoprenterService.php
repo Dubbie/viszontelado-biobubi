@@ -145,7 +145,8 @@ class ShoprenterService
         Log::info('-- Megrendelés frissítése --');
         $local = Order::where('inner_resource_id', $order->id)->first();
         if (!$local) {
-            Log::info(sprintf("Nem találtam ilyen azonosítót: '%s'", $order->id));
+            Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order->id));
+            Log::info('Új megrendelés létrehozása...');
             $local = new Order();
         }
 
@@ -168,9 +169,11 @@ class ShoprenterService
         $local->payment_method_name = $order->paymentMethodName;
         $local->shipping_postcode = $order->shippingPostcode;
         $local->shipping_city = $order->shippingCity;
-        $local->shipping_address = $order->shippingAddress1;
+        $local->shipping_address = sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2);
         $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
-        Log::info('Megrendelés frissítve: ' . $local->id);
+        $local->updated_at = date('Y-m-d H:i:s');
+
+        Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
 
         if ($local->save()) {
             return true;

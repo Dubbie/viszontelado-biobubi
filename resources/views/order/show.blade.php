@@ -55,6 +55,17 @@
                         </div>
                     </div>
 
+                    @if(strlen($order['order']->comment) > 0)
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                                <p class="mb-0">Megjegyzés:</p>
+                            </div>
+                            <div class="col-md-6 col-lg-8">
+                                <p class="mb-0">{{ $order['order']->comment }}</p>
+                            </div>
+                        </div>
+                    @endif
+
                     <div class="row">
                         <div class="col-md-6 col-lg-4">
                             <p class="mb-0">Állapot:</p>
