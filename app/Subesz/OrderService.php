@@ -21,7 +21,7 @@ class OrderService
      * @param $filter
      * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      */
-    public function getOrdersFiltered($filter)
+    public function getOrdersFiltered($filter = [])
     {
         $user = User::find(Auth::user()->id);
 

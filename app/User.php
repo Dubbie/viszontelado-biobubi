@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Subesz\OrderService;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -42,5 +43,17 @@ class User extends Authenticatable
      */
     public function zips() {
         return $this->hasMany(UserZip::class, 'user_id', 'id');
+    }
+
+    /**
+     * Visszaadja a felhasználóhoz tartozó megrendeléseket
+     *
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getOrders() {
+        /** @var OrderService $orderService */
+        $orderService = resolve('App\Subesz\OrderService');
+
+        return $orderService->getOrdersFiltered(['reseller' => $this->id]);
     }
 }
