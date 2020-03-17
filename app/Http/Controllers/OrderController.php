@@ -49,7 +49,18 @@ class OrderController extends Controller
         }
 
         $orders = $this->orderService->getOrdersFiltered($filter);
-        $resellers = User::where('admin', 0)->get();
+
+        $resellers = [];
+        foreach (User::all() as $u) {
+            if ($u->id == Auth::id()) {
+                continue;
+            }
+
+            if (count($u->zips) > 0) {
+                $resellers[] = $u;
+            }
+        }
+
         $lastUpdate = [
             'datetime' => $this->orderService->getLastUpdate(),
             'human' => $this->orderService->getLastUpdateHuman(),
