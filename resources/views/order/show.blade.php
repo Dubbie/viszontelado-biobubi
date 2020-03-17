@@ -2,9 +2,17 @@
 
 @section('content')
     <div class="container">
+        <p class="mb-0">
+            <a href="{{ action('OrderController@index') }}" class="btn btn-sm btn-link px-0 text-muted text-decoration-none">
+                        <span class="icon icon-sm">
+                            <i class="fas fa-arrow-left"></i>
+                        </span>
+                <span>Vissza a megrendelésekhez</span>
+            </a>
+        </p>
         <div class="row">
             <div class="col">
-                <h3 class="font-weight-bold mb-4">Megrendelés</h3>
+                <h1 class="font-weight-bold mb-4">Megrendelés</h1>
             </div>
         </div>
 

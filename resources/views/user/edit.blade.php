@@ -14,7 +14,7 @@
                 </p>
                 <div class="row">
                     <div class="col">
-                        <h3 class="font-weight-bold mb-4">Felhasználó szerkesztése</h3>
+                        <h1 class="font-weight-bold mb-4">Felhasználó szerkesztése</h1>
                     </div>
                 </div>
                 <div class="card card-body">

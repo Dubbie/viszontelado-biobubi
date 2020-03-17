@@ -14,7 +14,7 @@
                 </p>
                 <div class="row">
                     <div class="col">
-                        <h3 class="font-weight-bold mb-4">Új felhasználó</h3>
+                        <h1 class="font-weight-bold mb-4">Új felhasználó</h1>
                     </div>
                 </div>
                 <div class="card card-body">

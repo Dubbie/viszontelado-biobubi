@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <h3 class="font-weight-bold mb-4">Megrendelések</h3>
+                <h1 class="font-weight-bold mb-4">Megrendelések</h1>
             </div>
             @if(Auth()->user()->admin)
                 <div class="col text-right">
