@@ -28,14 +28,14 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
-
-        Route::get('/megrendelesek/frissites', 'ShoprenterController@updateOrders');
-        Route::get('/allapotok/frissites', 'ShoprenterController@updateOrderStatuses');
     });
 
     Route::get('/', function () {
         return view('home');
     });
+
+    Route::get('/fiok', 'UserController@profile');
+    Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
 
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
@@ -43,8 +43,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 });
 
-Route::post('/api/megrendeles/uj', 'OrderController@handleWebhook');
-
+Route::post('/api/megrendeles/uj/{privateKey}', 'OrderController@handleWebhook');
+Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
 /**
  * Runs database migrations
  */

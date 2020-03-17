@@ -8,8 +8,10 @@
             </div>
             @if(Auth()->user()->admin)
                 <div class="col text-right">
-                    <a href="{{ action('ShoprenterController@updateOrders') }}"
-                       class="btn btn-sm btn-outline-secondary">Megrendelések frissítése</a>
+                    <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
+                       data-toggle="tooltip" title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+                       data-placement="left"
+                       class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
                 </div>
             @endif
         </div>
@@ -21,20 +23,20 @@
             </div>
         @endif
 
-        @if(Auth()->user()->admin)
+        <div id="filter-order">
             <p class="mb-0">
                 <small>Szűrés</small>
             </p>
             <form class="mb-4">
                 <div class="row align-items-end">
-                    <div class="col-xl-4">
-                        <div class="form-group mb-0">
+                    <div class="col-xl">
+                        <div class="form-group">
                             <label for="filter-query">Keresett kifejezés</label>
-                            <input type="text" id="filter-query" name="filter-query" class="form-control">
+                            <input type="text" id="filter-query" name="filter-query" class="form-control" value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
                         </div>
                     </div>
-                    <div class="col-xl-3">
-                        <div class="form-group mb-0">
+                    <div class="col-xl-3 col-lg-5 col-md-4">
+                        <div class="form-group">
                             <label for="filter-status">Állapot</label>
                             <select name="filter-status" id="filter-status" class="custom-select">
                                 <option value="">Mindegy</option>
@@ -45,27 +47,31 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-xl-3 col-md-4">
-                        <div class="form-group mb-0">
-                            <label for="filter-reseller">Viszonteladó</label>
-                            <select name="filter-reseller" id="filter-reseller" class="custom-select">
-                                <option value="">Saját megrendeléseim</option>
-                                @foreach($resellers as $reseller)
-                                    <option value="{{ $reseller->id }}"
-                                            @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
-                                @endforeach
-                            </select>
+                    @if(Auth()->user()->admin)
+                        <div class="col-xl-3 col-lg-5 col-md-5">
+                            <div class="form-group">
+                                <label for="filter-reseller">Viszonteladó</label>
+                                <select name="filter-reseller" id="filter-reseller" class="custom-select">
+                                    <option value="">Saját megrendeléseim</option>
+                                    @foreach($resellers as $reseller)
+                                        <option value="{{ $reseller->id }}"
+                                                @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col">
-                        <button type="submit" class="btn btn-success">Szűrés</button>
+                    @endif
+                    <div class="col-xl-auto col-lg-2 col-md-3">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-block btn-success">Szűrés</button>
+                        </div>
                     </div>
                 </div>
             </form>
-        @endif
+        </div>
 
         <div class="card card-body">
-            <table class="table table-sm table-borderless mb-0">
+            <table class="table table-responsive-lg table-sm table-borderless mb-0">
                 <thead>
                 <tr>
                     <th scope="col">

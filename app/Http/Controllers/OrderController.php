@@ -50,12 +50,17 @@ class OrderController extends Controller
 
         $orders = $this->orderService->getOrdersFiltered($filter);
         $resellers = User::where('admin', 0)->get();
+        $lastUpdate = [
+            'datetime' => $this->orderService->getLastUpdate(),
+            'human' => $this->orderService->getLastUpdateHuman(),
+        ];
 
         return view('order.index')->with([
             'orders' => $orders,
             'resellers' => $resellers,
             'statuses' => $this->shoprenter->getAllStatuses()->items,
             'filter' => $filter,
+            'lastUpdate' => $lastUpdate,
         ]);
     }
 
@@ -90,10 +95,17 @@ class OrderController extends Controller
 
     /**
      * @param Request $request
+     * @return array
      */
-    public function handleWebhook(Request $request)
+    public function handleWebhook($privateKey, Request $request)
     {
         Log::info('- Shoprenter Új Megrendelés Webhook -');
+
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            return ['error' => 'Hibás privát kulcs lett megadva'];
+        }
+
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {

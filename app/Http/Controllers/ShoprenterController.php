@@ -19,7 +19,21 @@ class ShoprenterController extends Controller
         $this->shoprenterApi = $shoprenterService;
     }
 
-    public function updateOrders() {
+    /**
+     * @param $privateKey
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function updateOrders($privateKey) {
+        // Cron:
+        // Tíz percenként frissít
+        // */10 * * * * wget -O - "http://127.0.0.1:8000/megrendelesek/frissites/yXhYh8Dt4Fz2djgv" >/dev/null 2>&1
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            return redirect(action('OrderController@index'))->with([
+                'error' => 'Hibás privát kulcs lett megadva',
+            ]);
+        }
+
         $osds = $this->shoprenterApi->getAllStatuses();
 
         $statusMap = [];
@@ -48,15 +62,6 @@ class ShoprenterController extends Controller
             return redirect(action('OrderController@index'))->with([
                 'error' => 'Hiba történt a megrendelések frissítésekor',
             ]);
-        }
-    }
-
-    public function updateOrderStatuses() {
-        $osds = $this->shoprenterApi->getAllStatuses();
-
-        foreach ($osds->items as $osd) {
-            $orderStatusId = str_replace(sprintf('%s/orderStatuses/%s', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
-            echo $orderStatusId;
         }
     }
 }

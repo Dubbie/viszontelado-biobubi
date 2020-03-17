@@ -6,6 +6,7 @@ use App\Subesz\OrderService;
 use App\User;
 use App\UserZip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -174,11 +175,38 @@ class UserController extends Controller
         }
     }
 
-    public function orders($userId) {
-        $orders = $this->orderService->getOrdersByUserId($userId);
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function profile() {
+        return view('profile');
+    }
 
-        return view('order.index')->with([
-            'orders' => $orders
+
+    public function updatePassword(Request $request) {
+        $data = $request->validate([
+            'old-password' => 'required',
+            'password' => 'required|confirmed'
+        ]);
+
+        // Megnézzük, hogy jó-e a jelszó
+        $user = User::find(Auth::id());
+        if (!Hash::check($data['old-password'], $user->password)) {
+            return redirect(url()->previous())->with([
+                'error' => 'Helytelen jelenlegi jelszó lett megadva',
+            ]);
+        }
+
+        // Frissítsük az újra
+        $user->password = Hash::make($data['password']);
+        if ($user->save()) {
+            return redirect(url()->previous())->with([
+                'success' => 'Jelszó sikeresen frissítve',
+            ]);
+        }
+
+        return redirect(url()->previous())->with([
+            'error' => 'Hiba történt a jelszavának frissítésekor',
         ]);
     }
 }

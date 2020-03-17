@@ -6,6 +6,7 @@ namespace App\Subesz;
 use App\Order;
 use App\User;
 use App\UserZip;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -33,31 +34,36 @@ class OrderService
         $userZips = array_column($user->zips->toArray(), 'zip');
         $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
 
-        $query = (new Order())->newQuery();
+        $orders = Order::query();
+
+        if ($user->admin && count($user->zips) > 0) {
+            // Kiszedjük azokat amik megfeleltek a feltételeknek
+            $orders = $orders->where(function ($query) use ($userZips, $resellerZips) {
+               $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
+            });
+        } else if (!$user->admin) {
+            $orders = $orders->where(function ($query) use ($userZips) {
+               $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');
+            });
+        }
 
         // Filter
         if (array_key_exists('query', $filter)) {
             $searchValue = '%' . $filter['query'] . '%';
-            $query = $query->where('firstname', 'like', $searchValue)
-                ->orWhere('lastname', 'like', $searchValue)
-                ->orWhere('shipping_address', 'like', $searchValue)
-                ->orWhere('email', 'like', $searchValue);
+            $orders = $orders->where(function ($query) use ($searchValue) {
+                $query->where('firstname', 'like', $searchValue)
+                    ->orWhere('lastname', 'like', $searchValue)
+                    ->orWhere('shipping_address', 'like', $searchValue)
+                    ->orWhere('email', 'like', $searchValue);
+            });
         }
 
         // Státusz
         if (array_key_exists('status', $filter)) {
-            $query = $query->where('status_text', $filter['status']);
+            $orders = $orders->where('status_text', '=', $filter['status']);
         }
 
-        if ($user->admin && count($user->zips) == 0) {
-            return $query->orderBy('created_at', 'desc')->get();
-        } else if ($user->admin && count($user->zips) > 0) {
-            // Kiszedjük azokat amik megfeleltek a feltételeknek
-            return $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips)->orderBy('created_at', 'desc')->get();
-        } else {
-            // Kiszedjük azokat amik megfeleltek a feltételeknek
-            return $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc')->get();
-        }
+        return $orders->orderBy('created_at', 'desc')->get();
     }
 
     /**
@@ -83,6 +89,22 @@ class OrderService
         }
     }
 
+    public function getLastUpdate() {
+        $lastOrder = Order::orderBy('updated_at')->first();
+        return $lastOrder->updated_at;
+    }
+
+    public function getLastUpdateHuman() {
+        /** @var Carbon $last */
+        $last = $this->getLastUpdate();
+
+        return $last->diffForHumans();
+    }
+
+    /**
+     * @param $order
+     * @return string
+     */
     public function getFormattedAddress($order)
     {
         $out = '';

@@ -24,6 +24,15 @@
                     {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ action('UserController@profile') }}"
+                   class="nav-link @if(Request::is('fiok*')) active @endif d-flex align-items-center">
+                        <span class="icon">
+                            <i class="far fa-user-circle"></i>
+                        </span>
+                    <span class="flex-grow-1">Fiókom</span>
+                </a>
+            </li>
 
             {{-- Admin dolgok --}}
             @if(Auth()->user() && Auth()->user()->admin)

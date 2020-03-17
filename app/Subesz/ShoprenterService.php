@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 
 use App\Order;
+use Illuminate\Support\Facades\Log;
 
 class ShoprenterService
 {
@@ -116,10 +117,27 @@ class ShoprenterService
             $result['statusDescription'] = json_decode(curl_exec($ch))->items[0];
         }
 
+        // Termékek lekérése
+        if ($result['order']->orderProducts) {
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $result['order']->orderProducts->href . '&full=1',
+                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT => 120,
+                CURLOPT_RETURNTRANSFER => true,
+            ]);
+            $result['products'] = json_decode(curl_exec($ch));
+        }
+        dd($result);
+
         curl_close($ch);
         return $result;
     }
 
+    /**
+     * @param $order
+     * @return bool
+     */
     public function updateLocalOrder($order) {
         $tax = ($order->paymentMethodTaxRate + 100) / 100;
         $total = $order->total / $tax;
@@ -155,6 +173,11 @@ class ShoprenterService
         }
     }
 
+    /**
+     * @param $orderId
+     * @param $statusId
+     * @return bool|mixed
+     */
     public function updateOrderStatusId($orderId, $statusId) {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
 
@@ -181,32 +204,23 @@ class ShoprenterService
         $response = curl_exec($ch);
         curl_close($ch);
 
+        // Helyesen frissült a megrendelés
         if (strpos(json_decode($response)->orderStatus->href, $statusId) != -1) {
-            return true;
+            if ($this->updateLocalOrder(json_decode($response))) {
+                return true;
+            } else {
+                Log::error('Hiba történt a helyi megrendelés frissítésekor');
+            }
         }
 
         return json_decode($response);
     }
 
+    /**
+     * @return mixed
+     */
     public function getAllStatuses() {
         $apiUrl = sprintf('%s/orderStatusDescriptions?full=1&limit=200', env('SHOPRENTER_API'));
-
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
-            CURLOPT_RETURNTRANSFER => true,
-        ]);
-        $response = curl_exec($ch);
-        curl_close($ch);
-
-        return json_decode($response);
-    }
-
-    public function getStatusByHref($orderStatusHref) {
-        $apiUrl = sprintf('%s/orderStatus?full=1&limit=200', env('SHOPRENTER_API'));
 
         $ch = curl_init();
         curl_setopt_array($ch, [

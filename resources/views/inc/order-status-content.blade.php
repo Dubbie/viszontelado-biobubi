@@ -19,9 +19,9 @@
     </select>
 </div>
 {{-- Értesítő mail a vásárlónak --}}
-<div class="form-group mb-0">
-    <div class="custom-control custom-checkbox">
-        <input type="checkbox" class="custom-control-input" id="notify-customer" name="notify-customer">
-        <label class="custom-control-label" for="notify-customer">Értesítő e-mail küldése a vásárlónak</label>
-    </div>
-</div>
+{{--<div class="form-group mb-0">--}}
+    {{--<div class="custom-control custom-checkbox">--}}
+        {{--<input type="checkbox" class="custom-control-input" id="notify-customer" name="notify-customer">--}}
+        {{--<label class="custom-control-label" for="notify-customer">Értesítő e-mail küldése a vásárlónak</label>--}}
+    {{--</div>--}}
+{{--</div>--}}
