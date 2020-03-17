@@ -142,16 +142,18 @@ class ShoprenterService
      * @return bool
      */
     public function updateLocalOrder($order) {
+        Log::info('-- Megrendelés frissítése --');
+        $local = Order::where('inner_resource_id', $order->id)->first();
+        if (!$local) {
+            Log::info(sprintf("Nem találtam ilyen azonosítót: '%s'", $order->id));
+            $local = new Order();
+        }
+
         $tax = ($order->paymentMethodTaxRate + 100) / 100;
         $total = $order->total / $tax;
         $taxPrice = intval($order->total) - $total;
         $totalGross = intval($order->total);
         $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
-
-        $local = Order::where('inner_resource_id', $order->id)->first();
-        if (!$local) {
-            $local = new Order();
-        }
 
         $local->inner_id = $order->innerId;
         $local->inner_resource_id = $order->id;
@@ -168,6 +170,7 @@ class ShoprenterService
         $local->shipping_city = $order->shippingCity;
         $local->shipping_address = $order->shippingAddress1;
         $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
+        Log::info('Megrendelés frissítve: ' . $local->id);
 
         if ($local->save()) {
             return true;
@@ -204,19 +207,15 @@ class ShoprenterService
         ];
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
-        $response = curl_exec($ch);
+        $newOrder = json_decode(curl_exec($ch));
         curl_close($ch);
 
         // Helyesen frissült a megrendelés
-        if (strpos(json_decode($response)->orderStatus->href, $statusId) != -1) {
-            if ($this->updateLocalOrder(json_decode($response))) {
-                return true;
-            } else {
-                Log::error('Hiba történt a helyi megrendelés frissítésekor');
-            }
+        if (strpos($newOrder->orderStatus->href, $statusId) != -1) {
+            return true;
         }
 
-        return json_decode($response);
+        return false;
     }
 
     /**

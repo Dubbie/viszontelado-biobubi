@@ -42,7 +42,7 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    <div class="row mb-2">
                         <div class="col-md-6 col-lg-4">
                             <p class="mb-0">Szállítási cím:</p>
                         </div>
@@ -52,6 +52,15 @@
                             @else
                                 <p class="mb-0">Nincs megadva helyes cím</p>
                             @endif
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 col-lg-4">
+                            <p class="mb-0">Állapot:</p>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <p class="mb-0" style="color: {{ $order['statusDescription']->color }}">{{ $order['statusDescription']->name }}</p>
                         </div>
                     </div>
                 </div>
@@ -76,8 +85,7 @@
                             </div>
                         </div>
                     @endforeach
-                    <hr class="mb-4">
-                    <div class="row no-gutters text-right">
+                    <div class="row no-gutters text-right mt-4">
                         <div class="col-7 col-md-9 col-lg-10">
                             <span class="text-muted">Nettó részösszeg:</span>
                         </div>

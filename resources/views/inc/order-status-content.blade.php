@@ -1,7 +1,9 @@
 {{-- Rejtett mező a megrendelésnek --}}
 <input type="hidden" name="order-id" value="{{ $order['order']->id }}">
+{{-- Rejtett mező a megrendelés jelenlegi státuszának --}}
+<input type="hidden" name="order-status-now" value="{{ $order['order']->orderStatus->href}}">
 {{-- Állapot --}}
-<div class="form-group">
+<div class="form-group mb-0">
     <label for="order-status-href">
         <span>Megrendelési állapot</span>
         <span class="icon icon-sm text-muted has-tooltip" data-toggle="tooltip" data-placement="right"

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Delivery;
 use App\Order;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
@@ -144,23 +145,48 @@ class OrderController extends Controller
         }
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function updateStatus(Request $request)
     {
         $data = $request->validate([
             'order-id' => 'required',
+            'order-status-now' => 'required',
             'order-status-href' => 'required',
             'notify-customer' => 'nullable'
         ]);
 
+        // Ellenőrizzük le, hogy változott-e a státusz href
+        if ($data['order-status-href'] == $data['order-status-now']) {
+            return redirect(url()->previous())->with([
+                'error' => 'A megrendelés státusza már a kiválasztott státuszban van',
+            ]);
+        }
+
         $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
 
         if ($this->shoprenter->updateOrderStatusId($data['order-id'], $statusId)) {
-            return redirect(url()->previous())->with([
+            // Kiszállítva állító
+            if ($data['order-status-href'] == sprintf('%s/orderStatuses/b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=', env('SHOPRENTER_API'))) {
+                $delivery = new Delivery();
+                $delivery->user_id = Auth::id();
+                $delivery->order_id = $this->orderService->getLocalOrderByResourceId($data['order-id'])->id;
+                $delivery->save();
+            } else {
+                $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($data['order-id'])->id);
+                if ($delivery) {
+                    $delivery->delete();
+                }
+            }
+
+            return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
                 'success' => 'Állapot sikeresen frissítve',
             ]);
         }
 
-        return redirect(url()->previous())->with([
+        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
             'error' => 'Ismeretlen hiba történt az állapot frissítésekor',
         ]);
     }

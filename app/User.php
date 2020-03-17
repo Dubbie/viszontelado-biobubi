@@ -56,4 +56,11 @@ class User extends Authenticatable
 
         return $orderService->getOrdersFiltered(['reseller' => $this->id]);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function deliveries() {
+        return $this->hasMany(Delivery::class, 'user_id', 'id');
+    }
 }

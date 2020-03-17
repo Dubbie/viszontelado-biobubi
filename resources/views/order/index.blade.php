@@ -32,7 +32,8 @@
                     <div class="col-xl">
                         <div class="form-group">
                             <label for="filter-query">Keresett kifejezés</label>
-                            <input type="text" id="filter-query" name="filter-query" class="form-control" value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
+                            <input type="text" id="filter-query" name="filter-query" class="form-control"
+                                   value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
                         </div>
                     </div>
                     <div class="col-xl-3 col-lg-5 col-md-4">

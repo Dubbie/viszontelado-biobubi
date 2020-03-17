@@ -89,16 +89,39 @@ class OrderService
         }
     }
 
+    /**
+     * @return mixed
+     */
     public function getLastUpdate() {
         $lastOrder = Order::orderBy('updated_at')->first();
+
+        if (!$lastOrder) {
+            return null;
+        }
+
         return $lastOrder->updated_at;
     }
 
+    /**
+     * @return string
+     */
     public function getLastUpdateHuman() {
         /** @var Carbon $last */
         $last = $this->getLastUpdate();
 
-        return $last->diffForHumans();
+        if ($last) {
+            return $last->diffForHumans();
+        }
+
+        return '';
+    }
+
+    /**
+     * @param $innerId
+     * @return mixed
+     */
+    public function getLocalOrderByResourceId($resourceId) {
+        return Order::where('inner_resource_id', $resourceId)->first();
     }
 
     /**
