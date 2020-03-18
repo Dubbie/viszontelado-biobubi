@@ -28,19 +28,19 @@
             <p class="mb-0">
                 <small>Szűrés</small>
             </p>
-            <form class="mb-4">
-                <div class="row align-items-end">
+            <form>
+                <div class="form-row align-items-end">
                     <div class="col-xl">
                         <div class="form-group">
                             <label for="filter-query">Keresett kifejezés</label>
-                            <input type="text" id="filter-query" name="filter-query" class="form-control"
+                            <input type="text" id="filter-query" name="filter-query" class="form-control form-control-sm"
                                    value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
                         </div>
                     </div>
                     <div class="col-xl-3 col-lg-5 col-md-4">
                         <div class="form-group">
                             <label for="filter-status">Állapot</label>
-                            <select name="filter-status" id="filter-status" class="custom-select">
+                            <select name="filter-status" id="filter-status" class="custom-select custom-select-sm">
                                 <option value="">Mindegy</option>
                                 @foreach($statuses as $status)
                                     <option value="{{ $status->name }}"
@@ -53,7 +53,7 @@
                         <div class="col-xl-3 col-lg-5 col-md-5">
                             <div class="form-group">
                                 <label for="filter-reseller">Viszonteladó</label>
-                                <select name="filter-reseller" id="filter-reseller" class="custom-select">
+                                <select name="filter-reseller" id="filter-reseller" class="custom-select custom-select-sm">
                                     <option value="">Saját megrendeléseim</option>
                                     @foreach($resellers as $reseller)
                                         <option value="{{ $reseller->id }}"
@@ -65,7 +65,7 @@
                     @endif
                     <div class="col-xl-auto col-lg-2 col-md-3">
                         <div class="form-group">
-                            <button type="submit" class="btn btn-block btn-success">Szűrés</button>
+                            <button type="submit" class="btn btn-sm btn-block btn-success">Szűrés</button>
                         </div>
                     </div>
                 </div>

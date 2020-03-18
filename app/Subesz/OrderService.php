@@ -94,6 +94,14 @@ class OrderService
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|null|object
+     */
+    public function getLatestOrder() {
+        $order = $this->getOrdersQueryByUserId(Auth::id());
+        return $order->orderBy('created_at', 'DESC')->first();
+    }
+
+    /**
      * @return mixed
      */
     public function getLastUpdate() {

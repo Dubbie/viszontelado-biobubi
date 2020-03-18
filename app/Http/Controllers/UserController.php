@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Subesz\OrderService;
+use App\Subesz\RevenueService;
 use App\User;
 use App\UserZip;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -16,13 +18,37 @@ class UserController extends Controller
     /** @var OrderService */
     private $orderService;
 
+    /** @var RevenueService */
+    private $revenueService;
+
     /**
      * UserController constructor.
      * @param OrderService $orderService
+     * @param RevenueService $revenueService
      */
-    public function __construct(OrderService $orderService)
+    public function __construct(OrderService $orderService, RevenueService $revenueService)
     {
         $this->orderService = $orderService;
+        $this->revenueService = $revenueService;
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function home() {
+        $start = Carbon::now()->subDays(7);
+        $end = Carbon::now();
+
+        $income = $this->revenueService->getIncomeByRange($start, $end)['sum'];
+        $expense = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
+        $profit = $income - $expense;
+
+        return view('home')->with([
+            'order' => $this->orderService->getLatestOrder(),
+            'income' => $income,
+            'expense' => $expense,
+            'profit' => $profit,
+        ]);
     }
 
     /**
@@ -182,7 +208,10 @@ class UserController extends Controller
         return view('profile');
     }
 
-
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function updatePassword(Request $request) {
         $data = $request->validate([
             'old-password' => 'required',

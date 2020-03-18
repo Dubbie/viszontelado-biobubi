@@ -30,9 +30,7 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/{userId}', 'UserController@show');
     });
 
-    Route::get('/', function () {
-        return view('home');
-    });
+    Route::get('/', 'UserController@home');
 
     Route::get('/fiok', 'UserController@profile');
     Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
@@ -65,7 +63,10 @@ Route::get("/migrate/{secret}", function ($secret) {
     if ($secret != env("MAINTENANCE_TOKEN")) {
         abort(403, "Invalid maintenance token.");
     }
-    echo "DB maintenance starts <br>";
-    echo Artisan::call('migrate', ['--force' => true]);
-    echo "DB maintenance Over";
+
+    Artisan::call('migrate', ['--force' => true]);
+
+    return redirect('/')->with([
+        'success' => 'Migráció sikeresen lefuttatva!',
+    ]);
 });
