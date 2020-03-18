@@ -11212,6 +11212,21 @@ body {
   padding: 0.5rem 0.75rem;
 }
 
+.btn-muted {
+  color: rgba(22, 38, 66, 0.34);
+  transition: all 250ms ease-in-out;
+}
+
+.btn-muted:hover {
+  color: rgba(22, 38, 66, 0.67);
+}
+
+.btn-muted:active,
+.btn-muted:focus {
+  outline: 0;
+  box-shadow: none;
+}
+
 .card {
   border: 0;
   border-radius: 0.75rem;

@@ -1,5 +1,5 @@
 @if(count($errors) > 0)
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger rounded-0 border-0" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -10,7 +10,7 @@
 @endif
 
 @if(session('success'))
-    <div class="alert alert-success" role="alert">
+    <div class="alert alert-success rounded-0 border-0" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>
@@ -19,7 +19,7 @@
 @endif
 
 @if(session('error'))
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger rounded-0 border-0" role="alert">
         <button type="button" class="close" data-dismiss="alert" aria-label="Close">
             <span aria-hidden="true">&times;</span>
         </button>

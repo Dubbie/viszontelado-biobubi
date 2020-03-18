@@ -106,7 +106,7 @@
                         {{--</td>--}}
                         <td>
                             <p class="mb-0">{{ $order->firstname }} {{ $order->lastname }}
-                                <small class="d-block">{{ $order->email }}</small>
+                                <small class="d-block text-muted">{{ $order->email }}</small>
                             </p>
                         </td>
                         <td class="align-middle"><p class="mb-0">{{ $order->status_text }}</p></td>

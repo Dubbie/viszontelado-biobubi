@@ -63,4 +63,11 @@ class User extends Authenticatable
     public function deliveries() {
         return $this->hasMany(Delivery::class, 'user_id', 'id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function expenses() {
+        return $this->hasMany(Expense::class, 'user_id', 'id');
+    }
 }

@@ -38,7 +38,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
 
     Route::get('/api/bevetel', 'RevenueController@fetchIncome');
+    Route::get('/api/kiadas/{expenseId}/torles', 'RevenueController@destroyExpense');
     Route::get('/api/kiadas', 'RevenueController@fetchExpense');
+
     Route::get('/penzugy', 'RevenueController@income');
     Route::post('/kiadas/mentes', 'RevenueController@storeExpense');
     Route::get('/kiadas', 'RevenueController@expense');

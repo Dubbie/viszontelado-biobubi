@@ -45,3 +45,18 @@
 .btn-toolbar .btn-sm {
   padding: 0.5rem 0.75rem;
 }
+
+.btn-muted {
+  color: transparentize(#162642, 0.66);
+  transition: all 250ms ease-in-out;
+
+  &:hover {
+    color: transparentize(#162642, 0.33);
+  }
+
+  &:active,
+  &:focus {
+    outline: 0;
+    box-shadow: none;
+  }
+}

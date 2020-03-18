@@ -130,4 +130,22 @@ class RevenueController extends Controller
             Auth::id()
         );
     }
+
+    /**
+     * @param $expenseId
+     * @return array
+     */
+    public function destroyExpense($expenseId) {
+        $expense = Auth::user()->expenses->find(intval($expenseId));
+        $success = false;
+
+        if ($expense) {
+            $expense->delete();
+            $success = true;
+        }
+
+        return [
+            'success' => $success,
+        ];
+    }
 }

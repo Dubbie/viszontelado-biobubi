@@ -104,35 +104,52 @@
                     for (const expense of data) {
                         const listGroupItem = document.createElement('div');
 
-                        const name = document.createElement('p');
-                        name.classList.add('mb-0', 'font-weight-bold');
-                        name.innerText = expense.name;
-
                         const row = document.createElement('div');
-                        row.classList.add('row');
+                        row.classList.add('row', 'mb-2');
+                        row.dataset.expenseId = expense.id;
 
                         const colLeft = document.createElement('div');
-                        colLeft.classList.add('col-md-6');
+                        colLeft.classList.add('col-md-10');
+                        colLeft.style.lineHeight = '1';
+
+                        const name = document.createElement('p');
+                        name.classList.add('mb-1', 'font-weight-bold');
+                        name.innerText = expense.name;
 
                         const amount = document.createElement('p');
-                        amount.classList.add('mb-0', 'text-muted', 'font-weight-bold');
+                        amount.classList.add('mb-1', 'text-muted', 'font-weight-bold');
                         amount.innerText = expense.amount.toLocaleString() + ' Ft';
-
-                        colLeft.appendChild(amount);
-
-                        const colRight = document.createElement('div');
-                        colRight.classList.add('col-md-6', 'text-right');
 
                         const date = document.createElement('small');
                         date.classList.add('mb-0', 'text-muted');
                         date.innerText = expense.date;
 
-                        colRight.appendChild(date);
+                        colLeft.appendChild(name);
+                        colLeft.appendChild(amount);
+                        colLeft.appendChild(date);
+
+                        const colRight = document.createElement('div');
+                        colRight.classList.add('col-md-2', 'text-right');
+
+                        const btnDel = document.createElement('button');
+                        btnDel.type = 'button';
+                        btnDel.classList.add('btn', 'btn-sm', 'btn-muted');
+                        btnDel.addEventListener('click', (e) => {
+                            if (confirm('Biztosan ki szeretné törölni ezt a kiadást? (' + expense.name + ')\nEz a folyamat nem visszafordítható.')) {
+                                deleteExpense(expense.id);
+                            }
+                        });
+
+                        const icon = document.createElement('i');
+                        icon.classList.add('fas', 'fa-times-circle');
+
+                        btnDel.appendChild(icon);
+
+                        colRight.appendChild(btnDel);
 
                         row.appendChild(colLeft);
                         row.appendChild(colRight);
 
-                        listGroupItem.appendChild(name);
                         listGroupItem.appendChild(row);
 
                         listGroup.appendChild(listGroupItem);
@@ -157,6 +174,16 @@
                         elProfit.classList.add('text-danger');
                     }
                 }
+            }
+
+            function deleteExpense(expenseId) {
+                const row = $('.row[data-expense-id="' + expenseId + '"]')[0];
+
+                fetch('/api/kiadas/' + expenseId + '/torles')
+                    .then(response => response.json())
+                    .then(json => {
+                        fetchExpenses();
+                    });
             }
 
             function addData(chart, label, data) {
