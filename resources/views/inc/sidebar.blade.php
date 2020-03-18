@@ -25,21 +25,21 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{{ action('UserController@profile') }}"
-                   class="nav-link @if(Request::is('fiok*')) active @endif d-flex align-items-center">
-                    <span class="icon">
-                        <i class="far fa-user-circle"></i>
-                    </span>
-                    <span class="flex-grow-1">Fiókom</span>
-                </a>
-            </li>
-            <li class="nav-item">
                 <a href="{{ action('RevenueController@income') }}"
                    class="nav-link @if(Request::is('penzugy*')) active @endif d-flex align-items-center">
                     <span class="icon">
                         <i class="fas fa-dollar-sign"></i>
                     </span>
                     <span class="flex-grow-1">Pénzügy</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{{ action('UserController@profile') }}"
+                   class="nav-link @if(Request::is('fiok*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="far fa-user-circle"></i>
+                    </span>
+                    <span class="flex-grow-1">Fiókom</span>
                 </a>
             </li>
 

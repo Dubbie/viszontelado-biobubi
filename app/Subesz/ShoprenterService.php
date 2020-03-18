@@ -165,6 +165,7 @@ class ShoprenterService
         $local->lastname = $order->lastname;
         $local->email = $order->email;
         $local->status_text = $this->statusMap[$orderStatusId]['name'];
+        $local->status_color = $this->statusMap[$orderStatusId]['color'];
         $local->shipping_method_name = $order->shippingMethodName;
         $local->payment_method_name = $order->paymentMethodName;
         $local->shipping_postcode = $order->shippingPostcode;

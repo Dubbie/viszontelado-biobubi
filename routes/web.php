@@ -56,7 +56,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 });
 
-Route::post('/api/megrendeles/uj/{privateKey}', 'OrderController@handleWebhook');
+Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
 /**
  * Runs database migrations

@@ -17,6 +17,7 @@
                     <th scope="col">ID</th>
                     <th scope="col">Név</th>
                     <th scope="col">E-mail</th>
+                    <th scope="col">Ir. számok</th>
                     <th scope="col">Kiszállítva</th>
                     <th scope="col"></th>
                 </tr>
@@ -27,6 +28,7 @@
                         <td>{{ $user->id }}</td>
                         <td>{{ $user->name }} @if($user->admin) <span class="badge badge-success">Admin</span> @endif</td>
                         <td>{{ $user->email }}</td>
+                        <td>{{ count($user->zips) }} db</td>
                         <td>{{ count($user->deliveries) }} db</td>
                         <td class="text-right">
                             <button type="button" class="btn-user-details btn-icon" data-toggle="modal" data-target="#userDetailsModal" data-user-id="{{ $user->id }}">

@@ -109,7 +109,9 @@
                                 <small class="d-block text-muted">{{ $order->email }}</small>
                             </p>
                         </td>
-                        <td class="align-middle"><p class="mb-0">{{ $order->status_text }}</p></td>
+                        <td class="align-middle">
+                            <p class="mb-0" style="color: {{ $order->status_color }}">{{ $order->status_text }}</p>
+                        </td>
                         <td class="align-middle"><p class="mb-0">{{ $order->getFormattedAddress() }}</p></td>
                         <td class="align-middle"><p
                                     class="mb-0 text-nowrap">{{ $order->created_at->format('Y. m. d. H:i') }}</p>

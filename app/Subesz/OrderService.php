@@ -23,29 +23,7 @@ class OrderService
      */
     public function getOrdersFiltered($filter = [])
     {
-        $user = User::find(Auth::user()->id);
-
-        // Csak adminnak engedjük a reseller szűrést...
-        if (array_key_exists('reseller', $filter) && Auth::user()->admin) {
-            $user = User::find($filter['reseller']);
-        }
-
-        // Ha admin és van irányítószáma akkor nézzük meg, hogy mik azok a megrendelések amikhez nincs viszonteladói irányítószám
-        $userZips = array_column($user->zips->toArray(), 'zip');
-        $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
-
-        $orders = Order::query();
-
-        if ($user->admin && count($user->zips) > 0) {
-            // Kiszedjük azokat amik megfeleltek a feltételeknek
-            $orders = $orders->where(function ($query) use ($userZips, $resellerZips) {
-               $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
-            });
-        } else if (!$user->admin) {
-            $orders = $orders->where(function ($query) use ($userZips) {
-               $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');
-            });
-        }
+        $orders = $this->getOrdersQueryByUserId(Auth::id());
 
         // Filter
         if (array_key_exists('query', $filter)) {
