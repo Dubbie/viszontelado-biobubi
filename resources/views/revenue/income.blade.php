@@ -148,7 +148,7 @@
             }
 
             function updateProfit() {
-                if (incomeSum !== null && expenseSum !== null) {
+                if (incomeSum != null && expenseSum != null) {
                     const profit = incomeSum - expenseSum;
                     elProfit.classList.remove('text-muted', 'text-danger', 'text-succes');
                     elProfit.innerText = profit.toLocaleString() + ' Ft';
@@ -190,6 +190,7 @@
                         for (const data of json.data) {
                             addData(chart, data.x, data);
                         }
+                        updateProfit();
                     });
             }
 
