@@ -4,23 +4,62 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <h1 class="font-weight-bold mb-4">Bevétel</h1>
+                <h1 class="font-weight-bold mb-4">Pénzügy</h1>
             </div>
         </div>
 
-        <div class="card card-body">
-            <div>
-                <h2 id="income-range" class="d-inline-block font-weight-bold mb-0" style="cursor: pointer">
-                    <span id="income-range-label"></span>
-                    <span class="icon">
-                        <i class="fas fa-angle-down"></i>
-                    </span>
-                </h2>
+        <p id="income-range" class="d-inline-block btn btn-outline-primary mb-4">
+            <span id="income-range-label"></span>
+            <span class="icon">
+                <i class="fas fa-angle-down"></i>
+            </span>
+        </p>
+        <div class="row">
+            <div class="col-xl-8">
+                <div class="card card-body mb-4">
+                    <div>
+                        <h5 class="font-weight-bold mb-1">Bevételek a megrendelésekből</h5>
+                    </div>
+                    <p class="mb-4">
+                        <span id="income-sum" class="font-weight-bold text-success h5 mb-4">Betöltés alatt...</span>
+                    </p>
+                    <canvas id="income-chart" width="100" height="50"></canvas>
+                </div>
+
+                <div class="card card-body">
+                    <div class="row align-items-baseline">
+                        <div class="col-auto">
+                            <h2 class="font-weight-bold mb-0">Profit</h2>
+                        </div>
+                        <div class="col">
+                            <h2 id="profit" class="text-muted mb-0">Betöltés alatt...</h2>
+                        </div>
+                    </div>
+
+                </div>
             </div>
-            <p id="income-sum" class="font-weight-bold text-muted mb-4">0 Ft</p>
-            <canvas id="income-chart" width="100" height="50"></canvas>
+
+            <div class="col-xl-4">
+                <div class="card card-body">
+                    <div class="row mb-2">
+                        <div class="col">
+                            <h5 class="font-weight-bold mb-0">Kiadások</h5>
+                            <p id="expense-sum" class="mb-0 text-muted">Betöltés alatt...</p>
+                        </div>
+                        <div class="col-xl-auto">
+                            <button type="button" class="btn btn-sm btn-outline-secondary"
+                                    data-toggle="modal" data-target="#newExpenseModal">
+                                <span>Új kiadás</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="expense-container"></div>
+                </div>
+            </div>
         </div>
     </div>
+
+    @include('modal.new-expense')
 @endsection
 
 @section('scripts')
@@ -28,10 +67,97 @@
         $(function () {
             let startDate = null;
             let endDate = null;
-            const elIncomeRange = document.getElementById('income-range');
-            const labelIncomeRange = document.getElementById('income-range-label');
+
+            const elRangePicker = document.getElementById('income-range');
+            const labelRangePicker = document.getElementById('income-range-label');
             const elIncomeSum = document.getElementById('income-sum');
             let countMap = null;
+            let incomeSum = null;
+
+            const elExpenseSum = document.getElementById('expense-sum');
+            const elExpenseContainer = document.getElementById('expense-container');
+            let expenseSum = null;
+
+            const elProfit = document.getElementById('profit');
+
+            function fetchExpenses() {
+                // Szedjük ki az új adatokat
+                fetch('/api/kiadas?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
+                    .then(response => response.json())
+                    .then(json => {
+                        elExpenseSum.innerText = json.sum.toLocaleString() + ' Ft';
+                        expenseSum = json.sum;
+                        renderExpenseData(json.data);
+
+                        updateProfit();
+                    });
+            }
+
+            function renderExpenseData(data) {
+                while (elExpenseContainer.lastChild) {
+                    elExpenseContainer.removeChild(elExpenseContainer.lastChild);
+                }
+
+                if (data.length > 0) {
+                    const listGroup = document.createElement('div');
+
+                    for (const expense of data) {
+                        const listGroupItem = document.createElement('div');
+
+                        const name = document.createElement('p');
+                        name.classList.add('mb-0', 'font-weight-bold');
+                        name.innerText = expense.name;
+
+                        const row = document.createElement('div');
+                        row.classList.add('row');
+
+                        const colLeft = document.createElement('div');
+                        colLeft.classList.add('col-md-6');
+
+                        const amount = document.createElement('p');
+                        amount.classList.add('mb-0', 'text-muted', 'font-weight-bold');
+                        amount.innerText = expense.amount.toLocaleString() + ' Ft';
+
+                        colLeft.appendChild(amount);
+
+                        const colRight = document.createElement('div');
+                        colRight.classList.add('col-md-6', 'text-right');
+
+                        const date = document.createElement('small');
+                        date.classList.add('mb-0', 'text-muted');
+                        date.innerText = expense.date;
+
+                        colRight.appendChild(date);
+
+                        row.appendChild(colLeft);
+                        row.appendChild(colRight);
+
+                        listGroupItem.appendChild(name);
+                        listGroupItem.appendChild(row);
+
+                        listGroup.appendChild(listGroupItem);
+                    }
+
+                    elExpenseContainer.appendChild(listGroup);
+                } else {
+                    const label = document.createElement('p');
+                    label.innerText = "Nincsenek a megadott időintervallumra eső kiadások";
+                    label.classList.add('mb-0');
+                    elExpenseContainer.appendChild(label);
+                }
+            }
+
+            function updateProfit() {
+                if (incomeSum !== null && expenseSum !== null) {
+                    const profit = incomeSum - expenseSum;
+                    elProfit.classList.remove('text-muted', 'text-danger', 'text-succes');
+                    elProfit.innerText = profit.toLocaleString() + ' Ft';
+                    elProfit.classList.add('text-success');
+                    if (profit < 0) {
+                        elProfit.classList.add('text-danger');
+                    }
+                }
+            }
 
             function addData(chart, label, data) {
                 chart.data.labels.push(label);
@@ -51,16 +177,16 @@
 
             function fetchIncome() {
                 // Frissítsük a címkét
-                labelIncomeRange.innerText = moment(startDate).format('YYYY MMMM Do') + ' - ' + moment(endDate).format('YYYY MMMM Do');
+                labelRangePicker.innerText = moment(startDate).format('YYYY MMMM Do') + ' - ' + moment(endDate).format('YYYY MMMM Do');
 
                 // Szedjük ki az új adatokat
                 fetch('/api/bevetel?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
                     .then(response => response.json())
                     .then(json => {
                         removeData(chart);
-
                         countMap = json.count;
                         elIncomeSum.innerText = json.sum.toLocaleString() + ' Ft';
+                        incomeSum = json.sum;
                         for (const data of json.data) {
                             addData(chart, data.x, data);
                         }
@@ -80,12 +206,12 @@
                         pointBackgroundColor: "#80b6f4",
                         pointHoverBackgroundColor: "#80b6f4",
                         pointHoverBorderColor: "#80b6f4",
-                        pointBorderWidth: 10,
-                        pointHoverRadius: 10,
+                        pointBorderWidth: 7,
+                        pointHoverRadius: 7,
                         pointHoverBorderWidth: 1,
-                        pointRadius: 3,
+                        pointRadius: 2,
                         fill: false,
-                        borderWidth: 4,
+                        borderWidth: 3,
                         data: [],
                     }]
                 },
@@ -114,7 +240,8 @@
                             ticks: {
                                 padding: 20,
                                 fontColor: "rgba(0,0,0,0.5)",
-                                fontStyle: "bold"
+                                fontStyle: "bold",
+                                maxTicksLimit: 10,
                             }
                         }]
                     },
@@ -160,7 +287,7 @@
             startDate.setDate(1);
             moment.locale('hu');
 
-            $(elIncomeRange).daterangepicker({
+            $(elRangePicker).daterangepicker({
                 "locale": {
                     "format": "MM/DD/YYYY",
                     "separator": " - ",
@@ -202,9 +329,51 @@
                 endDate = end.toDate();
 
                 fetchIncome();
+                fetchExpenses();
+            });
+
+            // Új kiadáshoz
+            $('#e-date').daterangepicker({
+                "locale": {
+                    "format": "YYYY/MM/DD",
+                    "separator": " - ",
+                    "applyLabel": "Frissítés",
+                    "cancelLabel": "Mégse",
+                    "fromLabel": "From",
+                    "toLabel": "To",
+                    "customRangeLabel": "Custom",
+                    "weekLabel": "W",
+                    "daysOfWeek": [
+                        "Va",
+                        "Hé",
+                        "Ke",
+                        "Sze",
+                        "Csü",
+                        "Pé",
+                        "Szo"
+                    ],
+                    "monthNames": [
+                        "Január",
+                        "Február",
+                        "Március",
+                        "Április",
+                        "Május",
+                        "Június",
+                        "Július",
+                        "Augusztus",
+                        "Szeptember",
+                        "Október",
+                        "November",
+                        "December"
+                    ],
+                    "firstDay": 1
+                },
+                "startDate": moment(),
+                "singleDatePicker": true,
             });
 
             fetchIncome();
+            fetchExpenses();
         });
     </script>
 @endsection

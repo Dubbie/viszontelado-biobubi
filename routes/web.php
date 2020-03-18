@@ -38,7 +38,15 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
 
     Route::get('/api/bevetel', 'RevenueController@fetchIncome');
-    Route::get('/bevetel', 'RevenueController@income');
+    Route::get('/api/kiadas', 'RevenueController@fetchExpense');
+    Route::get('/penzugy', 'RevenueController@income');
+    Route::post('/kiadas/mentes', 'RevenueController@storeExpense');
+    Route::get('/kiadas', 'RevenueController@expense');
+
+    // Régi URL...
+    Route::get('/bevetel', function() {
+        return redirect(action('RevenueController@income'));
+    });
 
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');

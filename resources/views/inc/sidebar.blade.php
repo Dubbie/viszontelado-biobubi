@@ -17,9 +17,9 @@
             <li class="nav-item">
                 <a href="{{ action('OrderController@index') }}"
                    class="nav-link @if(Request::is('megrendelesek*')) active @endif d-flex align-items-center">
-                        <span class="icon">
-                            <i class="far fa-clipboard"></i>
-                        </span>
+                    <span class="icon">
+                        <i class="far fa-clipboard"></i>
+                    </span>
                     <span class="flex-grow-1">Megrendelések</span>
                     {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
                 </a>
@@ -27,19 +27,19 @@
             <li class="nav-item">
                 <a href="{{ action('UserController@profile') }}"
                    class="nav-link @if(Request::is('fiok*')) active @endif d-flex align-items-center">
-                        <span class="icon">
-                            <i class="far fa-user-circle"></i>
-                        </span>
+                    <span class="icon">
+                        <i class="far fa-user-circle"></i>
+                    </span>
                     <span class="flex-grow-1">Fiókom</span>
                 </a>
             </li>
             <li class="nav-item">
                 <a href="{{ action('RevenueController@income') }}"
-                   class="nav-link @if(Request::is('bevetel*')) active @endif d-flex align-items-center">
-                        <span class="icon">
-                            <i class="fas fa-dollar-sign"></i>
-                        </span>
-                    <span class="flex-grow-1">Bevétel</span>
+                   class="nav-link @if(Request::is('penzugy*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </span>
+                    <span class="flex-grow-1">Pénzügy</span>
                 </a>
             </li>
 

@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h3 class="font-weight-bold mb-4">Fiókom</h3>
+        <h1 class="font-weight-bold mb-4">Fiókom</h1>
 
         <div class="row">
             <div class="col-md-6">

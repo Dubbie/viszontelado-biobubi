@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Expense;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class RevenueController extends Controller
 {
@@ -77,5 +79,55 @@ class RevenueController extends Controller
         ];
 
         return $response;
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function expense()
+    {
+        return view('revenue.expense');
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function storeExpense(Request $request)
+    {
+        $data = $request->validate([
+            'e-name' => 'required',
+            'e-amount' => 'required',
+            'e-date' => 'required',
+        ]);
+
+        $expense = new Expense();
+        $expense->name = $data['e-name'];
+        $expense->amount = intval($data['e-amount']);
+        $expense->date = date('Y-m-d H:i:s', strtotime($data['e-date']));
+        $expense->user_id = Auth::id();
+        $expense->save();
+
+        return redirect(url()->previous())->with([
+            'success' => 'Kiadás sikeresen hozzáadva',
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function fetchExpense(Request $request)
+    {
+        $input = $request->validate([
+            'start-date' => 'required',
+            'end-date' => 'required',
+        ]);
+
+        return $this->revenueService->getExpenseByRange(
+            Carbon::parse($input['start-date']),
+            Carbon::parse($input['end-date']),
+            Auth::id()
+        );
     }
 }

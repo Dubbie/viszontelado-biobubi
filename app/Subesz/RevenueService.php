@@ -2,6 +2,7 @@
 
 namespace App\Subesz;
 
+use App\Expense;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,8 @@ class RevenueService
      * @param Carbon $end
      * @return array
      */
-    public function getIncomeByRange($start, $end) {
+    public function getIncomeByRange($start, $end)
+    {
         // Alap lekérés a jelenlegi felhasználóhoz
         $query = $this->orderService->getOrdersQueryByUserId(Auth::id());
 
@@ -65,6 +67,35 @@ class RevenueService
 
             $sum += $stat['total'];
         }
+
+        return [
+            'data' => $data,
+            'sum' => $sum,
+        ];
+    }
+
+    /**
+     * @param Carbon $start
+     * @param Carbon $end
+     * @param $userId
+     * @return array
+     */
+    public function getExpenseByRange($start, $end, $userId)
+    {
+        // Visszanyerjük a megfelelő lekérdezéssel
+        $result = Expense::select('id', 'name', 'amount', 'date')->where([
+            ['user_id', $userId],
+            ['date', '>=', $start],
+            ['date', '<=', $end],
+        ])->orderBy('date', 'DESC')
+            ->get();
+
+        $sum = 0;
+        foreach ($result as $expense) {
+            $sum += $expense->amount;
+        }
+
+        $data = $result;
 
         return [
             'data' => $data,
