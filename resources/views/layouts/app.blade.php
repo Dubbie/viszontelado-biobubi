@@ -26,6 +26,9 @@
 
     {{-- Select2 --}}
     <link href="https://cdn.jsdelivr.net/npm/select2@4.0.13/dist/css/select2.min.css" rel="stylesheet" />
+
+    {{-- DateRangePicker --}}
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 </head>
 <body>
 <div class="page-wrapper">
@@ -81,6 +84,10 @@
 {{-- ChartJs --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
+{{-- Moment && DatePicker--}}
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/moment@2.24.0/min/moment-with-locales.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+
 {{-- Tooltipek a sidebarnak --}}
 <script>
     $(document).ready(function() {
@@ -112,7 +119,7 @@
         $('.has-tooltip[data-toggle="tooltip"]').tooltip();
 
         // Inicializálja a custom file inputot.
-        bsCustomFileInput.init();
+        // bsCustomFileInput.init();
     });
 </script>
 @yield('scripts')
