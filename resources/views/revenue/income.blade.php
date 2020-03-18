@@ -31,6 +31,7 @@
             const elIncomeRange = document.getElementById('income-range');
             const labelIncomeRange = document.getElementById('income-range-label');
             const elIncomeSum = document.getElementById('income-sum');
+            let countMap = null;
 
             function addData(chart, label, data) {
                 chart.data.labels.push(label);
@@ -58,6 +59,7 @@
                     .then(json => {
                         removeData(chart);
 
+                        countMap = json.count;
                         elIncomeSum.innerText = json.sum.toLocaleString() + ' Ft';
                         for (const data of json.data) {
                             addData(chart, data.x, data);
@@ -115,6 +117,28 @@
                                 fontStyle: "bold"
                             }
                         }]
+                    },
+                    tooltips: {
+                        custom: function(tooltip) {
+                            if (!tooltip) return;
+                            tooltip.displayColors = false;
+                        },
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                const value = tooltipItem.value.toLocaleString() + ' Ft';
+                                const found = countMap.filter(obj => {
+                                    return obj.date === tooltipItem.xLabel;
+                                });
+
+                                if (found.length === 1) {
+                                    let multiString = [found[0].count + 'db megrendelés'];
+                                    multiString.push(value);
+                                    return multiString;
+                                } else {
+                                    return value;
+                                }
+                            }
+                        }
                     }
                 }
             });
