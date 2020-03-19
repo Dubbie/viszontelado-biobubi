@@ -60,11 +60,17 @@ class ShoprenterController extends Controller
 
         $orders = $this->shoprenterApi->getAllOrders();
         $successCount = 0;
+        $orderResources = [];
         foreach ($orders as $order) {
+            $orderResources[] = $order->id;
+
             if ($this->orderService->updateLocalOrder($order)) {
                 $successCount++;
             }
         }
+
+        // Töröljük ki azokat amik már nincsenek a rendszerbe
+        Order::whereNotIn('inner_resource_id', $orderResources)->delete();
 
         if ($successCount == count($orders)) {
             return redirect(action('OrderController@index'))->with([
