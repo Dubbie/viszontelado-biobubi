@@ -94,6 +94,8 @@ class ShoprenterController extends Controller
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
+            Log::info($_order);
+
             // Elmentése a Megrendelésnek db-be
             $localOrder = new Order();
             $localOrder->shipping_postcode = $_order['shippingPostcode'];
@@ -111,17 +113,14 @@ class ShoprenterController extends Controller
             $localOrder->payment_method_name = $_order['paymentMethodName'];
             $localOrder->status_text = $_order['orderHistory']['statusText'];
             $localOrder->status_color = '#ff00ff';
-            $localOrder->created_at = date('Y-m-d H:i:s', strtotime($_order['orderCreated']));
+            $localOrder->created_at = date('Y-m-d H:i:s');
 
             if (!$localOrder->save()) {
                 return ['success' => false];
             }
 
-            // Szedjük ki a részletes adatokat
-            $order = $this->shoprenterApi->getOrder($localOrder->inner_resource_id);
-
             // Mentsük el a számlát
-            $invoice = $this->billingoService->createInvoiceFromOrder($order);
+            $invoice = $this->billingoService->createInvoiceFromOrder($_order);
             if (!$invoice) {
                 Log::error('Hiba történt a számla létrehozásakor!');
                 return ['success' => false];
