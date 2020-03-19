@@ -11272,3 +11272,20 @@ body {
   pointer-events: none;
 }
 
+.toolbar {
+  position: fixed;
+  bottom: 0;
+  left: 250px;
+  right: 0;
+  background-color: #fff;
+  color: #2b4149;
+  padding: 1rem 4rem;
+  border-top: 1px solid #e9ecef;
+  transform: translateY(100%);
+  transition: all 400ms ease-in-out;
+}
+
+.toolbar.show {
+  transform: translateY(0);
+}
+

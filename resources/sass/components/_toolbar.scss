@@ -1,0 +1,16 @@
+.toolbar {
+  position: fixed;
+  bottom: 0;
+  left: $sidebar-width;
+  right: 0;
+  background-color: $white;
+  color: $text-base;
+  padding: 1rem 4rem;
+  border-top: 1px solid $gray-200;
+  transform: translateY(100%);
+  transition: all 400ms ease-in-out;
+
+  &.show {
+    transform: translateY(0);
+  }
+}

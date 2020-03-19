@@ -159,7 +159,7 @@ class UserController extends Controller
         $data = $request->validate([
             'u-name' => 'required',
             'u-email' => 'required|email|unique:users,email,' . $userId,
-            'u-zip' => 'required',
+            'u-zip' => 'nullable',
         ]);
 
         $user = User::find($userId);
@@ -170,7 +170,7 @@ class UserController extends Controller
         UserZip::where('user_id', $userId)->delete();
 
         // Bejönnek az újak...
-        $zips = json_decode($data['u-zip'], true);
+        $zips = $data['u-zip'] ? json_decode($data['u-zip'], true) : [];
         $zipSuccess = 0;
         foreach ($zips as $i => $zip) {
             Validator::make($zip, [

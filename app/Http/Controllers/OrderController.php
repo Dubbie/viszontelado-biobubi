@@ -92,7 +92,6 @@ class OrderController extends Controller
     public function show($orderId)
     {
         $order = $this->shoprenterApi->getOrder($orderId);
-        $invoice = $this->billingoService->makeDataFromOrder($order);
 
         // Kezeljük le a státusz frissítéskor létrejövő session-t
         if (!session()->has('updateLocalOrder') || session('updateLocalOrder') != false) {
@@ -165,6 +164,58 @@ class OrderController extends Controller
 
         return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
             'error' => 'Ismeretlen hiba történt az állapot frissítésekor',
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function massUpdateStatus(Request $request)
+    {
+        $data = $request->validate([
+            'order-ids' => 'required',
+            'order-status-href' => 'required',
+        ]);
+
+        // Átalakítjuk a bemenetet
+        $orderIds = json_decode($data['order-ids']);
+
+        // Átalakítjuk a státusz linkjét, hogy csak az azonosítót kapjuk vissza
+        $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
+
+        // Végigmegyünk a kijelölésen
+        $successCount = 0;
+        $shouldDeliver = $statusId == 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=';
+
+        foreach ($orderIds as $orderId) {
+            if ($this->shoprenterApi->updateOrderStatusId($orderId, $statusId)) {
+                // Kiszállítva állító
+                if ($shouldDeliver) {
+                    $delivery = new Delivery();
+                    $delivery->user_id = Auth::id();
+                    $delivery->order_id = $this->orderService->getLocalOrderByResourceId($orderId)->id;
+                    $delivery->save();
+                } else {
+                    $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($orderId)->id);
+                    if ($delivery) {
+                        $delivery->delete();
+                    }
+                }
+
+                $successCount++;
+            }
+        }
+
+        // Mehet a redirect
+        if ($successCount == count($orderIds)) {
+            return redirect(action('OrderController@index'))->with([
+                'success' => sprintf('%s db megrendelés állapota sikeresen frissítve', $successCount),
+            ]);
+        }
+
+        return redirect(action('OrderController@index'))->with([
+            'error' => 'Hiba történt az állapotok frissítésekor',
         ]);
     }
 }

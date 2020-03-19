@@ -51,6 +51,7 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
+    Route::post('/megrendelesek/tomeges/allapot/frissites', 'OrderController@massUpdateStatus');
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 });

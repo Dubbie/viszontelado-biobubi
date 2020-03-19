@@ -31,7 +31,7 @@
                         </div>
                         <div class="form-group">
                             <label for="u-zip">Hozzárendelt irányítószámok <small class="text-muted">Az itt megadott irányítószámokra fog szűrni a rendszer</small></label>
-                            <input type="text" id="u-zip" name="u-zip" class="form-control" value="{{ $zips }}" required>
+                            <input type="text" id="u-zip" name="u-zip" class="form-control" value="{{ $zips }}">
                         </div>
                         <div class="form-group mb-0 text-right">
                             <button type="submit" class="btn btn-sm btn-success">Felhasználó frissítése</button>

@@ -152,9 +152,9 @@ class OrderService
         $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
         $local->updated_at = date('Y-m-d H:i:s');
 
-        Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
 
         if ($local->save()) {
+            Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
             return true;
         } else {
             return false;
