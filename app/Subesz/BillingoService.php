@@ -32,19 +32,19 @@ class BillingoService
      */
     public function createInvoiceFromOrder($order)
     {
-        $createdAt = Carbon::now();
+        $createdAt = Carbon::parse($order['order']->dateCreated);
         $due = $createdAt->copy()->addDays(8);
 
         $clientData = [
-            'name' => sprintf('%s %s', $order['shippingFirstname'], $order['shippingLastname']),
-            'email' => $order['email'],
+            'name' => sprintf('%s %s', $order['order']->firstname, $order['order']->lastname),
+            'email' => $order['order']->email,
             'billing_address' => [
-                'country' => $order['shippingCountryName'],
-                'postcode' => $order['shippingPostcode'],
-                'city' => $order['shippingCity'],
-                'street_name' => trim(sprintf('%s %s', $order['shippingAddress1'], $order['shippingAddress2'])),
+                'country' => $order['order']->shippingCountryName,
+                'postcode' => $order['order']->shippingPostcode,
+                'city' => $order['order']->shippingCity,
+                'street_name' => trim(sprintf('%s %s', $order['order']->shippingAddress1, $order['order']->shippingAddress2)),
             ],
-            'phone' => $order['phone'],
+            'phone' => $order['order']->phone,
         ];
 
         $client = null;
@@ -52,39 +52,32 @@ class BillingoService
             $client = $this->billingo->post('clients', $clientData);
 
             $items = [];
-            foreach ($order['orderProducts']['orderProduct'] as $item) {
-                /** @var ShoprenterService $shoprenterApi */
-                $shoprenterApi = resolve('App\Subesz\ShoprenterService');
-
-                // Részletek lekérdezése a pontos árak érdekében
-                $product = $shoprenterApi->getOrderProduct($item['innerResourceId']);
-
-                // ÁFA csoport
-                $vatId = $product->taxRate == "27.0000" ? 1 : null;
+            foreach ($order['products']->items as $item) {
+                $vatId = $item->taxRate == "27.0000" ? 1 : null;
                 if (!$vatId) {
-                    return "Lekezeletlen áfa azonosító! (" . $product->taxRate . ")";
+                    return "Lekezeletlen áfa azonosító! (" . $item->taxRate . ")";
                 }
 
                 $items[] = [
-                    'description' => $product->name,
-                    'qty' => intval($product->stock1),
+                    'description' => $item->name,
+                    'qty' => intval($item->stock1),
                     'unit' => 'db',
                     'vat_id' => $vatId,
-                    'net_unit_price' => intval($product->price),
+                    'net_unit_price' => floatval($item->price),
                 ];
             }
 
-//            foreach ($order['totals'] as $total) {
-//                if ($total->type == 'COUPON') {
-//                    $items[] = [
-//                        'description' => 'Kupon kedvezmény',
-//                        'qty' => 1,
-//                        'unit' => 'db',
-//                        'vat_id' => 1,
-//                        'gross_unit_price' => floatval($total->value),
-//                    ];
-//                }
-//            }
+            foreach ($order['totals'] as $total) {
+                if ($total->type == 'COUPON') {
+                    $items[] = [
+                        'description' => 'Kupon kedvezmény',
+                        'qty' => 1,
+                        'unit' => 'db',
+                        'vat_id' => 1,
+                        'gross_unit_price' => floatval($total->value),
+                    ];
+                }
+            }
 
             $invoiceData = [
                 'fulfillment_date' => $createdAt->format('Y-m-d'),
