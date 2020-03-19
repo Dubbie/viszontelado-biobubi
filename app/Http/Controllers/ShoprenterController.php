@@ -119,7 +119,11 @@ class ShoprenterController extends Controller
                 return ['success' => false];
             }
 
+            // Szedjük ki a részletes adatokat
+            $order = $this->shoprenterApi->getOrder($localOrder->inner_resource_id);
+
             // Mentsük el a számlát
+            Log::info(var_dump($order));
             $invoice = $this->billingoService->createInvoiceFromOrder($_order);
             if (!$invoice) {
                 Log::error('Hiba történt a számla létrehozásakor!');
