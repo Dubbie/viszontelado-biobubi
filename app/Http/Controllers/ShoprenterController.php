@@ -2,28 +2,43 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
+use App\Subesz\BillingoService;
+use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ShoprenterController extends Controller
 {
     /** @var ShoprenterService */
     private $shoprenterApi;
 
+    /** @var OrderService */
+    private $orderService;
+
+    /** @var BillingoService */
+    private $billingoService;
+
     /**
      * ShoprenterController constructor.
+     * @param OrderService $orderService
      * @param ShoprenterService $shoprenterService
+     * @param BillingoService $billingoService
      */
-    public function __construct(ShoprenterService $shoprenterService)
+    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService, BillingoService $billingoService)
     {
+        $this->orderService = $orderService;
         $this->shoprenterApi = $shoprenterService;
+        $this->billingoService = $billingoService;
     }
 
     /**
      * @param $privateKey
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function updateOrders($privateKey) {
+    public function updateOrders($privateKey)
+    {
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
             return redirect(action('OrderController@index'))->with([
@@ -44,16 +59,16 @@ class ShoprenterController extends Controller
         }
 
         $orders = $this->shoprenterApi->getAllOrders();
-        $succesCount = 0;
+        $successCount = 0;
         foreach ($orders as $order) {
-            if ($this->shoprenterApi->updateLocalOrder($order)) {
-                $succesCount++;
+            if ($this->orderService->updateLocalOrder($order)) {
+                $successCount++;
             }
         }
 
-        if ($succesCount == count($orders)) {
+        if ($successCount == count($orders)) {
             return redirect(action('OrderController@index'))->with([
-                'success' => sprintf('%s db megrendelés sikeresen frissítve', $succesCount),
+                'success' => sprintf('%s db megrendelés sikeresen frissítve', $successCount),
             ]);
         } else {
             return redirect(action('OrderController@index'))->with([
@@ -63,6 +78,7 @@ class ShoprenterController extends Controller
     }
 
     /**
+     * @param $privateKey
      * @param Request $request
      * @return array
      */
@@ -79,25 +95,37 @@ class ShoprenterController extends Controller
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
             // Elmentése a Megrendelésnek db-be
-            $order = new Order();
-            $order->shipping_postcode = $_order['shippingPostcode'];
-            $order->shipping_city = $_order['shippingCity'];
-            $order->shipping_address = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
-            $order->inner_id = $_order['innerId'];
-            $order->inner_resource_id = $_order['innerResourceId'];
-            $order->total = $_order['total'];
-            $order->total_gross = $_order['totalGross'];
-            $order->tax_price = $_order['taxPrice'];
-            $order->firstname = $_order['firstname'];
-            $order->lastname = $_order['lastname'];
-            $order->email = $_order['email'];
-            $order->shipping_method_name = $_order['shippingMethodName'];
-            $order->payment_method_name = $_order['paymentMethodName'];
-            $order->status_text = $_order['orderHistory']['statusText'];
-            $order->status_color = '#ff00ff';
-            $order->created_at = date('Y-m-d H:i:s', strtotime($_order['orderCreated']));
+            $localOrder = new Order();
+            $localOrder->shipping_postcode = $_order['shippingPostcode'];
+            $localOrder->shipping_city = $_order['shippingCity'];
+            $localOrder->shipping_address = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
+            $localOrder->inner_id = $_order['innerId'];
+            $localOrder->inner_resource_id = $_order['innerResourceId'];
+            $localOrder->total = $_order['total'];
+            $localOrder->total_gross = $_order['totalGross'];
+            $localOrder->tax_price = $_order['taxPrice'];
+            $localOrder->firstname = $_order['firstname'];
+            $localOrder->lastname = $_order['lastname'];
+            $localOrder->email = $_order['email'];
+            $localOrder->shipping_method_name = $_order['shippingMethodName'];
+            $localOrder->payment_method_name = $_order['paymentMethodName'];
+            $localOrder->status_text = $_order['orderHistory']['statusText'];
+            $localOrder->status_color = '#ff00ff';
+            $localOrder->created_at = date('Y-m-d H:i:s', strtotime($_order['orderCreated']));
 
-            $order->save();
+            if (!$localOrder->save()) {
+                return ['success' => false];
+            }
+
+            // Szedjük ki a részletes adatokat
+            $order = $this->shoprenterApi->getOrder($localOrder->inner_resource_id);
+
+            // Mentsük el a számlát
+            $invoice = $this->billingoService->createInvoiceFromOrder($order);
+            if (!$invoice) {
+                Log::error('Hiba történt a számla létrehozásakor!');
+                return ['success' => false];
+            }
         }
 
         return ['success' => true];

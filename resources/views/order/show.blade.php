@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <p class="mb-0">
-            <a href="{{ action('OrderController@index') }}" class="btn btn-sm btn-link px-0 text-muted text-decoration-none">
+            <a href="{{ action('OrderController@index') }}" class="btn-muted font-weight-bold text-decoration-none">
                         <span class="icon icon-sm">
                             <i class="fas fa-arrow-left"></i>
                         </span>
@@ -97,24 +97,32 @@
                         </div>
                     @endforeach
                     <div class="row no-gutters text-right mt-4">
-                        <div class="col-7 col-md-9 col-lg-10">
-                            <span class="text-muted">Nettó részösszeg:</span>
-                        </div>
-                        <div class="col-5 col-md-3 col-lg-2">
-                            <span class="h5">{{ number_format($order['subtotal'], 0, '.', ' ') }} Ft</span>
-                        </div>
-                        <div class="col-7 col-md-9 col-lg-10">
-                            <span class="text-muted">Áfa ({{ intval($order['order']->paymentMethodTaxRate) }}%):</span>
-                        </div>
-                        <div class="col-5 col-md-3 col-lg-2">
-                            <span class="h5">{{ number_format(($order['order']->total - $order['subtotal']), 0, '.', ' ') }} Ft</span>
-                        </div>
-                        <div class="col-7 col-md-9 col-lg-10">
-                            <span class="text-muted">Bruttó részösszeg:</span>
-                        </div>
-                        <div class="col-5 col-md-3 col-lg-2">
-                            <span class="font-weight-bold h5">{{ number_format($order['order']->total, 0, '.', ' ') }} Ft</span>
-                        </div>
+                        @foreach($order['totals'] as $total)
+                            <div class="col-7 col-md-9 col-lg-10">
+                                <span class="text-muted">{{ $total->name }}</span>
+                            </div>
+                            <div class="col-5 col-md-3 col-lg-2">
+                                <span class="h5 @if($total->type == 'TOTAL') font-weight-bold @endif">{{ number_format($total->value, 0, '.', ' ') }} Ft</span>
+                            </div>
+                        @endforeach
+                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
+                            {{--<span class="text-muted">Nettó részösszeg:</span>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
+                            {{--<span class="h5">{{ number_format($order['subtotal'], 0, '.', ' ') }} Ft</span>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
+                            {{--<span class="text-muted">Áfa ({{ intval($order['order']->paymentMethodTaxRate) }}%):</span>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
+                            {{--<span class="h5">{{ number_format(($order['order']->total - $order['subtotal']), 0, '.', ' ') }} Ft</span>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
+                            {{--<span class="text-muted">Bruttó részösszeg:</span>--}}
+                        {{--</div>--}}
+                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
+                            {{--<span class="font-weight-bold h5">{{ number_format($order['order']->total, 0, '.', ' ') }} Ft</span>--}}
+                        {{--</div>--}}
                     </div>
                 </div>
             </div>

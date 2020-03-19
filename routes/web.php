@@ -1,5 +1,6 @@
 <?php
 
+use Billingo\API\Connector\HTTP\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 

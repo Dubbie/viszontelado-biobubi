@@ -16,6 +16,7 @@ class ShoprenterService
      */
     public function __construct()
     {
+
         $osds = $this->getAllStatuses();
 
         foreach ($osds->items as $osd) {
@@ -127,60 +128,22 @@ class ShoprenterService
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['products'] = json_decode(curl_exec($ch));
-            $result['subtotal'] = 0;
-            foreach ($result['products']->items as $product) {
-                $result['subtotal'] += $product->total;
-            }
+        }
+
+        // order gift wrappings:
+        if ($result['order']->orderTotals) {
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $result['order']->orderTotals->href . '&full=1',
+                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT => 120,
+                CURLOPT_RETURNTRANSFER => true,
+            ]);
+            $result['totals'] = json_decode(curl_exec($ch))->items;
         }
 
         curl_close($ch);
         return $result;
-    }
-
-    /**
-     * @param $order
-     * @return bool
-     */
-    public function updateLocalOrder($order) {
-        Log::info('-- Megrendelés frissítése --');
-        $local = Order::where('inner_resource_id', $order->id)->first();
-        if (!$local) {
-            Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order->id));
-            Log::info('Új megrendelés létrehozása...');
-            $local = new Order();
-        }
-
-        $tax = ($order->paymentMethodTaxRate + 100) / 100;
-        $total = $order->total / $tax;
-        $taxPrice = intval($order->total) - $total;
-        $totalGross = intval($order->total);
-        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
-
-        $local->inner_id = $order->innerId;
-        $local->inner_resource_id = $order->id;
-        $local->total = $total;
-        $local->total_gross = $totalGross;
-        $local->tax_price = $taxPrice;
-        $local->firstname = $order->firstname;
-        $local->lastname = $order->lastname;
-        $local->email = $order->email;
-        $local->status_text = $this->statusMap[$orderStatusId]['name'];
-        $local->status_color = $this->statusMap[$orderStatusId]['color'];
-        $local->shipping_method_name = $order->shippingMethodName;
-        $local->payment_method_name = $order->paymentMethodName;
-        $local->shipping_postcode = $order->shippingPostcode;
-        $local->shipping_city = $order->shippingCity;
-        $local->shipping_address = sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2);
-        $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
-        $local->updated_at = date('Y-m-d H:i:s');
-
-        Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
-
-        if ($local->save()) {
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**
@@ -216,7 +179,14 @@ class ShoprenterService
 
         // Helyesen frissült a megrendelés
         if (strpos($newOrder->orderStatus->href, $statusId) != -1) {
-            return true;
+            // Frissítsük a helyi változatot
+            /** @var OrderService $orderService */
+            $orderService = resolve('App\Subesz\OrderService');
+            if ($orderService->updateLocalOrder($newOrder)) {
+                return true;
+            } else {
+                Log::error(sprintf('Hiba történt a helyi megrendelés frissítésekor (Azonosító: %s)'), $newOrder->id);
+            }
         }
 
         return false;

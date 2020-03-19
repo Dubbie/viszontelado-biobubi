@@ -5,7 +5,7 @@
         <div class="row">
             <div class="col-lg-8 offset-lg-2">
                 <p class="mb-0">
-                    <a href="{{ action('UserController@index') }}" class="btn btn-sm btn-link px-0 text-muted text-decoration-none">
+                    <a href="{{ action('UserController@index') }}" class="btn-muted font-weight-bold text-decoration-none">
                         <span class="icon icon-sm">
                             <i class="fas fa-arrow-left"></i>
                         </span>
