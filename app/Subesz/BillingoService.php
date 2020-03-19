@@ -53,17 +53,24 @@ class BillingoService
 
             $items = [];
             foreach ($order['orderProducts']['orderProduct'] as $item) {
-                $vatId = $item['taxRate'] == "27.0000" ? 1 : null;
+                /** @var ShoprenterService $shoprenterApi */
+                $shoprenterApi = resolve('App\Subesz\ShoprenterService');
+
+                // Részletek lekérdezése a pontos árak érdekében
+                $product = $shoprenterApi->getOrderProduct($item['innerResourceId']);
+
+                // ÁFA csoport
+                $vatId = $product->taxRate == "27.0000" ? 1 : null;
                 if (!$vatId) {
-                    return "Lekezeletlen áfa azonosító! (" . $item['taxRate'] . ")";
+                    return "Lekezeletlen áfa azonosító! (" . $product->taxRate . ")";
                 }
 
                 $items[] = [
-                    'description' => $item['name'],
-                    'qty' => intval($item['quantity']),
+                    'description' => $product->name,
+                    'qty' => intval($product->stock1),
                     'unit' => 'db',
                     'vat_id' => $vatId,
-                    'net_unit_price' => intval($item['price']),
+                    'net_unit_price' => intval($product->price),
                 ];
             }
 

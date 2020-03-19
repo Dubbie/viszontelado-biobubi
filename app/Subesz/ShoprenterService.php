@@ -119,7 +119,7 @@ class ShoprenterService
         }
 
         // Termékek lekérése
-        if ($result['order']->orderProducts) {
+        if (property_exists($result['order'], 'orderProducts') && $result['order']->orderProducts) {
             curl_setopt_array($ch, [
                 CURLOPT_URL => $result['order']->orderProducts->href . '&full=1',
                 CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
@@ -144,6 +144,27 @@ class ShoprenterService
 
         curl_close($ch);
         return $result;
+    }
+
+    /**
+     * @param $orderProductHref
+     * @return mixed
+     */
+    public function getOrderProduct($orderProductHref) {
+        $url = sprintf('%s/%s', env('SHOPRENTER_API'), $orderProductHref);
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        $response = json_decode(curl_exec($ch));
+        curl_close($ch);
+
+        return $response;
     }
 
     /**
