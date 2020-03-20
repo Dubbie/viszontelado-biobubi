@@ -76,6 +76,14 @@ class BillingoService
                         'vat_id' => 1,
                         'gross_unit_price' => floatval($total->value),
                     ];
+                } else if($total->type == 'SHIPPING' && intval($total->value) > 0) {
+                    $items[] = [
+                        'description' => 'Szállítási költség',
+                        'qty' => 1,
+                        'unit' => 'db',
+                        'vat_id' => 1,
+                        'gross_unit_price' => floatval($total->value),
+                    ];
                 }
             }
 
