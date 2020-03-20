@@ -64,7 +64,10 @@ class ShoprenterController extends Controller
         foreach ($orders as $order) {
             $orderResources[] = $order->id;
 
-            if ($this->orderService->updateLocalOrder($order)) {
+            if ($local = $this->orderService->updateLocalOrder($order)) {
+                // Kiírjuk a helyeset
+                /** @var Order $local */
+                Log::info('Hozzátartozó számlázó fiók neve: ' . $local->getReseller()['correct']->name);
                 $successCount++;
             }
         }
@@ -129,7 +132,10 @@ class ShoprenterController extends Controller
             $order = $this->shoprenterApi->getOrder($orderId);
 
             // Mentsük el a számlát
-            $invoice = $this->billingoService->createInvoiceFromOrder($order);
+            /** @var Order $local */
+            $reseller = $local->getReseller()['correct'];
+            Log::info('Hozzátartozó számlázó fiók neve: ' . $reseller->name);
+            $invoice = $this->billingoService->createInvoiceFromOrder($order, $reseller);
             if (!$invoice) {
                 Log::error('Hiba történt a számla létrehozásakor!');
                 return ['success' => false];

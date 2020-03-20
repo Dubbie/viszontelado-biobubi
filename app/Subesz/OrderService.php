@@ -45,7 +45,13 @@ class OrderService
      */
     public function getOrdersFiltered($filter = [])
     {
-        $orders = $this->getOrdersQueryByUserId(Auth::id());
+        // Viszonteladó filter
+        $userId = Auth::id();
+        if (array_key_exists('reseller', $filter)) {
+            $userId = intval($filter['reseller']);
+        }
+
+        $orders = $this->getOrdersQueryByUserId($userId);
 
         // Filter
         if (array_key_exists('query', $filter)) {
@@ -155,7 +161,7 @@ class OrderService
 
         if ($local->save()) {
             Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
-            return true;
+            return $local;
         } else {
             return false;
         }

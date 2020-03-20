@@ -124,11 +124,11 @@ class UserController extends Controller
         $zips = json_decode($data['u-zip'], true);
         $zipSuccess = 0;
         foreach ($zips as $i => $zip) {
-            Validator::make($zip, [
-                'value' => 'unique:user_zips,zip'
-            ], [
-                'value.unique' => 'Az irányítószám (:input) már foglalt!',
-            ])->validate();
+//            Validator::make($zip, [
+//                'value' => 'unique:user_zips,zip'
+//            ], [
+//                'value.unique' => 'Az irányítószám (:input) már foglalt!',
+//            ])->validate();
 
             $userZip = new UserZip();
             $userZip->user_id = $user->id;
@@ -173,11 +173,11 @@ class UserController extends Controller
         $zips = $data['u-zip'] ? json_decode($data['u-zip'], true) : [];
         $zipSuccess = 0;
         foreach ($zips as $i => $zip) {
-            Validator::make($zip, [
-                'value' => 'unique:user_zips,zip'
-            ], [
-                'value.unique' => 'Az irányítószám (:input) már foglalt!',
-            ])->validate();
+//            Validator::make($zip, [
+//                'value' => 'unique:user_zips,zip'
+//            ], [
+//                'value.unique' => 'Az irányítószám (:input) már foglalt!',
+//            ])->validate();
 
             $userZip = new UserZip();
             $userZip->user_id = $user->id;

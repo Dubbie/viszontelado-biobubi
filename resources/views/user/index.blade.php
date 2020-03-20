@@ -63,6 +63,7 @@
                     userDetails.innerHTML = html;
                     $(loading).hide();
                     $(userDetails).show();
+                    $('.has-tooltip').tooltip();
                 });
             });
         });

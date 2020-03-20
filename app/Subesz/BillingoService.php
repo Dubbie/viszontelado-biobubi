@@ -12,26 +12,29 @@ use Illuminate\Support\Facades\Log;
 
 class BillingoService
 {
-    /** @var Request */
-    private $billingo;
-
     /**
      * BillingoService constructor.
      */
     public function __construct()
     {
-        $this->billingo = new Request([
-            'public_key' => env('BILLINGO_PUBLIC_KEY'),
-            'private_key' => env('BILLINGO_PRIVATE_KEY'),
-        ]);
     }
 
     /**
      * @param $order
+     * @param $user
      * @return bool|mixed|\Psr\Http\Message\ResponseInterface
      */
-    public function createInvoiceFromOrder($order)
+    public function createInvoiceFromOrder($order, $user)
     {
+        if (!$this->userHasBillingoData($user)) {
+            return false;
+        }
+
+        $billingo = new Request([
+            'public_key' => $user->billingo_public_key,
+            'private_key' => $user->billingo_private_key,
+        ]);
+
         $createdAt = Carbon::parse($order['order']->dateCreated);
         $due = $createdAt->copy()->addDays(8);
 
@@ -49,13 +52,15 @@ class BillingoService
 
         $client = null;
         try {
-            $client = $this->billingo->post('clients', $clientData);
+            $client = $billingo->post('clients', $clientData);
 
             $items = [];
             foreach ($order['products']->items as $item) {
                 $vatId = $item->taxRate == "27.0000" ? 1 : null;
                 if (!$vatId) {
-                    return "Lekezeletlen áfa azonosító! (" . $item->taxRate . ")";
+                    Log::error("Lekezeletlen áfa azonosító! (" . $item->taxRate . ")");
+                    Log::info(dump($item));
+                    return false;
                 }
 
                 $items[] = [
@@ -102,7 +107,7 @@ class BillingoService
                 'items' => $items,
             ];
 
-            $invoice = $this->billingo->post('invoices', $invoiceData);
+            $invoice = $billingo->post('invoices', $invoiceData);
             if ($invoice) {
                 Log::info(sprintf('Számla sikeresen létrejött! (Számla azonosító: %s)', $invoice['id']));
                 return true;
@@ -119,5 +124,31 @@ class BillingoService
         }
 
         return false;
+    }
+
+    /**
+     * @param $user
+     * @return bool
+     */
+    public function userHasBillingoData($user) {
+        $userError = false;
+
+        if ($user->billingo_public_key && strlen($user->billingo_public_key) == 0) {
+            Log::error('Hiba a számla létrehozásakor!');
+            Log::error(sprintf('A megadott felhasználóhoz nem lett megadva Billingo nyilvános kulcs! (Felhasználó: %s)', $user->name));
+            $userError = true;
+        }
+        if ($user->billingo_private_key && strlen($user->billingo_private_key) == 0) {
+            Log::error('Hiba a számla létrehozásakor!');
+            Log::error(sprintf('A megadott felhasználóhoz nem lett megadva Billingo privát kulcs! (Felhasználó: %s)', $user->name));
+            $userError = true;
+        }
+        if ($user->block_uid && strlen($user->block_uid) == 0) {
+            Log::error('Hiba a számla létrehozásakor!');
+            Log::error(sprintf('A megadott felhasználóhoz nem lett megadva Billingo számlázási tömb azonosító! (Felhasználó: %s)', $user->name));
+            $userError = true;
+        }
+
+        return !$userError;
     }
 }
