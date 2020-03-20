@@ -132,8 +132,8 @@ class ShoprenterController extends Controller
             $order = $this->shoprenterApi->getOrder($orderId);
 
             // Mentsük el a számlát
-            /** @var Order $local */
-            $reseller = $local->getReseller()['correct'];
+            /** @var Order $localOrder */
+            $reseller = $localOrder->getReseller()['correct'];
             Log::info('Hozzátartozó számlázó fiók neve: ' . $reseller->name);
             $invoice = $this->billingoService->createInvoiceFromOrder($order, $reseller);
             if (!$invoice) {
