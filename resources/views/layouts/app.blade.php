@@ -51,8 +51,9 @@
         <footer id="footer">
             <p class="mb-0 px-5 my-2">
                 <small>
-                    <a href="https://dubbie.github.io">MihóDániel</a>
                     <span class="ml-4">&copy;{{ date('Y') }} BioBubi Viszonteladó Portál</span>
+                    <span class="px-2 text-muted">•</span>
+                    <span><a href="https://dubbie.github.io">@dubbie</a></span>
                 </small>
             </p>
         </footer>

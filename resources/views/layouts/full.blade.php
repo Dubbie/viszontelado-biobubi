@@ -39,7 +39,7 @@
             <small>
                 <span class="ml-4">&copy;{{ date('Y') }} BioBubi Viszonteladó Portál</span>
                 <span class="px-2 text-muted">•</span>
-                <a href="https://dubbie.github.io">MihóDániel</a>
+                <span><a href="https://dubbie.github.io">@dubbie</a></span>
             </small>
         </p>
     </div>
