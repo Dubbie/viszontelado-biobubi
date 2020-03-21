@@ -1,0 +1,68 @@
+$auth-bg-color: #f2e9d8;
+
+.auth {
+  background-color: $auth-bg-color;
+}
+
+.auth .page-content {
+  margin-left: 0;
+  min-height: auto;
+}
+
+.auth .text-muted {
+  color: #5d6b6d !important;
+}
+
+.auth .form-control {
+  border-color: $text-base;
+  background-color: $auth-bg-color;
+
+  &.rounded-pill {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  &:focus {
+    box-shadow: 0 0 0 0.2rem transparentize($text-base, 0.8);
+  }
+}
+
+.auth .inner-addon .icon {
+  color: $text-base;
+  opacity: 0.75;
+}
+
+.auth .inner-addon .form-control.rounded-pill {
+  padding-left: 2rem;
+}
+
+.auth .custom-control-label::before {
+  background-color: $auth-bg-color;
+  border-color: $text-base;
+}
+
+.auth .custom-control-label::after {
+  background-color: $text-base;
+}
+
+.auth .custom-control-input:checked ~ .custom-control-label::before {
+  border-color: $text-base;
+  background-color: $text-base;
+}
+
+.auth .custom-switch .custom-control-input:checked ~ .custom-control-label::after {
+  background-color: $auth-bg-color;
+}
+
+.auth .custom-control-input:not(:disabled):active ~ .custom-control-label::before {
+  background-color: transparentize($text-base, 0.8);
+  border-color: $text-base;
+}
+
+.auth .custom-control-input:focus:not(:checked) ~ .custom-control-label::before {
+  border-color: $text-base;
+}
+
+.auth .custom-control-input:focus ~ .custom-control-label::before {
+  box-shadow: 0 0 0 0.2rem transparentize($text-base, 0.8);
+}

@@ -11,13 +11,39 @@
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+
+    {{-- FontAwesome Kit --}}
+    <script src="https://kit.fontawesome.com/9dd01b031a.js"></script>
 </head>
-<body class="body-fullscreen">
-<div id="app">
-    <main class="py-4">
-        @yield('content')
-    </main>
+<body class="auth">
+<div class="page-wrapper">
+    <div class="container">
+        <div class="row no-gutters mt-5">
+            <div class="col-md-6 order-1 order-md-0">
+                <img src="{{ url('/storage/recycle.jpg') }}" alt="" class="mw-100">
+            </div>
+            <div class="col-md-6">
+                <main class="page-content p-5">
+                    <h3 class="font-weight-bold mb-1 text-primary">BioBubi Viszonteladó Portál</h3>
+                    <p class="text-muted mb-4">Kérjük az oldal használatához először jelentkezzen be.</p>
+
+                    @yield('content')
+                </main>
+            </div>
+        </div>
+    </div>
 </div>
+<footer>
+    <div class="container">
+        <p class="text-center">
+            <small>
+                <span class="ml-4">&copy;{{ date('Y') }} BioBubi Viszonteladó Portál</span>
+                <span class="px-2 text-muted">•</span>
+                <a href="https://dubbie.github.io">MihóDániel</a>
+            </small>
+        </p>
+    </div>
+</footer>
 
 <script src="https://code.jquery.com/jquery-3.4.1.min.js"
         integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="

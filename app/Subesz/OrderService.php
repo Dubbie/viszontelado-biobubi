@@ -123,14 +123,19 @@ class OrderService
 
     /**
      * @param \stdClass $order
+     * @param bool $muted
      * @return bool
      */
-    public function updateLocalOrder($order) {
-        Log::info('-- Megrendelés frissítése --');
+    public function updateLocalOrder($order, $muted = false) {
+        if (!$muted) {
+            Log::info('-- Megrendelés frissítése --');
+        }
         $local = Order::where('inner_resource_id', $order->id)->first();
         if (!$local) {
-            Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order->id));
-            Log::info('Új megrendelés létrehozása...');
+            if (!$muted) {
+                Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order->id));
+                Log::info('Új megrendelés létrehozása...');
+            }
             $local = new Order();
         }
 
@@ -160,7 +165,9 @@ class OrderService
 
 
         if ($local->save()) {
-            Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+            if(!$muted) {
+                Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+            }
             return $local;
         } else {
             return false;

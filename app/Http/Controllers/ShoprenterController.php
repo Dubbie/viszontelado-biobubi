@@ -6,6 +6,7 @@ use App\Order;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -41,11 +42,14 @@ class ShoprenterController extends Controller
     {
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
+            Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
             return redirect(action('OrderController@index'))->with([
                 'error' => 'Hibás privát kulcs lett megadva',
             ]);
         }
 
+        Log::info('-- Shoprenter API-ból frissítés megkezdése --');
+        $start = Carbon::now();
         $osds = $this->shoprenterApi->getAllStatuses();
 
         $statusMap = [];
@@ -64,10 +68,8 @@ class ShoprenterController extends Controller
         foreach ($orders as $order) {
             $orderResources[] = $order->id;
 
-            if ($local = $this->orderService->updateLocalOrder($order)) {
-                // Kiírjuk a helyeset
-                /** @var Order $local */
-                Log::info('Hozzátartozó számlázó fiók neve: ' . $local->getReseller()['correct']->name);
+            $muted = true;
+            if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
                 $successCount++;
             }
         }
@@ -76,8 +78,11 @@ class ShoprenterController extends Controller
         Order::whereNotIn('inner_resource_id', $orderResources)->delete();
 
         if ($successCount == count($orders)) {
+            $elapsed = $start->floatDiffInSeconds();
+            Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
+            Log::info('-- Shoprenter API-ból frissítés vége --');
             return redirect(action('OrderController@index'))->with([
-                'success' => sprintf('%s db megrendelés sikeresen frissítve', $successCount),
+                'success' => sprintf('%s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed),
             ]);
         } else {
             return redirect(action('OrderController@index'))->with([

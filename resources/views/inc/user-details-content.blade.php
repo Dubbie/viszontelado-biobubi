@@ -18,21 +18,21 @@
         <p class="font-weight-bold mb-0">Nyilvános kulcs</p>
     </div>
     <div class="col-md-7">
-        <p class="has-tooltip mb-0" data-toggle="tooltip" data-placement="left"
+        <p class="has-tooltip mb-0 {{ $user->billingo_public_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
            title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->billingo_public_key ? 'Van megadva' : 'Nincs megadva' }}</p>
     </div>
     <div class="col-md-5">
         <p class="font-weight-bold mb-0">Privát kulcs</p>
     </div>
     <div class="col-md-7">
-        <p class="has-tooltip mb-0" data-toggle="tooltip" data-placement="left"
+        <p class="has-tooltip mb-0 {{ $user->billingo_private_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
            title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->billingo_private_key ? 'Van megadva' : 'Nincs megadva' }}</p>
     </div>
     <div class="col-md-5">
         <p class="font-weight-bold mb-0">Számlatömb azonosító</p>
     </div>
     <div class="col-md-7">
-        <p class="has-tooltip mb-0" data-toggle="tooltip" data-placement="left"
+        <p class="has-tooltip mb-0 {{ $user->block_uid ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
            title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->block_uid ? 'Van megadva' : 'Nincs megadva' }}</p>
     </div>
 </div>

@@ -1,0 +1,16 @@
+.inner-addon {
+  position: relative;
+}
+
+.inner-addon .icon {
+  position: absolute;
+  top: calc(1.5rem / 4);
+  left: calc(1.5rem / 4);
+  pointer-events: none;
+  color: $gray-500;
+  z-index: 2;
+}
+
+.inner-addon .form-control {
+  padding-left: calc(0.75rem + 1.5rem);
+}
