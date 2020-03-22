@@ -261,6 +261,8 @@ class UserController extends Controller
     private function getDiffPercent($thisWeek, $lastWeek) {
         if ($lastWeek == 0) {
             $amount = (100 - round(($lastWeek / $thisWeek) * 100));
+        } else if($lastWeek == 0 && $thisWeek == 0) {
+            $amount = 0;
         } else {
             $amount = -1 * (100 - round(($thisWeek / $lastWeek) * 100));
         }
