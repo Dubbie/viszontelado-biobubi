@@ -29,6 +29,8 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
+
+        Route::post('/api/billingo/test', 'UserController@testBillingo');
     });
 
     Route::get('/', 'UserController@home');

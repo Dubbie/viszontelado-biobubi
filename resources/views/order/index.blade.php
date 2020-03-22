@@ -75,7 +75,7 @@
         </div>
 
         <div class="card card-body">
-            <table class="table table-responsive-lg table-sm table-borderless mb-0">
+            <table class="table table-responsive-xl table-sm table-borderless mb-0">
                 <thead>
                 <tr>
                     <th>

@@ -151,4 +151,55 @@ class BillingoService
 
         return !$userError;
     }
+
+    /**
+     * @param $publicKey
+     * @param $privateKey
+     * @param $blockUid
+     * @return mixed|\Psr\Http\Message\ResponseInterface
+     */
+    public function getBlockByUid($publicKey, $privateKey, $blockUid) {
+        $billingo = new Request([
+            'public_key' => $publicKey,
+            'private_key' => $privateKey,
+        ]);
+        $response = [
+            'success' => false,
+            'messages' => [],
+            'correctInputs' => [],
+            'block' => null,
+        ];
+
+        try {
+            $blocks = $billingo->get('invoices/blocks');
+
+            if (count($blocks) < 1) {
+                $response['messages'][] = 'Nem találhatóak számlatömbök a megadottak alapján';
+                return $response;
+            }
+
+            $response['correctInputs'] = ['u-billingo-public-key', 'u-billingo-private-key'];
+            $response['messages'][] = 'Az API-hoz történő csatlakozás sikeres volt.';
+
+            $index = array_search($blockUid, array_column($blocks, 'id'));
+            if ($index) {
+                $response['correctInputs'][] = 'u-block-uid';
+                $response['messages'][] = 'Helyes számlatömb azonosító.';
+                $response['messages'][] = sprintf('(Számlatömb: %s)', $blocks[$index]['attributes']['name']);
+                $response['block'] = $blocks[$index];
+                $response['success'] = true;
+            } else {
+                $response['messages'][] = 'Nem található ilyen számlatömb azonosító a számlatömbök között.';
+            }
+        } catch (JSONParseException $e) {
+            echo "Error parsing response";
+        } catch (RequestErrorException $e) {
+            echo "Error in request";
+        } catch (GuzzleException $e) {
+            Log::info('Hiba történt a Billingo API Teszt során: ' . $e->getMessage());
+            $response['messages'][] = 'Nem sikerült csatlakozni az API-hoz';
+        }
+
+        return $response;
+    }
 }

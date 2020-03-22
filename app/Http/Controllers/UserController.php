@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\BillingoApiTestRequest;
+use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
@@ -11,7 +13,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
@@ -21,15 +22,20 @@ class UserController extends Controller
     /** @var RevenueService */
     private $revenueService;
 
+    /** @var BillingoService */
+    private $billingoService;
+
     /**
      * UserController constructor.
      * @param OrderService $orderService
      * @param RevenueService $revenueService
+     * @param BillingoService $billingoService
      */
-    public function __construct(OrderService $orderService, RevenueService $revenueService)
+    public function __construct(OrderService $orderService, RevenueService $revenueService, BillingoService $billingoService)
     {
         $this->orderService = $orderService;
         $this->revenueService = $revenueService;
+        $this->billingoService = $billingoService;
     }
 
     /**
@@ -124,11 +130,6 @@ class UserController extends Controller
         $zips = json_decode($data['u-zip'], true);
         $zipSuccess = 0;
         foreach ($zips as $i => $zip) {
-//            Validator::make($zip, [
-//                'value' => 'unique:user_zips,zip'
-//            ], [
-//                'value.unique' => 'Az irányítószám (:input) már foglalt!',
-//            ])->validate();
 
             $userZip = new UserZip();
             $userZip->user_id = $user->id;
@@ -173,12 +174,6 @@ class UserController extends Controller
         $zips = $data['u-zip'] ? json_decode($data['u-zip'], true) : [];
         $zipSuccess = 0;
         foreach ($zips as $i => $zip) {
-//            Validator::make($zip, [
-//                'value' => 'unique:user_zips,zip'
-//            ], [
-//                'value.unique' => 'Az irányítószám (:input) már foglalt!',
-//            ])->validate();
-
             $userZip = new UserZip();
             $userZip->user_id = $user->id;
             $userZip->zip = $zip['value'];
@@ -237,5 +232,12 @@ class UserController extends Controller
         return redirect(url()->previous())->with([
             'error' => 'Hiba történt a jelszavának frissítésekor',
         ]);
+    }
+
+    public function testBillingo(BillingoApiTestRequest $request) {
+        $data = $request->validated();
+
+        $blocks = $this->billingoService->getBlockByUid($data['u-billingo-public-key'], $data['u-billingo-private-key'], $data['u-block-uid']);
+        return $blocks;
     }
 }

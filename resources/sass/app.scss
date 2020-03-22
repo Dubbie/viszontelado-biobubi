@@ -7,6 +7,15 @@
 // Bootstrap
 @import '~bootstrap/scss/bootstrap';
 
+// Tagify!
+@import "../../node_modules/@yaireo/tagify/src/tagify";
+
+// FontAwesome
+@import "../../node_modules/@fortawesome/fontawesome-free/css/all.min";
+
+// DateRangePicker
+@import "~daterangepicker/daterangepicker";
+
 @import "layout";
 @import "auth";
 @import "components/all";
