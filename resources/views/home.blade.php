@@ -2,32 +2,34 @@
 
 @section('content')
     <div class="container">
-        <h1 class="font-weight-bold mb-5">Üdvözöljük a <span class="text-success">BioBubi</span> Viszonteladó Portálján!</h1>
+        <h1 class="font-weight-bold mb-5">Üdvözöljük a <span class="text-success">BioBubi</span> Viszonteladó Portálján!
+        </h1>
 
-        <h4 class="font-weight-bold mb-2">Legutolsó megrendelés</h4>
+        <h4 class="font-weight-bold mb-2">Legutolsó 5 megrendelés</h4>
         <div class="card card-body mb-4">
             <table class="table table-responsive-lg table-sm table-borderless mb-0">
                 <thead>
-                    <tr>
-                        <th scope="col">
-                            <small>Ügyfél</small>
-                        </th>
-                        <th scope="col">
-                            <small>Állapot</small>
-                        </th>
-                        <th scope="col">
-                            <small>Város</small>
-                        </th>
-                        <th scope="col">
-                            <small>Kezdő dátum</small>
-                        </th>
-                        <th scope="col" class="text-right">
-                            <small>Összesen</small>
-                        </th>
-                        <td></td>
-                    </tr>
+                <tr>
+                    <th scope="col">
+                        <small>Ügyfél</small>
+                    </th>
+                    <th scope="col">
+                        <small>Állapot</small>
+                    </th>
+                    <th scope="col">
+                        <small>Város</small>
+                    </th>
+                    <th scope="col">
+                        <small>Kezdő dátum</small>
+                    </th>
+                    <th scope="col" class="text-right">
+                        <small>Összesen</small>
+                    </th>
+                    <td></td>
+                </tr>
                 </thead>
                 <tbody>
+                @foreach($orders as $order)
                     <tr>
                         <td>
                             <p class="mb-0">{{ $order->firstname }} {{ $order->lastname }}
@@ -49,28 +51,78 @@
                                class="btn btn-sm btn-outline-secondary">Részletek</a>
                         </td>
                     </tr>
+                @endforeach
                 </tbody>
             </table>
         </div>
 
-        <h4 class="font-weight-bold mb-2">Statisztika az utóbbi 7 napról</h4>
+        <div class="row mb-2">
+            <div class="col">
+                <h4 class="font-weight-bold mb-0">Statisztika</h4>
+            </div>
+            <div class="col text-right">
+                <p class="text-muted mb-0">Ezen a héten</p>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-4">
                 <div class="card card-body">
-                    <h5 class="text-muted font-weight-bold">Bevétel</h5>
-                    <p class="h2 text-success mb-0">{{ number_format($income, 0, '.', ' ') }} Ft</p>
+                    <div class="row align-items-center">
+                        <div class="col-md-auto">
+                            <div class="bg-info-pastel d-flex align-items-center justify-content-center rounded-lg"
+                                 style="width: 48px; height: 48px;">
+                                <span class="icon text-info-pastel">
+                                    <i class="fas fa-clipboard"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <p class="text-muted font-weight-bold text-uppercase mb-0">Bevétel</p>
+                            <p class="h2 font-weight-bold mb-0">{{ number_format($income['thisWeek'], 0, '.', ' ') }}
+                                Ft</p>
+                            <small class="d-block">{{ $income['diff'] }} az elmúlt héthez képest.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card card-body">
-                    <h5 class="text-muted font-weight-bold">Kiadások</h5>
-                    <p class="h2 mb-0">{{ number_format($expense, 0, '.', ' ') }} Ft</p>
+                    <div class="row align-items-center">
+                        <div class="col-md-auto">
+                            <div class="bg-danger-pastel d-flex align-items-center justify-content-center rounded-lg"
+                                 style="width: 48px; height: 48px;">
+                                <span class="icon text-danger-pastel">
+                                    <i class="fas fa-wallet"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <p class="text-muted text-uppercase font-weight-bold mb-0">Kiadások</p>
+                            <p class="h2 font-weight-bold mb-0">{{ number_format($expense['thisWeek'], 0, '.', ' ') }}
+                                Ft</p>
+                            <small class="d-block">{{ $expense['diff'] }} az elmúlt héthez képest.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="col-md-4">
                 <div class="card card-body">
-                    <h5 class="text-muted font-weight-bold">Profit</h5>
-                    <p class="h2 font-weight-bold @if($profit > 0) text-success @else text-danger @endif mb-0">{{ number_format($profit, 0, '.', ' ') }} Ft</p>
+                    <div class="row align-items-center">
+                        <div class="col-md-auto">
+                            <div class="bg-success-pastel d-flex align-items-center justify-content-center rounded-lg"
+                                 style="width: 48px; height: 48px;">
+                                <span class="icon text-success-pastel">
+                                    <i class="fas fa-percent"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md">
+                            <p class="text-muted text-uppercase mb-0 font-weight-bold">Profit</p>
+                            <p class="h2 font-weight-bold @if($profit['thisWeek'] > 0) text-success @else text-danger @endif mb-0">{{ number_format($profit['thisWeek'], 0, '.', ' ') }}
+                                Ft</p>
+                            <small class="d-block">{{ $profit['diff'] }} az elmúlt héthez képest.</small>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

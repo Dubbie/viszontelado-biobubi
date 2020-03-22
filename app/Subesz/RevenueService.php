@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 use App\Expense;
 use Carbon\Carbon;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -22,8 +23,8 @@ class RevenueService
     }
 
     /**
-     * @param Carbon $start
-     * @param Carbon $end
+     * @param Carbon|CarbonInterface $start
+     * @param Carbon|CarbonInterface $end
      * @return array
      */
     public function getIncomeByRange($start, $end)
@@ -75,8 +76,8 @@ class RevenueService
     }
 
     /**
-     * @param Carbon $start
-     * @param Carbon $end
+     * @param Carbon|CarbonInterface $start
+     * @param Carbon|CarbonInterface $end
      * @param $userId
      * @return array
      */

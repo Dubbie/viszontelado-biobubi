@@ -175,11 +175,12 @@ class OrderService
     }
 
     /**
+     * @param int $limit
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|null|object
      */
-    public function getLatestOrder() {
+    public function getLatestOrder($limit = 1) {
         $order = $this->getOrdersQueryByUserId(Auth::id());
-        return $order->orderBy('created_at', 'DESC')->first();
+        return $order->orderBy('created_at', 'DESC')->limit($limit)->get();
     }
 
     /**

@@ -42,15 +42,28 @@ class UserController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function home() {
-        $start = Carbon::now()->subDays(7);
-        $end = Carbon::now();
+        $start = Carbon::now()->startOfWeek();
+        $end = $start->copy()->endOfWeek();
+        $lastWeekStart = $start->copy()->subDay()->startOfWeek();
+        $lastWeekEnd = $lastWeekStart->copy()->endOfWeek();
 
-        $income = $this->revenueService->getIncomeByRange($start, $end)['sum'];
-        $expense = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
-        $profit = $income - $expense;
+        $income = [];
+        $income['thisWeek'] = $this->revenueService->getIncomeByRange($start, $end)['sum'];
+        $income['lastWeek'] = $this->revenueService->getIncomeByRange($lastWeekStart, $lastWeekEnd)['sum'];
+        $income['diff'] = $this->getDiffPercent($income['thisWeek'], $income['lastWeek']);
+
+        $expense = [];
+        $expense['thisWeek'] = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
+        $expense['lastWeek'] = $this->revenueService->getExpenseByRange($lastWeekStart, $lastWeekEnd, Auth::id())['sum'];
+        $expense['diff'] = $this->getDiffPercent($expense['thisWeek'], $expense['lastWeek']);
+
+        $profit= [];
+        $profit['thisWeek'] = $income['thisWeek'] - $expense['thisWeek'];
+        $profit['lastWeek'] = $income['lastWeek'] - $expense['lastWeek'];
+        $profit['diff'] = $this->getDiffPercent($profit['thisWeek'], $profit['lastWeek']);
 
         return view('home')->with([
-            'order' => $this->orderService->getLatestOrder(),
+            'orders' => $this->orderService->getLatestOrder(5),
             'income' => $income,
             'expense' => $expense,
             'profit' => $profit,
@@ -234,10 +247,28 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * @param BillingoApiTestRequest $request
+     * @return mixed|\Psr\Http\Message\ResponseInterface
+     */
     public function testBillingo(BillingoApiTestRequest $request) {
         $data = $request->validated();
 
         $blocks = $this->billingoService->getBlockByUid($data['u-billingo-public-key'], $data['u-billingo-private-key'], $data['u-block-uid']);
         return $blocks;
+    }
+
+    private function getDiffPercent($thisWeek, $lastWeek) {
+        if ($lastWeek == 0) {
+            $amount = (100 - round(($lastWeek / $thisWeek) * 100));
+        } else {
+            $amount = -1 * (100 - round(($thisWeek / $lastWeek) * 100));
+        }
+
+        if ($amount > 0) {
+            $amount = '+' . $amount;
+        }
+
+        return $amount . '%';
     }
 }
