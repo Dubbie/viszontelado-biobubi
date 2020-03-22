@@ -8,7 +8,7 @@
             </div>
         </div>
 
-        <p id="income-range" class="d-inline-block btn btn-outline-primary mb-4">
+        <p id="income-range" class="d-inline-block btn btn-outline-secondary mb-4">
             <span id="income-range-label"></span>
             <span class="icon">
                 <i class="fas fa-angle-down"></i>

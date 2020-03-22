@@ -227,7 +227,7 @@ class OrderService
         $out = '';
 
         if ($order->shippingPostcode && $order->shippingCity && $order->shippingAddress1) {
-            $out = sprintf('%s %s, %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1);
+            $out = sprintf('%s %s, %s %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1, $order->shippingAddress2);
         }
 
         return $out;

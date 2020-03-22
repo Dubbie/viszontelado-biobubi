@@ -105,30 +105,12 @@
                                 <span class="h5 @if($total->type == 'TOTAL') font-weight-bold @endif">{{ number_format($total->value, 0, '.', ' ') }} Ft</span>
                             </div>
                         @endforeach
-                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
-                            {{--<span class="text-muted">Nettó részösszeg:</span>--}}
-                        {{--</div>--}}
-                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
-                            {{--<span class="h5">{{ number_format($order['subtotal'], 0, '.', ' ') }} Ft</span>--}}
-                        {{--</div>--}}
-                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
-                            {{--<span class="text-muted">Áfa ({{ intval($order['order']->paymentMethodTaxRate) }}%):</span>--}}
-                        {{--</div>--}}
-                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
-                            {{--<span class="h5">{{ number_format(($order['order']->total - $order['subtotal']), 0, '.', ' ') }} Ft</span>--}}
-                        {{--</div>--}}
-                        {{--<div class="col-7 col-md-9 col-lg-10">--}}
-                            {{--<span class="text-muted">Bruttó részösszeg:</span>--}}
-                        {{--</div>--}}
-                        {{--<div class="col-5 col-md-3 col-lg-2">--}}
-                            {{--<span class="font-weight-bold h5">{{ number_format($order['order']->total, 0, '.', ' ') }} Ft</span>--}}
-                        {{--</div>--}}
                     </div>
                 </div>
             </div>
 
             <div class="form-group mt-4 mb-0 text-right">
-                <button type="button" class="btn btn-sm btn-success btn-order-status-details" data-toggle="modal"
+                <button type="button" class="btn btn-sm btn-outline-success btn-order-status-details" data-toggle="modal"
                         data-target="#orderStatusModal" data-order-id="{{ $order['order']->id }}">Állapot módosítása
                 </button>
             </div>

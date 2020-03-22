@@ -5,6 +5,27 @@
         <h1 class="font-weight-bold mb-5">Üdvözöljük a <span class="text-success">BioBubi</span> Viszonteladó Portálján!
         </h1>
 
+        @if(!$billingo['success'] || !$billingo['block'])
+            <div class="alert alert-danger rounded-lg mb-4">
+                <div class="row no-gutters">
+                    <div class="col-md-auto">
+                        <div class="bg-danger-pastel d-flex align-items-center justify-content-center rounded-lg mr-3"
+                             style="width: 48px; height: 48px;">
+                                <span class="icon text-danger-pastel">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </span>
+                        </div>
+                    </div>
+                    <div class="col-md">
+                        <p class="mb-0">Jelenleg az automatikus számla kiállítás a fiókjához nincs helyesen
+                            beállítva.</p>
+                        <p class="mb-0">Kérjük vegye fel a kapcsolatot egy adminisztrátorral, hogy működjön az
+                            automatikus számla kiállítás.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <h4 class="font-weight-bold mb-2">Legutolsó 5 megrendelés</h4>
         <div class="card card-body mb-4">
             <table class="table table-responsive-lg table-sm table-borderless mb-0">

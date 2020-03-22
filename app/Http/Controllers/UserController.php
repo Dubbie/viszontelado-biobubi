@@ -41,7 +41,8 @@ class UserController extends Controller
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function home() {
+    public function home()
+    {
         $start = Carbon::now()->startOfWeek();
         $end = $start->copy()->endOfWeek();
         $lastWeekStart = $start->copy()->subDay()->startOfWeek();
@@ -57,23 +58,27 @@ class UserController extends Controller
         $expense['lastWeek'] = $this->revenueService->getExpenseByRange($lastWeekStart, $lastWeekEnd, Auth::id())['sum'];
         $expense['diff'] = $this->getDiffPercent($expense['thisWeek'], $expense['lastWeek']);
 
-        $profit= [];
+        $profit = [];
         $profit['thisWeek'] = $income['thisWeek'] - $expense['thisWeek'];
         $profit['lastWeek'] = $income['lastWeek'] - $expense['lastWeek'];
         $profit['diff'] = $this->getDiffPercent($profit['thisWeek'], $profit['lastWeek']);
+
+        $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
 
         return view('home')->with([
             'orders' => $this->orderService->getLatestOrder(5),
             'income' => $income,
             'expense' => $expense,
             'profit' => $profit,
+            'billingo' => $billingoResults,
         ]);
     }
 
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index() {
+    public function index()
+    {
         return view('user.index')->with([
             'users' => User::all(),
         ]);
@@ -82,7 +87,8 @@ class UserController extends Controller
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function create() {
+    public function create()
+    {
         return view('user.create');
     }
 
@@ -90,7 +96,8 @@ class UserController extends Controller
      * @param $userId
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function show($userId) {
+    public function show($userId)
+    {
         return view('inc.user-details-content')->with([
             'user' => User::find($userId),
         ]);
@@ -100,7 +107,8 @@ class UserController extends Controller
      * @param $userId
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function edit($userId) {
+    public function edit($userId)
+    {
         $user = User::find($userId);
         $zips = [];
 
@@ -120,7 +128,8 @@ class UserController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $data = $request->validate([
             'u-name' => 'required',
             'u-email' => 'required|email|unique:users,email',
@@ -169,7 +178,8 @@ class UserController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function update($userId, Request $request) {
+    public function update($userId, Request $request)
+    {
         $data = $request->validate([
             'u-name' => 'required',
             'u-email' => 'required|email|unique:users,email,' . $userId,
@@ -212,15 +222,21 @@ class UserController extends Controller
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function profile() {
-        return view('profile');
+    public function profile()
+    {
+        $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
+
+        return view('profile')->with([
+            'billingo' => $billingoResults,
+        ]);
     }
 
     /**
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function updatePassword(Request $request) {
+    public function updatePassword(Request $request)
+    {
         $data = $request->validate([
             'old-password' => 'required',
             'password' => 'required|confirmed'
@@ -251,17 +267,24 @@ class UserController extends Controller
      * @param BillingoApiTestRequest $request
      * @return mixed|\Psr\Http\Message\ResponseInterface
      */
-    public function testBillingo(BillingoApiTestRequest $request) {
+    public function testBillingo(BillingoApiTestRequest $request)
+    {
         $data = $request->validated();
 
-        $blocks = $this->billingoService->getBlockByUid($data['u-billingo-public-key'], $data['u-billingo-private-key'], $data['u-block-uid']);
-        return $blocks;
+        $response = $this->billingoService->getBlockByUid($data['u-billingo-public-key'], $data['u-billingo-private-key'], $data['u-block-uid']);
+        return $response;
     }
 
-    private function getDiffPercent($thisWeek, $lastWeek) {
+    /**
+     * @param $thisWeek
+     * @param $lastWeek
+     * @return string
+     */
+    private function getDiffPercent($thisWeek, $lastWeek)
+    {
         if ($lastWeek == 0 && $thisWeek == 0) {
             $amount = 0;
-        } else if($lastWeek == 0) {
+        } else if ($lastWeek == 0) {
             $amount = (100 - round(($lastWeek / $thisWeek) * 100));
         } else {
             $amount = -1 * (100 - round(($thisWeek / $lastWeek) * 100));
