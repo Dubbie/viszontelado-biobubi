@@ -33,6 +33,14 @@
                     </div>
                     <div class="row mb-2">
                         <div class="col-md-6 col-lg-4">
+                            <p class="mb-0">Megrendelve:</p>
+                        </div>
+                        <div class="col-md-6 col-lg-8">
+                            <p class="mb-0">{{ date('Y. m. d, H:i:s', strtotime($order['order']->dateCreated)) }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-md-6 col-lg-4">
                             <p class="mb-0">Vásárló:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">

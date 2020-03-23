@@ -2,19 +2,20 @@
 
 @section('content')
     <div class="container">
-        <div class="row">
+        <div class="row align-items-baseline">
             <div class="col">
                 <h1 class="font-weight-bold mb-4">Megrendelések</h1>
             </div>
-            @if(Auth()->user()->admin)
-                <div class="col text-right">
+            <div class="col text-right">
+                @if(Auth()->user()->admin)
                     <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                       data-toggle="tooltip"
-                       title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                       data-placement="left"
-                       class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
-                </div>
-            @endif
+                    data-toggle="tooltip"
+                    title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+                    data-placement="left"
+                    class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
+                @endif
+                <a href="https://semmiszemet.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelése leadása</a>
+            </div>
         </div>
 
         @if(Auth()->user()->admin && count(Auth()->user()->zips) == 0)
