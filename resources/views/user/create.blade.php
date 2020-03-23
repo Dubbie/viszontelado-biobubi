@@ -69,6 +69,12 @@
                                     <small class="form-text text-muted"><a href="https://app.billingo.hu/beallitasok/szamlazo/szamlatomb">Ezen</a> az oldalon található, a Tömb API ID-t kell ide beírni.</small>
                                     <div class="invalid-feedback"></div>
                                 </div>
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="u-aam" name="u-aam">
+                                        <label class="custom-control-label" for="u-aam">A felhasználó által kiállított számlák Alanyi Adómentesek.</label>
+                                    </div>
+                                </div>
 
                                 <div id="billingo-test-results"></div>
                             </div>

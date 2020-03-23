@@ -31,13 +31,15 @@
         @yield('content')
 
         <footer id="footer">
-            <p class="mb-0 px-5 my-2">
-                <small>
-                    <span class="ml-4">&copy;{{ date('Y') }} BioBubi Viszonteladó Portál</span>
-                    <span class="px-2 text-muted">•</span>
-                    <span><a href="https://dubbie.github.io">@dubbie</a></span>
-                </small>
-            </p>
+           <div class="container py-3">
+               <p class="mb-0">
+                   <small>
+                       <span class="ml-4">&copy;{{ date('Y') }} SemmiSzemét Viszonteladó Portál</span>
+                       <span class="px-2 text-muted">•</span>
+                       <span><a href="https://dubbie.github.io">@dubbie</a></span>
+                   </small>
+               </p>
+           </div>
         </footer>
     </div>
 </div>

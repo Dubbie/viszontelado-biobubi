@@ -56,19 +56,14 @@ class BillingoService
 
             $items = [];
             foreach ($order['products']->items as $item) {
-                $vatId = $item->taxRate == "27.0000" ? 1 : null;
-                if (!$vatId) {
-                    Log::error("Lekezeletlen áfa azonosító! (" . $item->taxRate . ")");
-                    Log::info(dump($item));
-                    return false;
-                }
+                $netUnitPrice = $user->vat_id == 992 ? round($item->price * ((100 + floatval($item->taxRate)) / 100)) : floatval($item->price);
 
                 $items[] = [
                     'description' => $item->name,
                     'qty' => intval($item->stock1),
                     'unit' => 'db',
-                    'vat_id' => $vatId,
-                    'net_unit_price' => floatval($item->price),
+                    'vat_id' => $user->vat_id,
+                    'net_unit_price' => floatval($netUnitPrice),
                 ];
             }
 
@@ -78,16 +73,16 @@ class BillingoService
                         'description' => 'Kupon kedvezmény',
                         'qty' => 1,
                         'unit' => 'db',
-                        'vat_id' => 1,
-                        'gross_unit_price' => floatval($total->value),
+                        'vat_id' => $user->vat_id,
+                        'gross_unit_price' => round(floatval($total->value)),
                     ];
                 } else if($total->type == 'SHIPPING' && intval($total->value) > 0) {
                     $items[] = [
                         'description' => 'Szállítási költség',
                         'qty' => 1,
                         'unit' => 'db',
-                        'vat_id' => 1,
-                        'gross_unit_price' => floatval($total->value),
+                        'vat_id' => $user->vat_id,
+                        'gross_unit_price' => round(floatval($total->value)),
                     ];
                 }
             }
@@ -100,8 +95,8 @@ class BillingoService
                 'template_lang_code' => 'hu',
                 'electronic_invoice' => 0,
                 'currency' => 'HUF',
-                'client_uid' => $client['id'],
-                'block_uid' => intval(env('BILLINGO_BLOCK')),
+                'client_uid' => $client ? $client['id'] : null,
+                'block_uid' => intval($user->block_uid),
                 'type' => 0,
                 'round_to' => 1,
                 'items' => $items,
@@ -124,6 +119,26 @@ class BillingoService
         }
 
         return false;
+    }
+
+    /**
+     * @param $user
+     * @return mixed|null|\Psr\Http\Message\ResponseInterface
+     */
+    public function getVatList($user) {
+        $billingo = $this->getBillingoRequest($user);
+
+        try {
+            return $billingo->get('vat');
+        } catch (JSONParseException $e) {
+            Log::error("Hiba a JSON átalakításakor");
+        } catch (RequestErrorException $e) {
+            Log::error("Hiba a lekérdezésben");
+        } catch (GuzzleException $e) {
+            Log::info('Hiba történt a Billingo API meghívásakor: ' . $e->getMessage());
+        }
+
+        return null;
     }
 
     /**
@@ -201,5 +216,16 @@ class BillingoService
         }
 
         return $response;
+    }
+
+    /**
+     * @param $user
+     * @return Request
+     */
+    private function getBillingoRequest($user) {
+        return new Request([
+            'public_key' => $user->billingo_public_key,
+            'private_key' => $user->billingo_private_key,
+        ]);
     }
 }

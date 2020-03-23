@@ -2,7 +2,7 @@
 
 @section('content')
     <div class="container">
-        <h1 class="font-weight-bold mb-5">Üdvözöljük a <span class="text-success">BioBubi</span> Viszonteladó Portálján!
+        <h1 class="font-weight-bold mb-5">Üdvözöljük a <span class="text-success">SemmiSzemét</span> Viszonteladó Portálján!
         </h1>
 
         @if(!$billingo['success'] || !$billingo['block'])
@@ -26,7 +26,14 @@
             </div>
         @endif
 
-        <h4 class="font-weight-bold mb-2">Legutolsó 5 megrendelés</h4>
+        <div class="row no-gutters mb-2">
+            <div class="col-md-auto">
+                <h4 class="font-weight-bold mb-0">Legutolsó 5 megrendelés</h4>
+            </div>
+            <div class="col-md">
+                <a href="{{ action('OrderController@index') }}" class="btn btn-sm btn-muted">Összes megrendelés megtekintése</a>
+            </div>
+        </div>
         <div class="card card-body mb-4">
             <table class="table table-responsive-lg table-sm table-borderless mb-0">
                 <thead>
@@ -82,7 +89,7 @@
                 <h4 class="font-weight-bold mb-0">Statisztika</h4>
             </div>
             <div class="col text-right">
-                <p class="text-muted mb-0">Ezen a héten</p>
+                <p class="text-muted mb-0">Eddig a hónapban</p>
             </div>
         </div>
         <div class="row">
@@ -99,9 +106,8 @@
                         </div>
                         <div class="col-md">
                             <p class="text-muted font-weight-bold text-uppercase mb-0">Bevétel</p>
-                            <p class="h2 font-weight-bold mb-0">{{ number_format($income['thisWeek'], 0, '.', ' ') }}
+                            <p class="h2 font-weight-bold mb-0">{{ number_format($income, 0, '.', ' ') }}
                                 Ft</p>
-                            <small class="d-block">{{ $income['diff'] }} az elmúlt héthez képest.</small>
                         </div>
                     </div>
                 </div>
@@ -119,9 +125,8 @@
                         </div>
                         <div class="col-md">
                             <p class="text-muted text-uppercase font-weight-bold mb-0">Kiadások</p>
-                            <p class="h2 font-weight-bold mb-0">{{ number_format($expense['thisWeek'], 0, '.', ' ') }}
+                            <p class="h2 font-weight-bold mb-0">{{ number_format($expense, 0, '.', ' ') }}
                                 Ft</p>
-                            <small class="d-block">{{ $expense['diff'] }} az elmúlt héthez képest.</small>
                         </div>
                     </div>
                 </div>
@@ -139,9 +144,8 @@
                         </div>
                         <div class="col-md">
                             <p class="text-muted text-uppercase mb-0 font-weight-bold">Profit</p>
-                            <p class="h2 font-weight-bold @if($profit['thisWeek'] > 0) text-success @else text-danger @endif mb-0">{{ number_format($profit['thisWeek'], 0, '.', ' ') }}
+                            <p class="h2 font-weight-bold @if($profit > 0) text-success @else text-danger @endif mb-0">{{ number_format($profit, 0, '.', ' ') }}
                                 Ft</p>
-                            <small class="d-block">{{ $profit['diff'] }} az elmúlt héthez képest.</small>
                         </div>
                     </div>
                 </div>

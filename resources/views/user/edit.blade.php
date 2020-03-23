@@ -77,6 +77,13 @@
                                     </small>
                                 </div>
 
+                                <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="u-aam" name="u-aam" @if($user->vat_id == 992) checked @endif>
+                                        <label class="custom-control-label" for="u-aam">A felhasználó által kiállított számlák Alanyi Adómentesek.</label>
+                                    </div>
+                                </div>
+
                                 <div id="billingo-test-results" class="alert" style="display: none;">
 
                                 </div>

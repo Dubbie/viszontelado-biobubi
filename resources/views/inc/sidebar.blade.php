@@ -1,9 +1,11 @@
 <div class="sidebar">
     <nav class="sidebar-nav">
-        <div class="d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center justify-content-between text-center">
             <a class="navbar-brand mr-0" href="{{ url('/') }}">
-                {{--<img src="//placehold.it/48/48" alt="">--}}
-                <p class="mb-0">BioBubi<small class="d-block font-weight-bold text-primary">Viszonteladó Portál</small></p>
+                <img src="{{ url('/storage/logo.png') }}" alt="SemmiSzemét logo" style="max-width: 50%;">
+                <p class="text-uppercase mb-0" style="line-height: 1; letter-spacing: 1px;">
+                    <small class="font-weight-bold">Viszonteladó<br>Portál</small>
+                </p>
             </a>
             <button type="button" class="btn-mobile-nav d-block d-md-none">
                 <span class="icon">

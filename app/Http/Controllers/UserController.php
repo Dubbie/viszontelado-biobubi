@@ -43,26 +43,12 @@ class UserController extends Controller
      */
     public function home()
     {
-        $start = Carbon::now()->startOfWeek();
-        $end = $start->copy()->endOfWeek();
-        $lastWeekStart = $start->copy()->subDay()->startOfWeek();
-        $lastWeekEnd = $lastWeekStart->copy()->endOfWeek();
+        $start = Carbon::now()->startOfMonth();
+        $end = Carbon::now();
 
-        $income = [];
-        $income['thisWeek'] = $this->revenueService->getIncomeByRange($start, $end)['sum'];
-        $income['lastWeek'] = $this->revenueService->getIncomeByRange($lastWeekStart, $lastWeekEnd)['sum'];
-        $income['diff'] = $this->getDiffPercent($income['thisWeek'], $income['lastWeek']);
-
-        $expense = [];
-        $expense['thisWeek'] = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
-        $expense['lastWeek'] = $this->revenueService->getExpenseByRange($lastWeekStart, $lastWeekEnd, Auth::id())['sum'];
-        $expense['diff'] = $this->getDiffPercent($expense['thisWeek'], $expense['lastWeek']);
-
-        $profit = [];
-        $profit['thisWeek'] = $income['thisWeek'] - $expense['thisWeek'];
-        $profit['lastWeek'] = $income['lastWeek'] - $expense['lastWeek'];
-        $profit['diff'] = $this->getDiffPercent($profit['thisWeek'], $profit['lastWeek']);
-
+        $income = $this->revenueService->getIncomeByRange($start, $end)['sum'];
+        $expense = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
+        $profit = $income - $expense;
         $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
 
         return view('home')->with([
@@ -135,12 +121,14 @@ class UserController extends Controller
             'u-email' => 'required|email|unique:users,email',
             'u-password' => 'required',
             'u-zip' => 'required',
+            'u-aam' => 'nullable'
         ]);
 
         $user = new User();
         $user->name = trim($data['u-name']);
         $user->email = trim($data['u-email']);
         $user->password = Hash::make($data['u-password']);
+        $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
 
         if (!$user->save()) {
             Log::error('Hiba történt a felhasználó mentésekor! %s', $user);
@@ -184,11 +172,13 @@ class UserController extends Controller
             'u-name' => 'required',
             'u-email' => 'required|email|unique:users,email,' . $userId,
             'u-zip' => 'nullable',
+            'u-aam' => 'nullable',
         ]);
 
         $user = User::find($userId);
         $user->name = $data['u-name'];
         $user->email = $data['u-email'];
+        $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
 
         // Kitöröljük a régieket...
         UserZip::where('user_id', $userId)->delete();
