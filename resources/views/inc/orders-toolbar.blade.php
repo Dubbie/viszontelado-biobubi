@@ -6,7 +6,7 @@
                     <span id="toolbar-order-counter" class="badge badge-success mr-2">0</span> megrendelés kijelölve
                 </p>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-auto">
                 <p class="mb-0">
                     <button type="button" class="btn btn-muted" data-toggle="modal"
                         data-target="#massOrderStatusModal">
@@ -16,6 +16,20 @@
                         <span>Tömeges állapot változtatás</span>
                     </button>
                 </p>
+            </div>
+            <div class="col-lg">
+                <form action="{{ action('DocumentController@download') }}" method="POST">
+                    @csrf
+                    <input type="hidden" id="sm-order-ids" name="sm-order-ids" value="">
+                    <p class="mb-0">
+                        <button type="submit" class="btn btn-muted">
+                        <span class="icon text-dark">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                            <span>Szállítólevél letöltése</span>
+                        </button>
+                    </p>
+                </form>
             </div>
         </div>
     </div>

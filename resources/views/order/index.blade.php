@@ -29,7 +29,7 @@
             <p class="mb-0">
                 <small>Szűrés</small>
             </p>
-            <form>
+            <form id="form-orders-filter">
                 <div class="form-row align-items-end">
                     <div class="col-xl">
                         <div class="form-group">
@@ -157,7 +157,7 @@
     {{-- Szűrő --}}
     <script>
         $(function () {
-            $('form').submit(function () {
+            $('#form-orders-filter').submit(function () {
                 var $empty_fields = $(this).find(':input').filter(function () {
                     return $(this).val() === '';
                 });
@@ -176,6 +176,7 @@
             const ordersCount = document.getElementById('toolbar-order-counter');
             const toolbar = document.getElementById('toolbar-orders');
             const inputOrderIds = document.getElementById('order-ids');
+            const inputShippingOrderIds = document.getElementById('sm-order-ids');
 
             /**
              * Visszaállítja a checkboxokat.
@@ -214,6 +215,7 @@
                 }
                 ordersCount.innerText = selectedOrders.length.toLocaleString();
                 inputOrderIds.value = JSON.stringify(selectedOrders);
+                inputShippingOrderIds.value = JSON.stringify(selectedOrders);
             }
 
             /**
