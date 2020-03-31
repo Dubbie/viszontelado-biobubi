@@ -34,7 +34,12 @@ $(function () {
 
                 if ('benji' in json) {
                    benjiSum = json.benji;
-                    renderExpenseData(json.data, json.benji);
+                    renderExpenseData(json.data);
+
+                    if (benjiSum > 0) {
+                        const elBenji = createBenjiElement(json.benji);
+                        elExpenseContainer.appendChild(elBenji);
+                    }
                 } else {
                     renderExpenseData(json.data);
                 }
@@ -43,7 +48,7 @@ $(function () {
             });
     }
 
-    function renderExpenseData(data, benji = null) {
+    function renderExpenseData(data) {
         while (elExpenseContainer.lastChild) {
             elExpenseContainer.removeChild(elExpenseContainer.lastChild);
         }
@@ -103,12 +108,6 @@ $(function () {
                 listGroupItem.appendChild(row);
 
                 listGroup.appendChild(listGroupItem);
-            }
-
-            // Ha van benji akkor ezt is kezeljük
-            if (benji !== null && benji > 0) {
-                const elBenji = createBenjiElement(benji);
-                listGroup.appendChild(elBenji);
             }
 
             elExpenseContainer.appendChild(listGroup);
