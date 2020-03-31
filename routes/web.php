@@ -42,6 +42,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/api/kiadas/{expenseId}/torles', 'RevenueController@destroyExpense');
     Route::get('/api/kiadas', 'RevenueController@fetchExpense');
 
+    Route::get('/benji-penz', 'BenjiMoneyController@getData')->middleware('admin');
+    Route::post('/benji-penz/mentes', 'BenjiMoneyController@store')->middleware('admin');
+
     Route::get('/penzugy', 'RevenueController@income');
     Route::post('/kiadas/mentes', 'RevenueController@storeExpense');
     Route::get('/kiadas', 'RevenueController@expense');

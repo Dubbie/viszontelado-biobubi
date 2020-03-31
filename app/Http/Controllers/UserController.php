@@ -46,8 +46,19 @@ class UserController extends Controller
         $start = Carbon::now()->startOfMonth();
         $end = Carbon::now();
 
+        // Benji kikeresése
+        $benjiExpenses = null;
+        $benji = User::where('email', 'gbenji20@gmail.com')->first();
+        if (Auth::user()->admin && $benji) {
+            $benjiExpenses = $this->revenueService->getExpenseByRange($start, $end, $benji->id)['sum'];
+        }
+
         $income = $this->revenueService->getIncomeByRange($start, $end)['sum'];
         $expense = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
+        // Benjit levonjuk ha kell
+        if ($benjiExpenses) {
+            $expense += $benjiExpenses;
+        }
         $profit = $income - $expense;
         $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
 

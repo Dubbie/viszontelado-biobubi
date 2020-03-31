@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Subesz\ShoprenterService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
 class Delivery extends Model
@@ -28,5 +29,13 @@ class Delivery extends Model
      */
     public function order() {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * @param $value
+     * @return Carbon
+     */
+    public function getDeliveredAtAttribute($value){
+        return Carbon::parse($value);
     }
 }

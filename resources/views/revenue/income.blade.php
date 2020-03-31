@@ -55,6 +55,13 @@
                     </div>
                     <div id="expense-container"></div>
                 </div>
+
+                @if(Auth()->user()->admin)
+                    <div class="card card-body bg-dark text-white mt-4">
+                        <h5 class="font-weight-bold">Benji kiszállításai</h5>
+                        <div id="deliveries-container"><span class="text-white-50">Betöltés alatt...</span></div>
+                    </div>
+                @endif
             </div>
         </div>
     </div>

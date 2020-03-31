@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Expense;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
+use App\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,7 +51,7 @@ class RevenueController extends Controller
         $dateFormat = 'M. d.';
         $apiResults = $this->revenueService->getIncomeByRange(
                 Carbon::parse($input['start-date']),
-                Carbon::parse($input['end-date'])
+                Carbon::parse($input['end-date'] . ' 23:59:59')
         );
 
         $labels = [];
@@ -124,11 +125,29 @@ class RevenueController extends Controller
             'end-date' => 'required',
         ]);
 
-        return $this->revenueService->getExpenseByRange(
+        $userExpenses = $this->revenueService->getExpenseByRange(
             Carbon::parse($input['start-date']),
-            Carbon::parse($input['end-date']),
+            Carbon::parse($input['end-date'] . ' 23:59:59'),
             Auth::id()
         );
+
+        if (in_array(Auth::id(), [1, 2])) {
+            $benji = User::where('email', 'gbenji20@gmail.com')->first();
+
+            if (!$benji) {
+                return $userExpenses;
+            }
+
+            $benjiExpenses = $this->revenueService->getExpenseByRange(
+                Carbon::parse($input['start-date']),
+                Carbon::parse($input['end-date'] . ' 23:59:59'),
+                $benji->id
+            );
+
+            $userExpenses['benji'] = $benjiExpenses['sum'];
+        }
+
+        return $userExpenses;
     }
 
     /**
@@ -148,4 +167,6 @@ class RevenueController extends Controller
             'success' => $success,
         ];
     }
+
+
 }
