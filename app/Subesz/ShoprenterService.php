@@ -65,7 +65,7 @@ class ShoprenterService
         $pages = $pageOrders->pageCount;
         $orders = $pageOrders->items;
 
-        for ($i = 1; $i < $pages; $i++) {
+        for ($i = 1; $i <= $pages; $i++) {
             usleep(350000);
 
             $pageOrders = $this->getOrdersByPage($i);
