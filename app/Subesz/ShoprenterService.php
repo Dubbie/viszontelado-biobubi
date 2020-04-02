@@ -62,14 +62,14 @@ class ShoprenterService
         $page = 0;
 
         $pageOrders = $this->getOrdersByPage($page, 200);
-        $pages = $pageOrders->pageCount;
         $orders = $pageOrders->items;
+        $page++;
 
-        for ($i = 1; $i <= $pages; $i++) {
+        while ($pageOrders->next) {
             usleep(350000);
-
-            $pageOrders = $this->getOrdersByPage($i, 200);
+            $pageOrders = $this->getOrdersByPage($page, 200);
             $orders = array_merge($orders, $pageOrders->items);
+            $page++;
         }
 
         return $orders;
