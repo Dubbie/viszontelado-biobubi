@@ -14,7 +14,7 @@
                     data-placement="left"
                     class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
                 @endif
-                <a href="https://semmiszemet.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelése leadása</a>
+                <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelése leadása</a>
             </div>
         </div>
 
