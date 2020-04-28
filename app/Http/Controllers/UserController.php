@@ -132,7 +132,10 @@ class UserController extends Controller
             'u-email' => 'required|email|unique:users,email',
             'u-password' => 'required',
             'u-zip' => 'required',
-            'u-aam' => 'nullable'
+            'u-aam' => 'nullable',
+            'u-billingo-public-key' => 'nullable',
+            'u-billingo-private-key' => 'nullable',
+            'u-block-uid' => 'nullable',
         ]);
 
         $user = new User();
@@ -140,6 +143,9 @@ class UserController extends Controller
         $user->email = trim($data['u-email']);
         $user->password = Hash::make($data['u-password']);
         $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
+        $user->billingo_public_key = array_key_exists('u-billingo-public-key', $data) ? $data['u-billingo-public-key'] : null;
+        $user->billingo_private_key = array_key_exists('u-billingo-private-key', $data) ? $data['u-billingo-private-key'] : null;
+        $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : null;
 
         if (!$user->save()) {
             Log::error('Hiba történt a felhasználó mentésekor! %s', $user);
@@ -184,12 +190,18 @@ class UserController extends Controller
             'u-email' => 'required|email|unique:users,email,' . $userId,
             'u-zip' => 'nullable',
             'u-aam' => 'nullable',
+            'u-billingo-public-key' => 'nullable',
+            'u-billingo-private-key' => 'nullable',
+            'u-block-uid' => 'nullable',
         ]);
 
         $user = User::find($userId);
         $user->name = $data['u-name'];
         $user->email = $data['u-email'];
         $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
+        $user->billingo_public_key = array_key_exists('u-billingo-public-key', $data) ? $data['u-billingo-public-key'] : $user->billingo_public_key;
+        $user->billingo_private_key = array_key_exists('u-billingo-private-key', $data) ? $data['u-billingo-private-key'] : $user->billingo_private_key;
+        $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
 
         // Kitöröljük a régieket...
         UserZip::where('user_id', $userId)->delete();
