@@ -40,14 +40,8 @@ class Order extends Model
            }
        } else {
             // Találjuk meg az admint akinek van irányítószáma
-            $resellers = User::where('admin', true)->get();
-
-            foreach ($resellers as $_reseller) {
-                if (count($_reseller->zips) > 0) {
-                    $reseller = $_reseller;
-                    break;
-                }
-            }
+            $reseller = User::where('email', '=', 'hello@semmiszemet.hu')->first();
+            $resellers = [$reseller];
        }
 
         return [
