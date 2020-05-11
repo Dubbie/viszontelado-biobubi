@@ -29,6 +29,12 @@ class OrderService
 
         $osds = $this->shoprenterApi->getAllStatuses();
 
+        if (!$osds || !property_exists($osds, 'items')) {
+            return redirect(action('UserController@home'))->with([
+                'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
+            ]);
+        }
+
         foreach ($osds->items as $osd) {
             $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
 
