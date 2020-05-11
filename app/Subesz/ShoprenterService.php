@@ -204,6 +204,13 @@ class ShoprenterService
         $newOrder = json_decode(curl_exec($ch));
         curl_close($ch);
 
+        // Ellenőrizzük le a, hogy van-e státusza
+        if (!property_exists($newOrder, 'orderStatus')) {
+            Log::error(sprintf('A státusz módosítás eredménye nem adott vissza státuszt.'));
+            Log::debug(dump($newOrder));
+            return false;
+        }
+
         // Helyesen frissült a megrendelés
         if (strpos($newOrder->orderStatus->href, $statusId) != -1) {
             // Frissítsük a helyi változatot

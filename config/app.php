@@ -13,7 +13,7 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'BioBubi Viszonteladó Portál'),
+    'name' => env('APP_NAME', 'SemmiSzemét Viszonteladó Portál'),
 
     /*
     |--------------------------------------------------------------------------
