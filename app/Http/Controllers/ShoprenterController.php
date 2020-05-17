@@ -141,16 +141,18 @@ class ShoprenterController extends Controller
             /** @var Order $localOrder */
             $reseller = $localOrder->getReseller()['correct'];
             Log::info('Hozzátartozó számlázó fiók neve: ' . $reseller->name);
-            $invoice = $this->billingoService->createInvoiceFromOrder($order, $reseller);
-            if (!$invoice) {
-                Log::error('Hiba történt a számla létrehozásakor!');
-                return ['success' => false];
-            }
 
             // Elküldjük róla a levelet is (Magunknak is)
             if ($reseller->email != 'hello@semmiszemet.hu') {
                 \Mail::to($reseller)->cc('dev.mihodaniel@gmail.com')->send(new NewOrder($order, $reseller));
                 Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
+            }
+
+            // Számla
+            $invoice = $this->billingoService->createInvoiceFromOrder($order, $reseller);
+            if (!$invoice) {
+                Log::error('Hiba történt a számla létrehozásakor!');
+                return ['success' => false];
             }
         }
 
