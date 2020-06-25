@@ -70,6 +70,16 @@
                         </a>
                     </div>
                 </li>
+
+                <li class="nav-item">
+                    <a href="{{ action('TrialProductController@listProducts') }}"
+                       class="nav-link @if(Request::is('termekek*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-shopping-basket"></i>
+                    </span>
+                        <span class="flex-grow-1">Termékek</span>
+                    </a>
+                </li>
             @endif
         </ul>
 

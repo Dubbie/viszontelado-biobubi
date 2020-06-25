@@ -3,6 +3,9 @@
 namespace App\Subesz;
 
 
+use App\Mail\RegularOrderCompleted;
+use App\Mail\TrialOrderCompleted;
+use App\Order;
 use Billingo\API\Connector\Exceptions\JSONParseException;
 use Billingo\API\Connector\Exceptions\RequestErrorException;
 use Billingo\API\Connector\HTTP\Request;
@@ -93,19 +96,27 @@ class BillingoService
                 'payment_method' => 4,
                 'comment' => '',
                 'template_lang_code' => 'hu',
-                'electronic_invoice' => 0,
+                'electronic_invoice' => 1,
                 'currency' => 'HUF',
                 'client_uid' => $client ? $client['id'] : null,
                 'block_uid' => intval($user->block_uid),
-                'type' => 0,
+                'type' => 3,
                 'round_to' => 1,
                 'items' => $items,
             ];
 
             $invoice = $billingo->post('invoices', $invoiceData);
             if ($invoice) {
+                // Megkeressük a helyi változatát a megrendelésnek
+                /** @var OrderService $os */
+                $os = resolve('App\Subesz\OrderService');
+                /** @var Order $local */
+                $local = $os->getLocalOrderByResourceId($order['order']->id);
+                $local->invoice_id = $invoice['id'];
+                $local->save();
+
                 Log::info(sprintf('Számla sikeresen létrejött! (Számla azonosító: %s)', $invoice['id']));
-                return true;
+                return $invoice['id'];
             }
         } catch (JSONParseException $e) {
             Log::error(sprintf('Hiba történt az új kliens létrehozásakor! %s %s', $e->getMessage(), $e->getTraceAsString()));
@@ -134,6 +145,52 @@ class BillingoService
             Log::error("Hiba a JSON átalakításakor");
         } catch (RequestErrorException $e) {
             Log::error("Hiba a lekérdezésben");
+        } catch (GuzzleException $e) {
+            Log::info('Hiba történt a Billingo API meghívásakor: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    /**
+     * Elmenti a megadott számla azonosító alapján a számlát a megrendelés azonosítóhoz
+     *
+     * @param $user
+     * @param $invoiceId
+     * @param $orderId
+     * @return bool|null|string
+     */
+    public function saveInvoice($user, $invoiceId, $orderId) {
+        $billingo = $this->getBillingoRequest($user);
+
+        try {
+            $fname = 'ssz-szamla-' . date('Ymd_His') . '.pdf';
+            $path = sprintf('invoices/%s/%s', $orderId, $fname);
+            $data = $billingo->downloadInvoice($invoiceId);
+
+            if (\Storage::put($path, $data->getContents())) {
+                $localOrder = Order::find($orderId);
+                $localOrder->invoice_path = $path;
+                $localOrder->save();
+
+                Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
+                return $path;
+            } else {
+                Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
+                return false;
+            }
+        } catch (GuzzleException $e) {
+            Log::info('Hiba történt a Billingo API meghívásakor: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
+    public function downloadInvoice($user, $invoiceId) {
+        $billingo = $this->getBillingoRequest($user);
+
+        try {
+            return $billingo->downloadInvoice($invoiceId, 'billingo-' . date('Ymd_His') . '.pdf');
         } catch (GuzzleException $e) {
             Log::info('Hiba történt a Billingo API meghívásakor: ' . $e->getMessage());
         }

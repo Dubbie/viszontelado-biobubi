@@ -1,5 +1,6 @@
 <?php
 
+use App\Subesz\OrderService;
 use Billingo\API\Connector\HTTP\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +30,10 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
+
+        // Próbacsomag termékek
+        Route::get('/termekek', 'TrialProductController@listProducts');
+        Route::post('/api/termek/atkapcsol/{sku}', 'TrialProductController@toggleProduct');
 
         Route::post('/api/billingo/test', 'UserController@testBillingo');
     });
@@ -65,6 +70,7 @@ Route::group(['middleware' => 'auth'], function() {
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
+
 /**
  * Runs database migrations
  */

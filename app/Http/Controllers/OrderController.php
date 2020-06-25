@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Delivery;
+use App\Mail\RegularOrderCompleted;
+use App\Mail\TrialOrderCompleted;
 use App\Order;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
@@ -100,6 +102,7 @@ class OrderController extends Controller
 
         return view('order.show')->with([
             'order' => $order,
+            'localOrderId' => $this->orderService->getLocalOrderByResourceId($order['order']->id),
         ]);
     }
 
@@ -142,10 +145,16 @@ class OrderController extends Controller
         if ($this->shoprenterApi->updateOrderStatusId($data['order-id'], $statusId)) {
             // Kiszállítva állító
             if ($data['order-status-href'] == sprintf('%s/orderStatuses/b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=', env('SHOPRENTER_API'))) {
+                $orderId = $this->orderService->getLocalOrderByResourceId($data['order-id'])->id;
+
                 $delivery = new Delivery();
                 $delivery->user_id = Auth::id();
-                $delivery->order_id = $this->orderService->getLocalOrderByResourceId($data['order-id'])->id;
+                $delivery->order_id = $orderId;
                 $delivery->save();
+
+                // Kikeressük a helyi megrendelést
+                $localOrder = Order::find($orderId);
+                $localOrder->sendInvoice();
             } else {
                 $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($data['order-id'])->id);
                 if ($delivery) {
@@ -192,10 +201,16 @@ class OrderController extends Controller
             if ($this->shoprenterApi->updateOrderStatusId($orderId, $statusId)) {
                 // Kiszállítva állító
                 if ($shouldDeliver) {
+                    $localOrderId = $this->orderService->getLocalOrderByResourceId($orderId)->id;
+
                     $delivery = new Delivery();
                     $delivery->user_id = Auth::id();
-                    $delivery->order_id = $this->orderService->getLocalOrderByResourceId($orderId)->id;
+                    $delivery->order_id = $localOrderId;
                     $delivery->save();
+
+                    // Kikeressük a helyi megrendelést
+                    $localOrder = Order::find($localOrderId);
+                    $localOrder->sendInvoice();
                 } else {
                     $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($orderId)->id);
                     if ($delivery) {

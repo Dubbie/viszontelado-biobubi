@@ -245,4 +245,24 @@ class ShoprenterService
 
         return json_decode($response);
     }
+
+    /**
+     * @return mixed
+     */
+    public function getAllProducts() {
+        $apiUrl = sprintf('%s/productExtend?full=1&limit=200', env('SHOPRENTER_API'));
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $apiUrl,
+            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        return json_decode($response);
+    }
 }
