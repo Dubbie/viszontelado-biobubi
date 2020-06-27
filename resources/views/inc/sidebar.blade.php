@@ -44,6 +44,16 @@
                     <span class="flex-grow-1">Fiókom</span>
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ action('DocumentController@index') }}"
+                   class="nav-link @if(Request::is('dokumentumok*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-file-alt"></i>
+                    </span>
+                    <span class="flex-grow-1">Dokumentumok</span>
+                    {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
+                </a>
+            </li>
 
             {{-- Admin dolgok --}}
             @if(Auth()->user() && Auth()->user()->admin)

@@ -186,6 +186,11 @@ class BillingoService
         return null;
     }
 
+    /**
+     * @param $user
+     * @param $invoiceId
+     * @return null|\Psr\Http\Message\StreamInterface|string
+     */
     public function downloadInvoice($user, $invoiceId) {
         $billingo = $this->getBillingoRequest($user);
 

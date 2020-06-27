@@ -156,6 +156,8 @@ class ShoprenterController extends Controller
                 Log::error('Hiba történt a számla létrehozásakor!');
                 return ['success' => false];
             } else {
+                $localOrder->invoice_id = $invoiceId;
+                $localOrder->save();
                 $this->billingoService->saveInvoice($reseller, $invoiceId, $localOrder->id);
             }
         }

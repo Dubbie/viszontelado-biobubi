@@ -117,9 +117,9 @@ class Order extends Model
 
         // Elvileg megvan minden, mehet a levél
         if (!$this->hasTrial()) {
-            \Mail::to('dev.mihodaniel@gmail.com')->send(new RegularOrderCompleted($this, $this->invoice_path));
+            \Mail::to($this->email)->cc('dev.mihodaniel@gmail.com')->send(new RegularOrderCompleted($this, $this->invoice_path));
         } else {
-            \Mail::to('dev.mihodaniel@gmail.com')->send(new TrialOrderCompleted($this, $this->invoice_path));
+            \Mail::to($this->email)->cc('dev.mihodaniel@gmail.com')->send(new TrialOrderCompleted($this, $this->invoice_path));
         }
 
         return true;

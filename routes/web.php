@@ -36,6 +36,10 @@ Route::group(['middleware' => 'auth'], function() {
         Route::post('/api/termek/atkapcsol/{sku}', 'TrialProductController@toggleProduct');
 
         Route::post('/api/billingo/test', 'UserController@testBillingo');
+
+        Route::get('/dokumentumok/uj', 'DocumentController@create');
+        Route::post('/dokumentumok/feltoltes', 'DocumentController@store');
+        Route::get('/dokumentumok/{id}/torles', 'DocumentController@deleteDocument');
     });
 
     Route::get('/', 'UserController@home');
@@ -66,6 +70,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 
     Route::post('/szallitolevel/letoltes', 'DocumentController@download');
+
+    Route::get('/dokumentumok', 'DocumentController@index');
+    Route::get('/dokumentumok/{id}/letoltes', 'DocumentController@getDocument');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');

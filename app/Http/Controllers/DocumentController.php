@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Document;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
@@ -26,7 +27,12 @@ class DocumentController extends Controller
         $this->shoprenterApi = $shoprenterService;
     }
 
-    public function download(Request $request) {
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function download(Request $request)
+    {
         $data = $request->validate([
             'sm-order-ids' => 'required',
         ]);
@@ -49,5 +55,74 @@ class DocumentController extends Controller
 
         $filename = sprintf('szs_szallitolevel_%s.pdf', date('Y_m_d_his'));
         return $pdf->download($filename);
+    }
+
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function index()
+    {
+        return view('documents')->with([
+            'documents' => Document::all(),
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'documents' => 'required',
+        ]);
+
+        /** @var \Illuminate\Http\UploadedFile $file */
+        foreach ($data['documents'] as $file) {
+            $path = $file->store('/storage/documents');
+
+            if (!$path) {
+                return redirect(url()->previous())->with([
+                    'error' => 'Hiba történt a fájl feltöltésekor',
+                ]);
+            }
+
+            $doc = new Document();
+            $doc->name = $file->getClientOriginalName();
+            $doc->path = $path;
+            $doc->save();
+        }
+
+        return redirect(url()->previous())->with([
+            'success' => 'Dokumentumok sikeresen feltöltve'
+        ]);
+    }
+
+    /**
+     * @param $documentId
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function getDocument($documentId)
+    {
+        $doc = Document::find($documentId);
+        return $doc->download();
+    }
+
+    /**
+     * @param $documentId
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @throws \Exception
+     */
+    public function deleteDocument($documentId)
+    {
+        $doc = Document::find($documentId);
+
+        if (\Storage::delete($doc->path)) {
+            $doc->delete();
+        }
+
+        return redirect(url()->previous())->with([
+            'success' => 'Dokumentumok sikeresen törölve'
+        ]);
     }
 }

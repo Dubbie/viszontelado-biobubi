@@ -4,10 +4,14 @@
 @component('mail::message')
 # Megrendelés értesítő
 
-Szia {{ $order->lastname }}!
+Kedves {{ $order->lastname }}!
 
-Köszönjük hogy minket választottál ISMÉT (Nem próbacsomag levél)!
+Csatolva küldöm neked az e-számlát!<br>
+Köszönjük, hogy megtiszteltél minket és környezetünket a tudatos döntéseddel! :)
 
-Üdvözlettel,<br>
-Balázs
+**Ne feledd!**<br>
+**Az összes tőlünk vásárolt, kiürült flakont visszaváltjuk és újrahasznosítjuk!**
+
+*Barátsággal,*<br>
+*Balázs a Semmi Szeméttől*
 @endcomponent
