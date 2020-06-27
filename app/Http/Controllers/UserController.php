@@ -16,9 +16,6 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    /** @var OrderService */
-    private $orderService;
-
     /** @var RevenueService */
     private $revenueService;
 
@@ -27,13 +24,11 @@ class UserController extends Controller
 
     /**
      * UserController constructor.
-     * @param OrderService $orderService
      * @param RevenueService $revenueService
      * @param BillingoService $billingoService
      */
-    public function __construct(OrderService $orderService, RevenueService $revenueService, BillingoService $billingoService)
+    public function __construct(RevenueService $revenueService, BillingoService $billingoService)
     {
-        $this->orderService = $orderService;
         $this->revenueService = $revenueService;
         $this->billingoService = $billingoService;
     }
@@ -61,9 +56,11 @@ class UserController extends Controller
         }
         $profit = $income - $expense;
         $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
+        /** @var OrderService $os */
+        $os = resolve('App\Subesz\OrderService');
 
         return view('home')->with([
-            'orders' => $this->orderService->getLatestOrder(5),
+            'orders' => $os->getLatestOrder(5),
             'income' => $income,
             'expense' => $expense,
             'profit' => $profit,

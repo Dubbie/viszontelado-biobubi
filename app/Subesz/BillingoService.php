@@ -106,6 +106,7 @@ class BillingoService
             ];
 
             $invoice = $billingo->post('invoices', $invoiceData);
+            Log::info(dump($invoice));
             if ($invoice) {
                 // Megkeressük a helyi változatát a megrendelésnek
                 /** @var OrderService $os */
