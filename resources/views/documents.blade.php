@@ -14,19 +14,21 @@
         </div>
         <div class="card card-body">
             @if(count($documents) > 0)
-               <div class="row">
+                @php /** @var \App\Document $document */ @endphp
+                @foreach($documents as $document)
+                <div class="row">
                    <div class="col-md">
-                       @php /** @var \App\Document $document */ @endphp
-                       @foreach($documents as $document)
-                           <a href="{{ action('DocumentController@getDocument', $document) }}" class="btn-link font-weight-bold">
-                               <b>{{ $document->name }}</b>
-                           </a>
-                       @endforeach
+                       <a href="{{ action('DocumentController@getDocument', $document) }}" class="btn text-left d-block btn-link font-weight-bold">
+                           <b>{{ $document->name }}</b>
+                       </a>
                    </div>
                    @if(Auth::user()->admin)
-                       <a href="{{ action('DocumentController@deleteDocument', $document) }}" class="btn btn-sm btn-danger">Törlés</a>
+                       <div class="col-md-auto">
+                           <a href="{{ action('DocumentController@deleteDocument', $document) }}" class="btn btn-sm btn-danger">Törlés</a>
+                       </div>
                    @endif
                </div>
+                @endforeach
             @else
                 <p class="mb-0">Jelenleg egy dokument sincs feltöltve.</p>
             @endif
