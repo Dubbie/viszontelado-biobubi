@@ -150,14 +150,15 @@ class ShoprenterController extends Controller
 
             // Számla
             $invoiceId = $this->billingoService->createInvoiceFromOrder($order, $reseller);
+            $localOrder->invoice_id = $invoiceId;
+            $localOrder->save();
+            Log::info('Helyi megrendeléshez tartozó számla azonosító frissítve');
 
             // Elmentjük a számlát helyileg a megrendelés azonosítója alapján
             if (!$invoiceId) {
                 Log::error('Hiba történt a számla létrehozásakor!');
                 return ['success' => false];
             } else {
-                $localOrder->invoice_id = $invoiceId;
-                $localOrder->save();
                 $this->billingoService->saveInvoice($reseller, $invoiceId, $localOrder->id);
             }
         }
