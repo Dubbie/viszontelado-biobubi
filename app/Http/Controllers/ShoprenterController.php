@@ -150,6 +150,8 @@ class ShoprenterController extends Controller
 
             // Számla
             $invoiceId = $this->billingoService->createInvoiceFromOrder($order, $reseller);
+            Log::info('Invoice return:');
+            Log::info(var_dump($invoiceId));
             $localOrder->invoice_id = $invoiceId;
             $localOrder->save();
             Log::info('Helyi megrendeléshez tartozó számla azonosító frissítve');

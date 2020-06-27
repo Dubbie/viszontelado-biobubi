@@ -33,8 +33,9 @@ class RegularOrderCompleted extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.orders.regular-completed')->with([
+        \Log::info(storage_path('app/' . $this->invoicePath));
+        return $this->markdown('emails.orders.regular-completed')->subject('Fontos infók a levélben')->with([
             'order' => $this->order,
-        ])->attach(str_replace('\\', '/', storage_path('app/' . $this->invoicePath)));
+        ])->attach(storage_path('app/' . $this->invoicePath));
     }
 }

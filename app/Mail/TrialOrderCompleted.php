@@ -33,8 +33,9 @@ class TrialOrderCompleted extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.orders.trial-completed')->with([
+        \Log::info(storage_path('app/' . $this->invoicePath));
+        return $this->markdown('emails.orders.trial-completed')->subject('Fontos infók a levélben')->with([
             'order' => $this->order,
-        ])->attach(str_replace('\\', '/', storage_path('app/' . $this->invoicePath)));
+        ])->attach(storage_path('app/' . $this->invoicePath));
     }
 }
