@@ -118,7 +118,6 @@
             </div>
 
             <div class="form-group mt-4 mb-0 text-right">
-                <a href="{{ action('OrderController@sendInvoiceMail', ['privateKey' => env('PRIVATE_KEY'), 'orderId' => $localOrderId]) }}" class="btn btn-danger">TESZT GOMB</a>
                 <button type="button" class="btn btn-sm btn-outline-success btn-order-status-details" data-toggle="modal"
                         data-target="#orderStatusModal" data-order-id="{{ $order['order']->id }}">Állapot módosítása
                 </button>

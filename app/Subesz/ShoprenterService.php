@@ -207,7 +207,7 @@ class ShoprenterService
         // Ellenőrizzük le a, hogy van-e státusza
         if (!property_exists($newOrder, 'orderStatus')) {
             Log::error(sprintf('A státusz módosítás eredménye nem adott vissza státuszt.'));
-            Log::debug(dump($newOrder));
+            Log::debug(var_dump($newOrder));
             return false;
         }
 
