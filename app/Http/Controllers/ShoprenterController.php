@@ -110,6 +110,7 @@ class ShoprenterController extends Controller
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
             Log::info($_order);
+            $orderId = str_replace('orders/', '', $_order['innerResourceId']);
 
             // Elmentése a Megrendelésnek db-be
             $localOrder = new Order();
@@ -117,7 +118,7 @@ class ShoprenterController extends Controller
             $localOrder->shipping_city = $_order['shippingCity'];
             $localOrder->shipping_address = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
             $localOrder->inner_id = $_order['innerId'];
-            $localOrder->inner_resource_id = $_order['innerResourceId'];
+            $localOrder->inner_resource_id = $orderId;
             $localOrder->total = $_order['total'];
             $localOrder->total_gross = $_order['totalGross'];
             $localOrder->tax_price = $_order['taxPrice'];
@@ -134,7 +135,6 @@ class ShoprenterController extends Controller
                 return ['success' => false];
             }
 
-            $orderId = str_replace('orders/', '', $_order['innerResourceId']);
             $order = $this->shoprenterApi->getOrder($orderId);
 
             // Mentsük el a számlát
@@ -150,11 +150,8 @@ class ShoprenterController extends Controller
 
             // Számla
             $invoiceId = $this->billingoService->createInvoiceFromOrder($order, $reseller);
-            Log::info('Invoice return:');
-            Log::info(var_dump($invoiceId));
             $localOrder->invoice_id = $invoiceId;
             $localOrder->save();
-            Log::info('Helyi megrendeléshez tartozó számla azonosító frissítve');
 
             // Elmentjük a számlát helyileg a megrendelés azonosítója alapján
             if (!$invoiceId) {
