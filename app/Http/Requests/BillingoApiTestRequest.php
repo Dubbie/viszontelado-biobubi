@@ -28,8 +28,7 @@ class BillingoApiTestRequest extends LaravelFormRequest
     public function rules()
     {
         return [
-            'u-billingo-public-key' => 'required',
-            'u-billingo-private-key' => 'required',
+            'u-billingo-api-key' => 'required',
             'u-block-uid' => 'required',
         ];
     }

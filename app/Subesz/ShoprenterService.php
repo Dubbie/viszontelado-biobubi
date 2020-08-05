@@ -82,6 +82,50 @@ class ShoprenterService
     }
 
     /**
+     * Visszaadja tömbösítve az összes megrendelést BATCH feldolgozóval. Köszi ShopRenter, nagyon hűvös!
+     *
+     * @return array
+     */
+    public function getBatchedOrders() {
+        $apiUrl = sprintf('%s/batch', env('SHOPRENTER_API'));
+        $data = [
+            'data' => [
+                'requests' => []
+            ]
+        ];
+        $ordersData = $this->getOrdersByPage(0, 200);
+        for ($i = 0; $i <= $ordersData->pageCount - 1; $i++) {
+            $url = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $i, 200);
+            $data['data']['requests'][] = [
+                'method' => 'GET',
+                'uri' => $url,
+            ];
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $apiUrl,
+            CURLOPT_HTTPHEADER => ['Accept:application/json'],
+            CURLOPT_USERPWD => sprintf( '%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_POST => 1,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        $response = json_decode(curl_exec($ch));
+        curl_close($ch);
+
+        // Egybefűzzük a megérkezett megrendeléseket
+        $orders = [];
+        $pageRequests = $response->requests->request;
+        foreach ($pageRequests as $split) {
+            $responseData = $split->response->body;
+            $orders = array_merge($orders, $responseData->items);
+        }
+
+        return $orders;
+    }
+
+    /**
      * Visszaadja a megrendelés részleteit
      *
      * @param $orderId
@@ -264,5 +308,31 @@ class ShoprenterService
         curl_close($ch);
 
         return json_decode($response);
+    }
+
+    /**
+     * It recursively converts the multi dimension (deep) array to single dimension array as it was posted from an html form
+     *
+     * @param $arrays
+     * @param array $new
+     * @param null $prefix
+     * @return void
+     * @author Mohsin Rasool
+     *
+     */
+    private function http_build_query_for_curl( $arrays, &$new = array(), $prefix = null ) {
+
+        if ( is_object( $arrays ) ) {
+            $arrays = get_object_vars( $arrays );
+        }
+
+        foreach ( $arrays AS $key => $value ) {
+            $k = isset( $prefix ) ? $prefix . '[' . $key . ']' : $key;
+            if ( is_array( $value ) OR is_object( $value )  ) {
+                $this->http_build_query_for_curl( $value, $new, $k );
+            } else {
+                $new[$k] = $value;
+            }
+        }
     }
 }

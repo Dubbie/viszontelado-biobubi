@@ -5,8 +5,7 @@ $(() => {
     }
 
     const form = document.getElementById('user-form');
-    const inputBillingoPublicKey = document.getElementById('u-billingo-public-key');
-    const inputBillingoPrivateKey = document.getElementById('u-billingo-private-key');
+    const inputBillingoApiKey = document.getElementById('u-billingo-api-key');
     const inputBillingoBlockUid = document.getElementById('u-block-uid');
     const billingoResults = document.getElementById('billingo-test-results');
 
@@ -14,8 +13,7 @@ $(() => {
      * Visszaállítja alaphelyzetbe a Billingo bemeneteket.
      */
     function resetBillingoInputs() {
-        inputBillingoPublicKey.classList.remove('is-invalid', 'is-valid');
-        inputBillingoPrivateKey.classList.remove('is-invalid', 'is-valid');
+        inputBillingoApiKey.classList.remove('is-invalid', 'is-valid');
         inputBillingoBlockUid.classList.remove('is-invalid', 'is-valid');
 
         billingoResults.classList.remove('alert-success', 'alert-danger');
@@ -51,8 +49,7 @@ $(() => {
      */
     function checkBillingoInputs() {
         if (inputBillingoBlockUid.value.length > 0 &&
-            inputBillingoPrivateKey.value.length > 0 &&
-            inputBillingoPublicKey.value.length > 0) {
+            inputBillingoApiKey.value.length > 0) {
             disableButton(btnTestBillingoApi, false);
         } else {
             disableButton(btnTestBillingoApi);
@@ -99,58 +96,11 @@ $(() => {
             method: 'POST',
             body: formData,
         }).then(response => response.json()).then(json => {
-            // Validálási hiba lekezelése
-            if (json.errors) {
-                for (let [inputId, errorList] of Object.entries(json.errors)) {
-                    const input = document.getElementById(inputId);
-                    const feedbacks = $(input).closest('.form-group').find('.invalid-feedback')[0];
-                    input.classList.add('is-invalid');
+            const p = document.createElement('p');
+            p.classList.add('alert', 'alert-info', 'mb-0');
+            p.innerText = json.success ? 'Csatlakozás sikeres' : 'Csatlakozás sikertelen';
 
-                    // Kitöröljük a régi üzeneteket
-                    while (feedbacks.lastChild) {
-                        feedbacks.removeChild(feedbacks.lastChild);
-                    }
-
-                    // Végigmegyünk az üzeneteken és hozzáadjuk a listához
-                    for (const msg of errorList) {
-                        const el = document.createElement('p');
-                        el.classList.add('mb-0');
-                        el.innerText = msg;
-
-                        feedbacks.appendChild(el);
-                    }
-                }
-
-                return;
-            }
-
-            // Nem történt validálási hiba
-            if (!json.success) {
-                if (json.correctInputs.length === 0) {
-                    inputBillingoPrivateKey.classList.add('is-invalid');
-                    inputBillingoPublicKey.classList.add('is-invalid');
-                } else {
-                    inputBillingoBlockUid.classList.add('is-invalid');
-                }
-
-                billingoResults.classList.add('alert-danger');
-            } else {
-                billingoResults.classList.add('alert-success');
-            }
-
-            // Helyes inputok
-            for (const inputId of json.correctInputs) {
-                document.getElementById(inputId).classList.add('is-valid');
-            }
-
-            // Üzeneteket hozzáadjuk
-            for (const msg of json.messages) {
-                const p = document.createElement('p');
-                p.classList.add('mb-0');
-                p.innerText = msg;
-
-                billingoResults.appendChild(p);
-            }
+            billingoResults.appendChild(p);
 
             $(billingoResults).slideDown();
         }).finally(() => {

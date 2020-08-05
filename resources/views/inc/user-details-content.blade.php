@@ -15,18 +15,11 @@
 <h5 class="font-weight-bold mb-1 mt-4">Billingo API</h5>
 <div class="row">
     <div class="col-md-5">
-        <p class="font-weight-bold mb-0">Nyilvános kulcs</p>
+        <p class="font-weight-bold mb-0">API kulcs</p>
     </div>
     <div class="col-md-7">
-        <p class="has-tooltip mb-0 {{ $user->billingo_public_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
-           title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->billingo_public_key ? 'Van megadva' : 'Nincs megadva' }}</p>
-    </div>
-    <div class="col-md-5">
-        <p class="font-weight-bold mb-0">Privát kulcs</p>
-    </div>
-    <div class="col-md-7">
-        <p class="has-tooltip mb-0 {{ $user->billingo_private_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
-           title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->billingo_private_key ? 'Van megadva' : 'Nincs megadva' }}</p>
+        <p class="has-tooltip mb-0 {{ $user->billingo_api_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
+           title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt jelenítjük meg.">{{ $user->billingo_api_key ? 'Van megadva' : 'Nincs megadva' }}</p>
     </div>
     <div class="col-md-5">
         <p class="font-weight-bold mb-0">Számlatömb azonosító</p>

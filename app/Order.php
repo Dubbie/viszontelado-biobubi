@@ -4,6 +4,7 @@ namespace App;
 
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
+use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,29 @@ use Illuminate\Support\Facades\Log;
  */
 class Order extends Model
 {
+    protected $fillable = [
+        'inner_id',
+        'inner_resource_id',
+        'total',
+        'total_gross',
+        'tax_price',
+        'firstname',
+        'lastname',
+        'email',
+        'status_text',
+        'status_color',
+        'shipping_method_name',
+        'payment_method_name',
+        'shipping_postcode',
+        'shipping_city',
+        'shipping_address',
+        'created_at',
+        'updated_at',
+    ];
+
+    /**
+     * @return string
+     */
     public function getFormattedAddress() {
         $out = '';
 
@@ -94,11 +118,37 @@ class Order extends Model
     }
 
     /**
+     * @return null|\Swagger\Client\Model\Document
+     */
+    public function getDraftInvoice() {
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
+        $reseller = $this->getReseller()['correct'];
+
+        return $bs->getInvoice($this->draft_invoice_id, $reseller);
+    }
+
+    /**
+     * @return null|\Swagger\Client\Model\Document
+     */
+    public function createRealInvoice() {
+        if (!$this->draft_invoice_id) {
+            Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+        }
+
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
+        $reseller = $this->getReseller()['correct'];
+
+        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller);
+    }
+
+    /**
      * @return bool
      */
     public function sendInvoice() {
-        /** @var BillingoService $bs */
-        $bs = resolve('App\Subesz\BillingoService');
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
 
         if (!$this->isInvoiceSaved()) {
             Log::error('Nincs elmentve a megrendeléshez számla... Számla azonosító keresése...');
@@ -106,7 +156,7 @@ class Order extends Model
             if ($this->invoice_id) {
                 Log::info('Számla azonosító megtalálva! Elmentés megkezdése...');
                 $reseller = $this->getReseller()['correct'];
-                if (!$bs->saveInvoice($reseller, $this->invoice_id, $this->id)) {
+                if (!$bs->saveInvoice($this->invoice_id, $this->id, $reseller)) {
                     return false;
                 }
             } else {
@@ -116,10 +166,15 @@ class Order extends Model
         }
 
         // Elvileg megvan minden, mehet a levél
+//        if (!$this->hasTrial()) {
+//            \Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
+//        } else {
+//            \Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
+//        }
         if (!$this->hasTrial()) {
-            \Mail::to($this->email)->cc('dev.mihodaniel@gmail.com')->send(new RegularOrderCompleted($this, $this->invoice_path));
+            \Mail::to('dev.mihodaniel@gmail.com')->send(new RegularOrderCompleted($this, $this->invoice_path));
         } else {
-            \Mail::to($this->email)->cc('dev.mihodaniel@gmail.com')->send(new TrialOrderCompleted($this, $this->invoice_path));
+            \Mail::to('dev.mihodaniel@gmail.com')->send(new TrialOrderCompleted($this, $this->invoice_path));
         }
 
         return true;

@@ -24,17 +24,11 @@
                             <p class="font-weight-bold mb-0">Billingo API csatlakozás: </p>
                         </div>
                         <div class="col-md-6 text-md-right">
-                            <span class="font-weight-bold {{ $billingo['success'] ? 'text-success' : 'text-danger' }}">{{ $billingo['success'] ? 'Sikeres' : 'Sikertelen' }}</span>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="font-weight-bold mb-0">Számlatömb felismerése: </p>
-                        </div>
-                        <div class="col-md-6 text-md-right">
-                            <span class="font-weight-bold {{ $billingo['block'] ? 'text-success' : 'text-danger' }}">{{ $billingo['block'] ? 'Sikeres' : 'Sikertelen' }}</span>
+                            <span class="font-weight-bold {{ $billingo ? 'text-success' : 'text-danger' }}">{{ $billingo ? 'Sikeres' : 'Sikertelen' }}</span>
                         </div>
                     </div>
 
-                    @if(!$billingo['success'] || !$billingo['block'])
+                    @if(!$billingo)
                         <div class="alert alert-warning rounded-lg mt-4 mb-0">
                             <p class="mb-0">Kérjük vegye fel a kapcsolatot egy adminisztrátorral, hogy működjön az automatikus számla kiállítás.</p>
                         </div>

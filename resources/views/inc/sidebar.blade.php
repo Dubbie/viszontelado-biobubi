@@ -90,6 +90,16 @@
                         <span class="flex-grow-1">Termékek</span>
                     </a>
                 </li>
+
+                <li class="nav-item">
+                    <a href="{{ action('PostController@index') }}"
+                       class="nav-link @if(Request::is('bejegyzesek*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-newspaper"></i>
+                    </span>
+                        <span class="flex-grow-1">Bejegyzések</span>
+                    </a>
+                </li>
             @endif
         </ul>
 

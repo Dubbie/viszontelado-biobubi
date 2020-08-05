@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\BillingoApiTestRequest;
-use App\Subesz\BillingoService;
+use App\Post;
+use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
 use App\UserZip;
+use Billingo\API\Connector\HTTP\Route;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -16,21 +18,13 @@ use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
-    /** @var RevenueService */
-    private $revenueService;
-
-    /** @var BillingoService */
-    private $billingoService;
 
     /**
      * UserController constructor.
-     * @param RevenueService $revenueService
-     * @param BillingoService $billingoService
      */
-    public function __construct(RevenueService $revenueService, BillingoService $billingoService)
+    public function __construct()
     {
-        $this->revenueService = $revenueService;
-        $this->billingoService = $billingoService;
+
     }
 
     /**
@@ -38,6 +32,13 @@ class UserController extends Controller
      */
     public function home()
     {
+//        /** @var BillingoNewService $bns */
+//        $bns = resolve('App\Subesz\BillingoNewService');
+        /** @var RevenueService $revenueService */
+        $revenueService = resolve('App\Subesz\RevenueService');
+//        /** @var BillingoNewService $billingoService */
+        $billingoService = resolve('App\Subesz\BillingoNewService');
+
         $start = Carbon::now()->startOfMonth();
         $end = Carbon::now();
 
@@ -45,17 +46,19 @@ class UserController extends Controller
         $benjiExpenses = null;
         $benji = User::where('email', 'gbenji20@gmail.com')->first();
         if (Auth::user()->admin && $benji) {
-            $benjiExpenses = $this->revenueService->getExpenseByRange($start, $end, $benji->id)['sum'];
+            $benjiExpenses = $revenueService->getExpenseByRange($start, $end, $benji->id)['sum'];
         }
 
-        $income = $this->revenueService->getIncomeByRange($start, $end)['sum'];
-        $expense = $this->revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
+        $income = $revenueService->getIncomeByRange($start, $end)['sum'];
+        $expense = $revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
         // Benjit levonjuk ha kell
         if ($benjiExpenses) {
             $expense += $benjiExpenses;
         }
         $profit = $income - $expense;
-        $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
+
+        $billingoResults = $billingoService->isBillingoConnected(Auth::user());
+
         /** @var OrderService $os */
         $os = resolve('App\Subesz\OrderService');
 
@@ -65,6 +68,7 @@ class UserController extends Controller
             'expense' => $expense,
             'profit' => $profit,
             'billingo' => $billingoResults,
+            'news' => Post::orderByDesc('created_at')->limit(5)->get(),
         ]);
     }
 
@@ -130,8 +134,7 @@ class UserController extends Controller
             'u-password' => 'required',
             'u-zip' => 'required',
             'u-aam' => 'nullable',
-            'u-billingo-public-key' => 'nullable',
-            'u-billingo-private-key' => 'nullable',
+            'u-billingo-api-key' => 'nullable',
             'u-block-uid' => 'nullable',
         ]);
 
@@ -140,8 +143,7 @@ class UserController extends Controller
         $user->email = trim($data['u-email']);
         $user->password = Hash::make($data['u-password']);
         $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
-        $user->billingo_public_key = array_key_exists('u-billingo-public-key', $data) ? $data['u-billingo-public-key'] : null;
-        $user->billingo_private_key = array_key_exists('u-billingo-private-key', $data) ? $data['u-billingo-private-key'] : null;
+        $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : null;
         $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : null;
 
         if (!$user->save()) {
@@ -196,8 +198,7 @@ class UserController extends Controller
         $user->name = $data['u-name'];
         $user->email = $data['u-email'];
         $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
-        $user->billingo_public_key = array_key_exists('u-billingo-public-key', $data) ? $data['u-billingo-public-key'] : $user->billingo_public_key;
-        $user->billingo_private_key = array_key_exists('u-billingo-private-key', $data) ? $data['u-billingo-private-key'] : $user->billingo_private_key;
+        $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
         $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
 
         // Kitöröljük a régieket...
@@ -234,7 +235,9 @@ class UserController extends Controller
      */
     public function profile()
     {
-        $billingoResults = $this->billingoService->getBlockByUid(Auth::user()->billingo_public_key, Auth::user()->billingo_private_key, Auth::user()->block_uid);
+        /** @var BillingoNewService $billingoService */
+        $billingoService = resolve('App\Subesz\BillingoNewService');
+        $billingoResults = $billingoService->isBillingoConnected(Auth::user());
 
         return view('profile')->with([
             'billingo' => $billingoResults,
@@ -279,9 +282,10 @@ class UserController extends Controller
      */
     public function testBillingo(BillingoApiTestRequest $request)
     {
+        /** @var BillingoNewService $billingoService */
+        $billingoService = resolve('App\Subesz\BillingoNewService');
         $data = $request->validated();
-
-        $response = $this->billingoService->getBlockByUid($data['u-billingo-public-key'], $data['u-billingo-private-key'], $data['u-block-uid']);
+        $response = $billingoService->isBillingoWorking($data['u-billingo-api-key'], $data['u-block-uid']);
         return $response;
     }
 

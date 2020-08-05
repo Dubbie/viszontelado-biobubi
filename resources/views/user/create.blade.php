@@ -54,19 +54,14 @@
                             </div>
                             <div class="col-lg-8">
                                 <div class="form-group">
-                                    <label for="u-billingo-public-key">Nyilvános kulcs</label>
-                                    <input type="text" id="u-billingo-public-key" name="u-billingo-public-key" class="form-control">
-                                    <div class="invalid-feedback"></div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="u-billingo-private-key">Privát kulcs</label>
-                                    <textarea type="text" id="u-billingo-private-key" name="u-billingo-private-key" class="form-control"></textarea>
+                                    <label for="u-billingo-api-key">Billingo API Kulcs <small class="font-weight-bold text-muted">Billingo API v3</small></label>
+                                    <input type="text" id="u-billingo-api-key" name="u-billingo-api-key" class="form-control">
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 <div class="form-group">
                                     <label for="u-block-uid">Számlatömb azonosító</label>
                                     <input type="text" id="u-block-uid" name="u-block-uid" class="form-control">
-                                    <small class="form-text text-muted"><a href="https://app.billingo.hu/beallitasok/szamlazo/szamlatomb">Ezen</a> az oldalon található, a Tömb API ID-t kell ide beírni.</small>
+                                    <small class="form-text text-muted"><a href="https://app.billingo.hu/beallitasok/szamlazo/szamlatomb">Ezen</a> az oldalon található, a Tömb API ID-t kell ide beírni. <b class="d-block">FONTOS: Nem a Legacy API ID-t.</b></small>
                                     <div class="invalid-feedback"></div>
                                 </div>
                                 <div class="form-group">

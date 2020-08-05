@@ -6,6 +6,7 @@ use App\Delivery;
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
 use App\Order;
+use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
@@ -26,20 +27,15 @@ class OrderController extends Controller
     /** @var OrderService */
     private $orderService;
 
-    /** @var BillingoService */
-    private $billingoService;
-
     /**
      * OrderController constructor.
      * @param ShoprenterService $shoprenterService
      * @param OrderService $orderService
-     * @param BillingoService $billingoService
      */
-    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService, BillingoService $billingoService)
+    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService)
     {
         $this->shoprenterApi = $shoprenterService;
         $this->orderService = $orderService;
-        $this->billingoService = $billingoService;
     }
 
     /**
@@ -127,6 +123,9 @@ class OrderController extends Controller
      */
     public function updateStatus(Request $request)
     {
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
+
         $data = $request->validate([
             'order-id' => 'required',
             'order-status-now' => 'required',
@@ -154,6 +153,22 @@ class OrderController extends Controller
 
                 // Kikeressük a helyi megrendelést
                 $localOrder = Order::find($orderId);
+                $reseller = $localOrder->getReseller()['correct'];
+
+                // Létrehozzuk az ÉLES számlát
+                $realInvoice = $localOrder->createRealInvoice();
+                $localOrder->invoice_id = $realInvoice->getId();
+                if (!$bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
+                    echo 'Nem sikerült elmenteni a számlát';
+                    return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                        'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                    ]);
+                }
+
+                // Elmentjük a számlát helyileg
+                $invoicePath = $bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
+                $localOrder->invoice_path = $invoicePath;
+                $localOrder->save();
                 $localOrder->sendInvoice();
             } else {
                 $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($data['order-id'])->id);
@@ -182,6 +197,9 @@ class OrderController extends Controller
      */
     public function massUpdateStatus(Request $request)
     {
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
+
         $data = $request->validate([
             'order-ids' => 'required',
             'order-status-href' => 'required',
@@ -209,7 +227,23 @@ class OrderController extends Controller
                     $delivery->save();
 
                     // Kikeressük a helyi megrendelést
-                    $localOrder = Order::find($localOrderId);
+                    $localOrder = Order::find($orderId);
+                    $reseller = $localOrder->getReseller()['correct'];
+
+                    // Létrehozzuk az ÉLES számlát
+                    $realInvoice = $localOrder->createRealInvoice();
+                    $localOrder->invoice_id = $realInvoice->getId();
+                    if (!$bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
+                        echo 'Nem sikerült elmenteni a számlát';
+                        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                            'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                        ]);
+                    }
+
+                    // Elmentjük a számlát helyileg
+                    $invoicePath = $bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
+                    $localOrder->invoice_path = $invoicePath;
+                    $localOrder->save();
                     $localOrder->sendInvoice();
                 } else {
                     $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($orderId)->id);

@@ -40,6 +40,8 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/dokumentumok/uj', 'DocumentController@create');
         Route::post('/dokumentumok/feltoltes', 'DocumentController@store');
         Route::get('/dokumentumok/{id}/torles', 'DocumentController@deleteDocument');
+
+        Route::post('/bejegyzesek/kep-feltoltes', 'PostController@handleUpload');
     });
 
     Route::get('/', 'UserController@home');
@@ -57,6 +59,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/penzugy', 'RevenueController@income');
     Route::post('/kiadas/mentes', 'RevenueController@storeExpense');
     Route::get('/kiadas', 'RevenueController@expense');
+
+    Route::resource('bejegyzesek', 'PostController');
+    Route::get('hirek/{postId}', 'PostController@showPublic');
 
     // Régi URL...
     Route::get('/bevetel', function() {
@@ -77,6 +82,8 @@ Route::group(['middleware' => 'auth'], function() {
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
+Route::get('/test-billingo', 'ShoprenterController@testBillingo');
+Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');
 
 /**
  * Runs database migrations

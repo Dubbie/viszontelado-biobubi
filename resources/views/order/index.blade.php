@@ -146,6 +146,8 @@
                 @endforeach
                 </tbody>
             </table>
+
+            <div class="paginate mt-5">{{ $orders->links() }}</div>
         </div>
     </div>
 

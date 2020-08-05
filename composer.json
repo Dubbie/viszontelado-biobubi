@@ -7,6 +7,12 @@
         "laravel"
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/dubbie/billingo-v3.git"
+        }
+    ],
     "require": {
         "php": "^7.2.5",
         "ext-curl": "*",
@@ -17,7 +23,8 @@
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "^7.0",
         "laravel/tinker": "^2.0",
-        "voov/billingo-api-connector": "^1.1"
+        "voov/billingo-api-connector": "^1.1",
+        "dubbie/billingo-v3": "*@dev"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.7",

@@ -4,12 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Mail\NewOrder;
 use App\Order;
+use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Carbon\Carbon;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Swagger\Client\Api\BankAccountApi;
+use Swagger\Client\Api\DocumentApi;
+use Swagger\Client\ApiException;
+use Swagger\Client\Configuration;
 
 class ShoprenterController extends Controller
 {
@@ -19,20 +25,20 @@ class ShoprenterController extends Controller
     /** @var OrderService */
     private $orderService;
 
-    /** @var BillingoService */
-    private $billingoService;
+    /** @var BillingoNewService */
+    private $billingoNewService;
 
     /**
      * ShoprenterController constructor.
      * @param OrderService $orderService
      * @param ShoprenterService $shoprenterService
-     * @param BillingoService $billingoService
+     * @param BillingoNewService $billingoNewService
      */
-    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService, BillingoService $billingoService)
+    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService, BillingoNewService $billingoNewService)
     {
         $this->orderService = $orderService;
         $this->shoprenterApi = $shoprenterService;
-        $this->billingoService = $billingoService;
+        $this->billingoNewService = $billingoNewService;
     }
 
     /**
@@ -63,7 +69,7 @@ class ShoprenterController extends Controller
             ];
         }
 
-        $orders = $this->shoprenterApi->getAllOrders();
+        $orders = $this->shoprenterApi->getBatchedOrders();
         $successCount = 0;
         $orderResources = [];
         foreach ($orders as $order) {
@@ -148,20 +154,60 @@ class ShoprenterController extends Controller
                 Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
             }
 
-            // Számla
-            $invoiceId = $this->billingoService->createInvoiceFromOrder($order, $reseller);
-            $localOrder->invoice_id = $invoiceId;
-            $localOrder->save();
-
-            // Elmentjük a számlát helyileg a megrendelés azonosítója alapján
-            if (!$invoiceId) {
-                Log::error('Hiba történt a számla létrehozásakor!');
+            // 1. Partner
+            $partner = $this->billingoNewService->createPartner($order, \Auth::user());
+            if (!$partner) {
+                Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
                 return ['success' => false];
-            } else {
-                $this->billingoService->saveInvoice($reseller, $invoiceId, $localOrder->id);
             }
+
+            // 2. Számla
+            $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, \Auth::user());
+            if (!$invoice) {
+                Log::error('Hiba történt a számla létrehozásakor.');
+                return ['success' => false];
+            }
+
+            // 3. Elmentjük a piszkozatot
+            $this->billingoNewService->saveDraftInvoice($invoice, $order);
         }
 
         return ['success' => true];
+    }
+
+
+    public function testShoprenter() {
+        echo "Nagyon jól megy!";
+    }
+
+    /**
+     * Teszteli, hogy okos-e a billingo
+     *
+     * @return bool
+     */
+    public function testBillingo()
+    {
+        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MTE2MA==');
+        /** @var Order $localOrder */
+        $localOrder = $this->orderService->getLocalOrderByResourceId($order['order']->id);
+        $reseller = $localOrder->getReseller()['correct'];
+
+        $realInvoice = $localOrder->createRealInvoice();
+
+        $localOrder->invoice_id = $realInvoice->getId();
+        if (!$this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
+            echo 'Nem sikerült elmenteni a számlát';
+            return false;
+        }
+
+        Log::info('Létrejött a számla');
+        $invoicePath = $this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
+        Log::info('Elmentődött a számla');
+        $localOrder->invoice_path = $invoicePath;
+        $localOrder->save();
+        Log::info('Frissült a számla');
+
+        $localOrder->sendInvoice();
+        Log::info('Elküldve a számla');
     }
 }

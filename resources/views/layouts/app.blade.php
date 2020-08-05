@@ -46,6 +46,7 @@
 
 {{-- Bundle --}}
 <script src="{{ mix('js/app.js') }}"></script>
+<script src="{{ asset('js/ckeditor.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
 
 {{-- Tooltipek a sidebarnak --}}
