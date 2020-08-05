@@ -98,8 +98,10 @@ class UserController extends Controller
      */
     public function show($userId)
     {
+        $user = User::where('id', $userId)->withCount('deliveries')->first();
+
         return view('inc.user-details-content')->with([
-            'user' => User::find($userId),
+            'user' => $user,
         ]);
     }
 

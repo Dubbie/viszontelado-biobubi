@@ -59,15 +59,8 @@
     </div>
     <div class="col-md-7">
         <ul class="list-unstyled">
-            @if(count($user->deliveries) > 0)
-                @foreach($user->deliveries as $delivery)
-                    <li>
-                        <a href="{{ action('OrderController@show', $delivery->order->inner_resource_id) }}">{{ $delivery->order->lastname }} {{ $delivery->order->firstname }}</a>
-                        <p class="mb-0"><span>{{ $delivery->order->getFormattedAddress() }}</span></p>
-                        <small class="d-block text-muted">Megrendelve: {{ $delivery->order->created_at }}</small>
-                        <small class="d-block text-muted">Kiszállítva: {{ $delivery->delivered_at }}</small>
-                    </li>
-                @endforeach
+            @if($user->deliveries_count > 0)
+                <li>Kiszállítva: {{ $user->deliveries_count }}</li>
             @else
                 <li>A felhasználó még egy megrendelést sem szállított ki a portálon keresztül.</li>
             @endif
