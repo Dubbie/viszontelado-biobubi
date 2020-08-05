@@ -77,8 +77,10 @@ class UserController extends Controller
      */
     public function index()
     {
+        $users = User::withCount(['deliveries', 'zips'])->get();
+
         return view('user.index')->with([
-            'users' => User::with(['deliveries', 'zips'])->get(),
+            'users' => $users,
         ]);
     }
 
