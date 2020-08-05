@@ -326,6 +326,55 @@ class BillingoNewService
     }
 
     /**
+     * @param $invoiceId
+     * @param Order $order
+     * @param User $user
+     * @return bool|string
+     */
+    public function downloadInvoice($invoiceId, Order $order, User $user) {
+        $api = $this->getDocumentApi($user);
+
+        // Megpróbáljuk lementeni...
+        usleep(1000000);
+        try {
+            $tries = 0;
+
+            $result = $api->downloadDocument($invoiceId);
+
+            while ($result == "{\"error\":{\"message\":\"Document PDF has not generated yet.\"}}" && $tries <= 10) {
+                $tries++;
+                \Log::error("Nem sikerült letölteni a dokumentumot, még nem jött létre... Újrapróbálkozás 5 másodperc múlva...");
+                usleep(5000000);
+                $result = $api->downloadDocument($invoiceId);
+            }
+
+            \Log::error(sprintf('Összes próbálkozások száma: %s', $tries));
+            if ($tries == 10) {
+                \Log::error('-------------- GIGABAJVAN NINCS SZÁMLA LETÖLTVE! -----------------');
+                \Log::error('-- Számla azonosító: ' . $invoiceId);
+                \Log::error('-- Megrendelés azonosító: ' . $order->id);
+                return false;
+            }
+
+            // Jó volt, van számla PDF-ünk, elmentjük
+            $fname = 'ssz-szamla-' . date('Ymd_His') . '.pdf';
+            $path = sprintf('invoices/%s/%s', $order->id, $fname);
+
+            if (\Storage::put($path, $result)) {
+                \Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
+                return $path;
+            } else {
+                \Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
+                return false;
+            }
+        } catch (ApiException $e) {
+            \Log::error('Hiba történt a számla létrehozásakor!');
+        }
+
+        return false;
+    }
+
+    /**
      * @param User $user
      * @return bool
      */

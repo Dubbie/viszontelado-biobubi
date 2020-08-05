@@ -155,21 +155,44 @@ class OrderController extends Controller
                 $localOrder = Order::find($orderId);
                 $reseller = $localOrder->getReseller()['correct'];
 
-                // Létrehozzuk az ÉLES számlát
-                $realInvoice = $localOrder->createRealInvoice();
-                $localOrder->invoice_id = $realInvoice->getId();
-                if (!$bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
-                    echo 'Nem sikerült elmenteni a számlát';
-                    return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-                        'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
-                    ]);
-                }
+                // Megnézzük, hogy RÉGI számla-e vagy ÚJ
+                if (!$localOrder->draft_invoice_id && $localOrder->invoice_path && $localOrder->invoice_id) {
+                    // Van számla letöltve, csak küldjük ki
+                    $localOrder->sendInvoice();
+                } else if (!$localOrder->draft_invoice_id && !$localOrder->invoice_path && $localOrder->invoice_id) {
+                    // RÉGI SZÁMLA, nem generálunk csak letöltünk
+                    $path = $bs->downloadInvoice($localOrder->invoice_id, $localOrder, $reseller);
+                    if (!$path) {
+                        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                            'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                        ]);
+                    }
 
-                // Elmentjük a számlát helyileg
-                $invoicePath = $bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
-                $localOrder->invoice_path = $invoicePath;
-                $localOrder->save();
-                $localOrder->sendInvoice();
+                    // Elmentjük a számlát helyileg
+                    $localOrder->invoice_path = $path;
+                    $localOrder->save();
+                    $localOrder->sendInvoice();
+                } else if ($localOrder->draft_invoice_id) {
+                    // ÚJ típusú számla, először generáltatunk valós számlát
+                    // Létrehozzuk az ÉLES számlát
+                    $realInvoice = $localOrder->createRealInvoice();
+                    $localOrder->invoice_id = $realInvoice->getId();
+                    $localOrder->save();
+                    $localOrder->refresh();
+                    $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
+                    if (!$path) {
+                        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                            'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                        ]);
+                    }
+
+                    // Elmentjük a számlát helyileg
+                    $localOrder->invoice_path = $path;
+                    $localOrder->save();
+                    $localOrder->sendInvoice();
+                } else {
+                    Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan');
+                }
             } else {
                 $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($data['order-id'])->id);
                 if ($delivery) {
@@ -227,24 +250,47 @@ class OrderController extends Controller
                     $delivery->save();
 
                     // Kikeressük a helyi megrendelést
-                    $localOrder = Order::find($orderId);
+                    $localOrder = Order::find($localOrderId);
                     $reseller = $localOrder->getReseller()['correct'];
 
-                    // Létrehozzuk az ÉLES számlát
-                    $realInvoice = $localOrder->createRealInvoice();
-                    $localOrder->invoice_id = $realInvoice->getId();
-                    if (!$bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
-                        echo 'Nem sikerült elmenteni a számlát';
-                        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-                            'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
-                        ]);
-                    }
+                    // Megnézzük, hogy RÉGI számla-e vagy ÚJ
+                    if (!$localOrder->draft_invoice_id && $localOrder->invoice_path && $localOrder->invoice_id) {
+                        // Van számla letöltve, csak küldjük ki
+                        $localOrder->sendInvoice();
+                    } else if (!$localOrder->draft_invoice_id && !$localOrder->invoice_path && $localOrder->invoice_id) {
+                        // RÉGI SZÁMLA, nem generálunk csak letöltünk
+                        $path = $bs->downloadInvoice($localOrder->invoice_id, $localOrder, $reseller);
+                        if (!$path) {
+                            return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                                'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                            ]);
+                        }
 
-                    // Elmentjük a számlát helyileg
-                    $invoicePath = $bs->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
-                    $localOrder->invoice_path = $invoicePath;
-                    $localOrder->save();
-                    $localOrder->sendInvoice();
+                        // Elmentjük a számlát helyileg
+                        $localOrder->invoice_path = $path;
+                        $localOrder->save();
+                        $localOrder->sendInvoice();
+                    } else if ($localOrder->draft_invoice_id) {
+                        // ÚJ típusú számla, először generáltatunk valós számlát
+                        // Létrehozzuk az ÉLES számlát
+                        $realInvoice = $localOrder->createRealInvoice();
+                        $localOrder->invoice_id = $realInvoice->getId();
+                        $localOrder->save();
+                        $localOrder->refresh();
+                        $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
+                        if (!$path) {
+                            return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                                'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
+                            ]);
+                        }
+
+                        // Elmentjük a számlát helyileg
+                        $localOrder->invoice_path = $path;
+                        $localOrder->save();
+                        $localOrder->sendInvoice();
+                    } else {
+                        Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan');
+                    }
                 } else {
                     $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($orderId)->id);
                     if ($delivery) {

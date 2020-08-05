@@ -82,7 +82,8 @@ class OrderService
      * @param $userId
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function getOrdersQueryByUserId($userId) {
+    public function getOrdersQueryByUserId($userId)
+    {
         $user = User::find($userId);
 
         $userZips = array_column($user->zips->toArray(), 'zip');
@@ -132,7 +133,8 @@ class OrderService
      * @param bool $muted
      * @return bool
      */
-    public function updateLocalOrder($order, $muted = false) {
+    public function updateLocalOrder($order, $muted = false)
+    {
         if (!$muted) {
             Log::info('-- Megrendelés frissítése --');
         }
@@ -178,6 +180,7 @@ class OrderService
 //        } else {
 //            return false;
 //        }
+
         $local->fill([
             'inner_id' => $order->innerId,
             'inner_resource_id' => $order->id,
@@ -198,14 +201,22 @@ class OrderService
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
-        return true;
+        if ($local->save()) {
+            if (!$muted) {
+                Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+            }
+            return $local;
+        } else {
+            return false;
+        }
     }
 
     /**
      * @param int $limit
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|null|object
      */
-    public function getLatestOrder($limit = 1) {
+    public function getLatestOrder($limit = 1)
+    {
         $order = $this->getOrdersQueryByUserId(Auth::id());
         return $order->orderBy('created_at', 'DESC')->limit($limit)->get();
     }
@@ -213,7 +224,8 @@ class OrderService
     /**
      * @return mixed
      */
-    public function getLastUpdate() {
+    public function getLastUpdate()
+    {
         $lastOrder = Order::orderBy('updated_at')->first();
 
         if (!$lastOrder) {
@@ -226,7 +238,8 @@ class OrderService
     /**
      * @return string
      */
-    public function getLastUpdateHuman() {
+    public function getLastUpdateHuman()
+    {
         /** @var Carbon $last */
         $last = $this->getLastUpdate();
 
@@ -241,7 +254,8 @@ class OrderService
      * @param $resourceId
      * @return mixed
      */
-    public function getLocalOrderByResourceId($resourceId) {
+    public function getLocalOrderByResourceId($resourceId)
+    {
         return Order::where('inner_resource_id', $resourceId)->first();
     }
 
