@@ -30,8 +30,8 @@
                         <td>{{ $user->name }} @if($user->admin) <span class="badge badge-success">Admin</span> @endif</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->vat_id == env('AAM_VAT_ID') ? 'Igen' : 'Nem' }}</td>
-                        <td>{{ count($user->zips) }} db</td>
-                        <td>{{ count($user->deliveries) }} db</td>
+                        <td>{{ $user->zips->count() }} db</td>
+                        <td>{{ $user->deliveries->count() }} db</td>
                         <td class="text-right">
                             <button type="button" class="btn-user-details btn-icon" data-toggle="modal" data-target="#userDetailsModal" data-user-id="{{ $user->id }}">
                                 <span class="icon">
