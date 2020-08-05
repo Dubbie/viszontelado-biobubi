@@ -118,10 +118,6 @@
             </div>
 
             <div class="form-group mt-4 mb-0 text-right">
-                @if(Auth::user()->admin)
-                    <a href="{{ action('OrderController@downloadInvoice', ['orderId' => $order['order']->id]) }}" class="btn btn-sm btn-dark">Számla letöltése</a>
-                @endif
-
                 <button type="button" class="btn btn-sm btn-outline-success btn-order-status-details" data-toggle="modal"
                         data-target="#orderStatusModal" data-order-id="{{ $order['order']->id }}">Állapot módosítása
                 </button>

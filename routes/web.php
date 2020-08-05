@@ -42,7 +42,6 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/dokumentumok/{id}/torles', 'DocumentController@deleteDocument');
 
         Route::post('/bejegyzesek/kep-feltoltes', 'PostController@handleUpload');
-        Route::get('/megrendelesek/{orderId}/szamla-letoltese', 'OrderController@downloadInvoice');
     });
 
     Route::get('/', 'UserController@home');

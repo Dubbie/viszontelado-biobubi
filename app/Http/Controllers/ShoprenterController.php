@@ -187,27 +187,27 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
-        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MTE2MA==');
-        /** @var Order $localOrder */
-        $localOrder = $this->orderService->getLocalOrderByResourceId($order['order']->id);
-        $reseller = $localOrder->getReseller()['correct'];
-
-        $realInvoice = $localOrder->createRealInvoice();
-
-        $localOrder->invoice_id = $realInvoice->getId();
-        if (!$this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
-            echo 'Nem sikerült elmenteni a számlát';
-            return false;
-        }
-
-        Log::info('Létrejött a számla');
-        $invoicePath = $this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
-        Log::info('Elmentődött a számla');
-        $localOrder->invoice_path = $invoicePath;
-        $localOrder->save();
-        Log::info('Frissült a számla');
-
-        $localOrder->sendInvoice();
-        Log::info('Elküldve a számla');
+//        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MTE2MA==');
+//        /** @var Order $localOrder */
+//        $localOrder = $this->orderService->getLocalOrderByResourceId($order['order']->id);
+//        $reseller = $localOrder->getReseller()['correct'];
+//
+//        $realInvoice = $localOrder->createRealInvoice();
+//
+//        $localOrder->invoice_id = $realInvoice->getId();
+//        if (!$this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
+//            echo 'Nem sikerült elmenteni a számlát';
+//            return false;
+//        }
+//
+//        Log::info('Létrejött a számla');
+//        $invoicePath = $this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
+//        Log::info('Elmentődött a számla');
+//        $localOrder->invoice_path = $invoicePath;
+//        $localOrder->save();
+//        Log::info('Frissült a számla');
+//
+//        $localOrder->sendInvoice();
+//        Log::info('Elküldve a számla');
     }
 }

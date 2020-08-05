@@ -134,6 +134,7 @@ class Order extends Model
     public function createRealInvoice() {
         if (!$this->draft_invoice_id) {
             Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+            return null;
         }
 
         /** @var BillingoNewService $bs */
@@ -147,34 +148,16 @@ class Order extends Model
      * @return bool
      */
     public function sendInvoice() {
-        /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
-
         if (!$this->isInvoiceSaved()) {
-            Log::error('Nincs elmentve a megrendeléshez számla... Számla azonosító keresése...');
-            // Megnézzük, hogy van-e elmentve azonosító a számlához
-            if ($this->invoice_id) {
-                Log::info('Számla azonosító megtalálva! Elmentés megkezdése...');
-                $reseller = $this->getReseller()['correct'];
-                if (!$bs->saveInvoice($this->invoice_id, $this->id, $reseller)) {
-                    return false;
-                }
-            } else {
-                Log::error('Nincs elmentve számla azonosító sem, a levél kiküldése sikertelen!');
-                return false;
-            }
+            Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
+            return false;
         }
 
         // Elvileg megvan minden, mehet a levél
-//        if (!$this->hasTrial()) {
-//            \Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
-//        } else {
-//            \Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
-//        }
         if (!$this->hasTrial()) {
-            \Mail::to('dev.mihodaniel@gmail.com')->send(new RegularOrderCompleted($this, $this->invoice_path));
+            \Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
         } else {
-            \Mail::to('dev.mihodaniel@gmail.com')->send(new TrialOrderCompleted($this, $this->invoice_path));
+            \Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
         }
 
         return true;

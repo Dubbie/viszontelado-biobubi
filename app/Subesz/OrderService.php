@@ -153,34 +153,6 @@ class OrderService
         $totalGross = intval($order->total);
         $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
 
-//        $local->inner_id = $order->innerId;
-//        $local->inner_resource_id = $order->id;
-//        $local->total = $total;
-//        $local->total_gross = $totalGross;
-//        $local->tax_price = $taxPrice;
-//        $local->firstname = $order->firstname;
-//        $local->lastname = $order->lastname;
-//        $local->email = $order->email;
-//        $local->status_text = $this->statusMap[$orderStatusId]['name'];
-//        $local->status_color = $this->statusMap[$orderStatusId]['color'];
-//        $local->shipping_method_name = $order->shippingMethodName;
-//        $local->payment_method_name = $order->paymentMethodName;
-//        $local->shipping_postcode = $order->shippingPostcode;
-//        $local->shipping_city = $order->shippingCity;
-//        $local->shipping_address = sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2);
-//        $local->created_at = date('Y-m-d H:i:s', strtotime($order->dateCreated));
-//        $local->updated_at = date('Y-m-d H:i:s');
-//
-//
-//        if ($local->save()) {
-//            if(!$muted) {
-//                Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
-//            }
-//            return $local;
-//        } else {
-//            return false;
-//        }
-
         $local->fill([
             'inner_id' => $order->innerId,
             'inner_resource_id' => $order->id,
