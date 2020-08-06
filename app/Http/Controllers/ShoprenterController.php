@@ -155,14 +155,14 @@ class ShoprenterController extends Controller
             }
 
             // 1. Partner
-            $partner = $this->billingoNewService->createPartner($order, \Auth::user());
+            $partner = $this->billingoNewService->createPartner($order, $reseller);
             if (!$partner) {
                 Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
                 return ['success' => false];
             }
 
             // 2. Számla
-            $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, \Auth::user());
+            $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, $reseller);
             if (!$invoice) {
                 Log::error('Hiba történt a számla létrehozásakor.');
                 return ['success' => false];
@@ -176,7 +176,8 @@ class ShoprenterController extends Controller
     }
 
 
-    public function testShoprenter() {
+    public function testShoprenter()
+    {
         echo "Nagyon jól megy!";
     }
 
@@ -187,27 +188,27 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
-//        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MTE2MA==');
-//        /** @var Order $localOrder */
-//        $localOrder = $this->orderService->getLocalOrderByResourceId($order['order']->id);
-//        $reseller = $localOrder->getReseller()['correct'];
-//
-//        $realInvoice = $localOrder->createRealInvoice();
-//
-//        $localOrder->invoice_id = $realInvoice->getId();
-//        if (!$this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller)) {
-//            echo 'Nem sikerült elmenteni a számlát';
-//            return false;
+        $orderId = 'b3JkZXItb3JkZXJfaWQ9MTE2MQ==';
+        $order = $this->shoprenterApi->getOrder($orderId);
+        /** @var Order $localOrder */
+        $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);
+        $reseller = $localOrder->getReseller()['correct'];
+
+        // 1. Partner
+//        $partner = $this->billingoNewService->createPartner($order, $reseller);
+//        if (!$partner) {
+//            Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+//            return ['success' => false];
 //        }
 //
-//        Log::info('Létrejött a számla');
-//        $invoicePath = $this->billingoNewService->saveInvoice($realInvoice->getId(), $localOrder->id, $reseller);
-//        Log::info('Elmentődött a számla');
-//        $localOrder->invoice_path = $invoicePath;
-//        $localOrder->save();
-//        Log::info('Frissült a számla');
+//        // 2. Számla
+//        $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, $reseller);
+//        if (!$invoice) {
+//            Log::error('Hiba történt a számla létrehozásakor.');
+//            return ['success' => false];
+//        }
 //
-//        $localOrder->sendInvoice();
-//        Log::info('Elküldve a számla');
+//        // 3. Elmentjük a piszkozatot
+//        $this->billingoNewService->saveDraftInvoice($invoice, $order);
     }
 }
