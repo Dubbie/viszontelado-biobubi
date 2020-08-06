@@ -104,6 +104,9 @@
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}',
                     }
+                },
+                mediaEmbed: {
+                    previewsInData: true,
                 }
             }).then(editor => {
                 window.editor = editor;

@@ -11,6 +11,12 @@
 
     {{-- Bundle --}}
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+
+    <style>
+        figure.media div {
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
 <div class="page-wrapper">

@@ -23,7 +23,7 @@
                                     <img src="{{ $post->getThumbnailUrl() }}" alt="" class="rounded-lg" style="width: 64px; object-fit: cover">
                                 </div>
                                 <div class="col">
-                                    <a href="{{ action('PostController@show', $post) }}" class="h5 font-weight-bold text-decoration-none">{{ $post->title }}</a>
+                                    <a href="{{ action('PostController@showPublic', $post) }}" class="h5 font-weight-bold text-decoration-none">{{ $post->title }}</a>
                                     <small class="d-block"><b>{{ $post->author->name }}</b> - {{ $post->created_at->format('Y.m.d H:i:s') }}</small>
                                     <p class="mb-0 text-muted">{{ \Illuminate\Support\Str::limit(strip_tags($post->content), 155) }}</p>
                                 </div>
