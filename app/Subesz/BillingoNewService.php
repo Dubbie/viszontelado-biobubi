@@ -25,6 +25,7 @@ use Swagger\Client\Model\PaymentMethod;
 use Swagger\Client\Model\Round;
 use Swagger\Client\Model\UnitPriceType;
 use Swagger\Client\Model\Vat;
+use Symfony\Component\Translation\LoggingTranslator;
 
 class BillingoNewService
 {
@@ -382,6 +383,11 @@ class BillingoNewService
     {
         $api = $this->getDocumentBlockApi($user);
         $found = false;
+
+        if (!$user->billingo_api_key || !$user->block_uid) {
+            \Log::info('A felhasználónak nincs beállítva billingo összekötés');
+            return $found;
+        }
 
         try {
             $list = $api->listDocumentBlock(0, 100);

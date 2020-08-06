@@ -153,6 +153,12 @@ class OrderService
         $totalGross = intval($order->total);
         $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
 
+        if (!array_key_exists($orderStatusId, $this->statusMap)) {
+            Log::error('Nem volt megtalálható a státusz azonosító a státusz leíró térképben.');
+            Log::error(var_dump($this->statusMap));
+            return false;
+        }
+
         $local->fill([
             'inner_id' => $order->innerId,
             'inner_resource_id' => $order->id,
