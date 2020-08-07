@@ -94,6 +94,11 @@ class ShoprenterService
             ]
         ];
         $ordersData = $this->getOrdersByPage(0, 200);
+        if (!property_exists($ordersData, 'pageCount')) {
+            Log::error('Hibás adatokat adott vissza a ShopRenter API.');
+            return null;
+        }
+
         for ($i = 0; $i <= $ordersData->pageCount - 1; $i++) {
             $url = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $i, 200);
             $data['data']['requests'][] = [

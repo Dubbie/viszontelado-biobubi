@@ -167,6 +167,7 @@ class ShoprenterController extends Controller
                 Log::error('Hiba történt a számla létrehozásakor.');
                 return ['success' => false];
             }
+            Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
 
             // 3. Elmentjük a piszkozatot
             $this->billingoNewService->saveDraftInvoice($invoice, $order);
