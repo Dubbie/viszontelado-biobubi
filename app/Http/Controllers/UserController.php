@@ -193,8 +193,7 @@ class UserController extends Controller
             'u-email' => 'required|email|unique:users,email,' . $userId,
             'u-zip' => 'nullable',
             'u-aam' => 'nullable',
-            'u-billingo-public-key' => 'nullable',
-            'u-billingo-private-key' => 'nullable',
+            'u-billingo-api-key' => 'nullable',
             'u-block-uid' => 'nullable',
         ]);
 
