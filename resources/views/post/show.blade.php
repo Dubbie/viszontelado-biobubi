@@ -22,7 +22,7 @@
                 <span>Vissza a bejegyzésekhez</span>
             </a>
             <div class="d-flex align-items-center justify-content-center mb-4">
-                <img src="{{ $post->getThumbnailUrl() }}" alt="" class="mw-100">
+                <img src="{{ $post->getThumbnailUrl() }}" alt="" class="mw-100" style="max-height: 200px;">
             </div>
             <div class="post-content">{!! $post->content !!}</div>
         </div>
