@@ -8,6 +8,7 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\User;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -154,6 +155,12 @@ class ShoprenterController extends Controller
                 Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
             }
 
+            // Ha nincs billing összekötés ne hozzunk létre semmit
+            if (!$this->billingoNewService->isBillingoConnected($reseller)) {
+                Log::info('A viszonteladónak nincs beállítva billingo összekötés, ezért nem hozunk létre számlát.');
+                return ['success' => true];
+            }
+
             // 1. Partner
             $partner = $this->billingoNewService->createPartner($order, $reseller);
             if (!$partner) {
@@ -189,27 +196,9 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
-        $orderId = 'b3JkZXItb3JkZXJfaWQ9MTE2MQ==';
-        $order = $this->shoprenterApi->getOrder($orderId);
-        /** @var Order $localOrder */
-        $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);
-        $reseller = $localOrder->getReseller()['correct'];
-
-        // 1. Partner
-//        $partner = $this->billingoNewService->createPartner($order, $reseller);
-//        if (!$partner) {
-//            Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
-//            return ['success' => false];
-//        }
+//        $orderId = 'b3JkZXItb3JkZXJfaWQ9MTI2MQ==';
+//        $order = $this->shoprenterApi->getOrder($orderId);
 //
-//        // 2. Számla
-//        $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, $reseller);
-//        if (!$invoice) {
-//            Log::error('Hiba történt a számla létrehozásakor.');
-//            return ['success' => false];
-//        }
-//
-//        // 3. Elmentjük a piszkozatot
-//        $this->billingoNewService->saveDraftInvoice($invoice, $order);
+//        dd($this->billingoNewService->getOrderItems($order, User::find(1)));
     }
 }

@@ -225,7 +225,7 @@ class BillingoNewService
                 ];
             } else if ($total->type == 'SHIPPING' && intval($total->value) > 0) {
                 $items[] = [
-                    'description' => 'Szállítási költség',
+                    'name' => 'Szállítási költség',
                     'quantity' => 1,
                     'unit' => 'db',
                     'vat' => $vat,
@@ -282,7 +282,7 @@ class BillingoNewService
                 'language' => $draft->getLanguage(),
                 'currency' => $draft->getCurrency(),
                 'conversion_rate' => $draft->getConversionRate(),
-                'electronic' => $draft->getElectronic(),
+                'electronic' => true,
                 'paid' => $draft->getPaidDate() ? true : false,
                 'items' => $draft->getItems(),
                 'settings' => $draft->getSettings()
