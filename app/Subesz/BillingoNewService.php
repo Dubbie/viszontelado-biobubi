@@ -284,7 +284,7 @@ class BillingoNewService
                 'conversion_rate' => $draft->getConversionRate(),
                 'electronic' => true,
                 'paid' => $draft->getPaidDate() ? true : false,
-                'items' => $draft->getItems(),
+                'items' => $this->convertInvoiceItemsToInserts($invoiceId, $user),
                 'settings' => $draft->getSettings()
             ];
 
@@ -432,5 +432,30 @@ class BillingoNewService
         }
 
         return $response;
+    }
+
+    /**
+     * Átalakítja a Billingo által visszaadott elemeket
+     *
+     * @param $invoiceId
+     * @param $reseller
+     * @return array
+     */
+    public function convertInvoiceItemsToInserts($invoiceId, $reseller) {
+        $invoice = $this->getInvoice($invoiceId, $reseller);
+        $insertItems = [];
+
+        foreach ($invoice->getItems() as $item) {
+            $insertItems[] = [
+                'name' => $item->getName(),
+                'unit_price' => $item->getNetUnitAmount(),
+                'unit_price_type' => UnitPriceType::NET,
+                'quantity' => $item->getQuantity(),
+                'unit' => 'db',
+                'vat' => $item->getVat(),
+            ];
+        }
+
+        return $insertItems;
     }
 }
