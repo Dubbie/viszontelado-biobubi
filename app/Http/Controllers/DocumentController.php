@@ -42,7 +42,16 @@ class DocumentController extends Controller
         $orders = [];
         foreach ($orderResourceIds as $resourceId) {
             $orders[] = $this->shoprenterApi->getOrder($resourceId);
+        }
 
+        foreach ($orders as $order) {
+            if (!property_exists($order['order'], 'paymentLastname')) {
+                \Log::error('Nem volt található név a megrendelésben (Hiba van valahol)');
+                \Log::error(var_dump($order['order']));
+                return redirect(url()->previous())->with([
+                    'error' => 'Hiba történt a szállítólevél generálásakor. A Shoprenter API nem tért vissza megrendelésekkel.'
+                ]);
+            }
         }
 
         // Adjuk át view-ba

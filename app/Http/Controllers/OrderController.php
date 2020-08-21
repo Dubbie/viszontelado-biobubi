@@ -163,6 +163,7 @@ class OrderController extends Controller
                     // RÉGI SZÁMLA, nem generálunk csak letöltünk
                     $path = $bs->downloadInvoice($localOrder->invoice_id, $localOrder, $reseller);
                     if (!$path) {
+                        Log::error('Hiba történt a megrendelés állapotának frissítésekor');
                         return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
                             'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
                         ]);
@@ -181,6 +182,7 @@ class OrderController extends Controller
                     $localOrder->refresh();
                     $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
                     if (!$path) {
+                        Log::error('Hiba történt a megrendelés állapotának frissítésekor');
                         return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
                             'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
                         ]);

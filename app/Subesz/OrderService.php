@@ -96,6 +96,10 @@ class OrderService
             $orders = $orders->where(function ($query) use ($userZips, $resellerZips) {
                 $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
             });
+        } else if ($user->admin && count($user->zips) == 0) {
+            $orders = $orders->where(function ($query) use ($resellerZips) {
+                $query->whereNotIn('shipping_postcode', $resellerZips);
+            });
         } else if (!$user->admin) {
             $orders = $orders->where(function ($query) use ($userZips) {
                 $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');

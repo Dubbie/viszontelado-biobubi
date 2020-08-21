@@ -21,7 +21,7 @@
         @if(Auth()->user()->admin && count(Auth()->user()->zips) == 0)
             <div class="alert alert-info">
                 <p class="mb-0">Ez a fiók adminisztrátori jogkörrel rendelkezik és nincs hozzárendelve irányítószám,
-                    ezért az összes megrendelést látja.</p>
+                    ezért csak azokat a megrendeléseket látod, amikhez nincs hozzárendelve egy viszonteladó sem.</p>
             </div>
         @endif
 
@@ -147,7 +147,7 @@
                 </tbody>
             </table>
 
-            <div class="paginate mt-5">{{ $orders->links() }}</div>
+            <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
         </div>
     </div>
 

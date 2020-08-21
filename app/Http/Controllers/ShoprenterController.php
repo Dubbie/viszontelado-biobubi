@@ -71,6 +71,13 @@ class ShoprenterController extends Controller
         }
 
         $orders = $this->shoprenterApi->getBatchedOrders();
+        if (count($orders) == 0) {
+            Log::info('- Nem voltak megrendelések a visszatérési értékben -');
+            return redirect(action('OrderController@index'))->with([
+                'error' => 'Hiba történt a megrendelések frissítésekor',
+            ]);
+        }
+
         $successCount = 0;
         $orderResources = [];
         foreach ($orders as $order) {

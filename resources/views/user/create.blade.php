@@ -42,7 +42,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="u-zip">Hozzárendelt irányítószámok </label>
-                                    <input type="text" id="u-zip" name="u-zip" class="form-control" required>
+                                    <input type="text" id="u-zip" name="u-zip" class="form-control">
                                     <small class="form-text text-muted">Az itt megadott irányítószámokra fog szűrni a rendszer</small>
                                 </div>
                             </div>

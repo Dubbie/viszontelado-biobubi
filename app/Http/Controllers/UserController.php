@@ -136,7 +136,7 @@ class UserController extends Controller
             'u-name' => 'required',
             'u-email' => 'required|email|unique:users,email',
             'u-password' => 'required',
-            'u-zip' => 'required',
+            'u-zip' => 'nullable',
             'u-aam' => 'nullable',
             'u-billingo-api-key' => 'nullable',
             'u-block-uid' => 'nullable',
