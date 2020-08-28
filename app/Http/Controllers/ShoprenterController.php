@@ -184,7 +184,9 @@ class ShoprenterController extends Controller
             Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
 
             // 3. Elmentjük a piszkozatot
-            $this->billingoNewService->saveDraftInvoice($invoice, $order);
+            $localOrder->refresh();
+            $localOrder->draft_invoice_id = $invoice->getId();
+            $localOrder->save();
         }
 
         return ['success' => true];
