@@ -90,14 +90,16 @@ class ShoprenterController extends Controller
         }
 
         // Töröljük ki azokat amik már nincsenek a rendszerbe
-        Log::debug('- Nem talált inner resource ID: -');
-        $notFound = Order::whereNotIn('inner_resource_id', $orderResources)->get();
-        /** @var Order $order */
-        foreach ($notFound as $order) {
-            Log::debug($order->inner_resource_id);
+        $notFound = Order::whereNotIn('inner_resource_id', $orderResources)->where('created_at', '<', $start)->get();
+        if (count($notFound) > 0) {
+            Log::debug('- Nem talált inner resource ID: -');
+            /** @var Order $order */
+            foreach ($notFound as $order) {
+                Log::debug($order->inner_resource_id);
+            }
+            Log::debug('- Nem talált inner resource ID vége -');
         }
-        Log::debug('- Nem talált inner resource ID vége -');
-        Order::whereNotIn('inner_resource_id', $orderResources)->delete();
+        Order::whereNotIn('inner_resource_id', $orderResources)->where('created_at', '<', $start)->delete();
 
         if ($successCount == count($orders)) {
             $elapsed = $start->floatDiffInSeconds();
