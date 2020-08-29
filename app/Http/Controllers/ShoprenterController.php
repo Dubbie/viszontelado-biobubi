@@ -90,6 +90,13 @@ class ShoprenterController extends Controller
         }
 
         // Töröljük ki azokat amik már nincsenek a rendszerbe
+        Log::debug('- Nem talált inner resource ID: -');
+        $notFound = Order::whereNotIn('inner_resource_id', $orderResources)->get();
+        /** @var Order $order */
+        foreach ($notFound as $order) {
+            Log::debug($order->inner_resource_id);
+        }
+        Log::debug('- Nem talált inner resource ID vége -');
         Order::whereNotIn('inner_resource_id', $orderResources)->delete();
 
         if ($successCount == count($orders)) {
@@ -184,9 +191,15 @@ class ShoprenterController extends Controller
             Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
 
             // 3. Elmentjük a piszkozatot
-            $localOrder->refresh();
+            Log::info('---- TESZT ----');
+            Log::info('Elmentetett helyi azonosító: ' . $localOrder->id);
+            Log::info('Elmentetett Resource ID: ' . $localOrder->inner_resource_id);
+
             $localOrder->draft_invoice_id = $invoice->getId();
             $localOrder->save();
+
+            Log::info('Elmentett piszkozat számla azonosító: ' . $localOrder->draft_invoice_id);
+            Log::info('---- TESZT VÉGE ----');
         }
 
         return ['success' => true];

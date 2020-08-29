@@ -120,7 +120,7 @@ class ShoprenterService
         curl_close($ch);
 
         // Egybefűzzük a megérkezett megrendeléseket
-        if (!property_exists($response, 'requests')) {
+        if (!$response || !property_exists($response, 'requests')) {
             Log::error('- Hiba történt a kötegelt megrendelések lekérdezésekor -');
             Log::error('-- A visszatérési érték nem tartalmaz eredményeket --');
             return [];
