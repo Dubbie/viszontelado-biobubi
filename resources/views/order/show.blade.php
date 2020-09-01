@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
+@php /** @var \App\Order $localOrder */ @endphp
 @section('content')
     <div class="container">
         <p class="mb-0">
@@ -123,6 +124,85 @@
                 </button>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col">
+                <div class="card card-body mt-4">
+                    <h3 class="font-weight-bold mb-2">Megjegyzések</h3>
+                    <div id="order-comments">
+                        @if($localOrder->comments->count() > 0)
+                            @php /** @var \App\OrderComment $comment */ @endphp
+                            @foreach($localOrder->comments as $comment)
+                                <div class="order-comment border rounded-lg p-3">
+                                    <div class="row">
+                                        <div class="col">
+                                            <p class="text-small mb-0">
+                                                <b>{{ $comment->user->name }}</b>
+                                                <span class="text-muted"> - </span>
+                                                <span>{{ $comment->created_at->format('Y.m.d H:i:s') }}</span>
+                                            </p>
+                                        </div>
+                                        <div class="col-auto">
+                                            <div class="d-flex">
+                                                <a href="{{ action('OrderCommentController@edit', $comment) }}" class="has-tooltip btn-muted btn btn-sm" data-toggle="tooltip" title="Megjegyzés szerkesztése">
+                                                    <svg width="16px" height="16px" viewBox="0 0 16 16" class="bi bi-pen-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                        <path fill-rule="evenodd" d="M13.498.795l.149-.149a1.207 1.207 0 1 1 1.707 1.708l-.149.148a1.5 1.5 0 0 1-.059 2.059L4.854 14.854a.5.5 0 0 1-.233.131l-4 1a.5.5 0 0 1-.606-.606l1-4a.5.5 0 0 1 .131-.232l9.642-9.642a.5.5 0 0 0-.642.056L6.854 4.854a.5.5 0 1 1-.708-.708L9.44.854A1.5 1.5 0 0 1 11.5.796a1.5 1.5 0 0 1 1.998-.001z"></path>
+                                                    </svg>
+                                                </a>
+                                                <form action="{{ action('OrderCommentController@destroy', $comment) }}" method="POST">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="has-tooltip btn-muted btn btn-sm btn-del-comment" data-toggle="tooltip" title="Megjegyzés törlése">
+                                                        <svg width="16px" height="16px" viewBox="0 0 16 16" class="bi bi-trash2-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M2.037 3.225l1.684 10.104A2 2 0 0 0 5.694 15h4.612a2 2 0 0 0 1.973-1.671l1.684-10.104C13.627 4.224 11.085 5 8 5c-3.086 0-5.627-.776-5.963-1.775z"></path>
+                                                            <path fill-rule="evenodd" d="M12.9 3c-.18-.14-.497-.307-.974-.466C10.967 2.214 9.58 2 8 2s-2.968.215-3.926.534c-.477.16-.795.327-.975.466.18.14.498.307.975.466C5.032 3.786 6.42 4 8 4s2.967-.215 3.926-.534c.477-.16.795-.327.975-.466zM8 5c3.314 0 6-.895 6-2s-2.686-2-6-2-6 .895-6 2 2.686 2 6 2z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <p class="lead mb-3">{{ $comment->content }}</p>
+
+                                    <p class="mb-0">
+                                        <small>Megrendelés állapota ekkor: </small>
+                                        <small style="color: {{ $comment->status_color }};">{{ $comment->status_text }}</small>
+                                    </p>
+                                </div>
+                            @endforeach
+                        @else
+                            <h5 class="font-weight-normal">A megrendeléshez még nem fűztek hozzá megjegyzést.</h5>
+                        @endif
+                    </div>
+                    <form action="{{ action('OrderCommentController@store') }}" method="POST" class="mt-4">
+                        @csrf
+                        <input type="hidden" name="comment-order-id" value="{{ $localOrder->id }}">
+                        <div class="form-group">
+                            <label for="comment-content">Megjegyzés tartalma</label>
+                            <textarea name="comment-content" id="comment-content" cols="30" rows="2" class="form-control"></textarea>
+                        </div>
+                        <div class="form-group mb-0">
+                            <button type="submit" class="btn btn-success">Megjegyzés hozzáadása</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {{--<div class="col-lg-6">--}}
+                {{--<div class="card card-body mt-4">--}}
+                    {{--<h3 class="font-weight-bold mb-2">Teendők</h3>--}}
+                    {{--<div id="order-comments"></div>--}}
+                    {{--<form action="{{ action('OrderCommentController@store') }}" method="POST">--}}
+                        {{--@csrf--}}
+                        {{--<input type="hidden" name="comment-order-id" value="{{ $localOrder->id }}">--}}
+                        {{--<div class="form-group">--}}
+                            {{--<label for="comment-content">Megjegyzés tartalma</label>--}}
+                            {{--<textarea name="comment-content" id="comment-content" cols="30" rows="10" class="form-control"></textarea>--}}
+                        {{--</div>--}}
+                    {{--</form>--}}
+                {{--</div>--}}
+            {{--</div>--}}
+        </div>
     </div>
 
     @include('modal.order-status')
@@ -134,6 +214,7 @@
             const modal = document.getElementById('orderStatusModal');
             const orderStatusDetails = modal.querySelector('#order-status-details');
             const loading = modal.querySelector('.modal-loader');
+            const $btnDelComment = $('.btn-del-comment');
 
             // Megrendelés állapot részleteinek betöltése
             $(document).on('click', '.btn-order-status-details', (e) => {
@@ -147,6 +228,13 @@
 
                     $('.has-tooltip').tooltip();
                 });
+            });
+
+            // Megj. törlés
+            $btnDelComment.on('click', e => {
+                if (!confirm('Biztosan törölni szeretnéd a megjegyzést? Ez a folyamat nem visszafordítható.')) {
+                    e.preventDefault();
+                }
             });
         });
     </script>

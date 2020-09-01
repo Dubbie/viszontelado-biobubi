@@ -85,6 +85,13 @@ class Order extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments() {
+        return $this->hasMany(OrderComment::class, 'order_id', 'id');
+    }
+
+    /**
      * @return array
      */
     public function getShoprenterOrder() {

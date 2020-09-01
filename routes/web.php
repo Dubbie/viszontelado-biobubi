@@ -78,6 +78,11 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('/dokumentumok', 'DocumentController@index');
     Route::get('/dokumentumok/{id}/letoltes', 'DocumentController@getDocument');
+
+    Route::post('/megrendelesek/megjegyzesek/mentes', 'OrderCommentController@store');
+    Route::get('/megjegyzesek/{commentId}/szerkesztes', 'OrderCommentController@edit');
+    Route::post('/megjegyzesek/frissites', 'OrderCommentController@update');
+    Route::delete('/megjegyzesek/{commentId}/torles', 'OrderCommentController@destroy');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');

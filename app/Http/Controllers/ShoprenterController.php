@@ -193,15 +193,9 @@ class ShoprenterController extends Controller
             Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
 
             // 3. Elmentjük a piszkozatot
-            Log::info('---- TESZT ----');
-            Log::info('Elmentetett helyi azonosító: ' . $localOrder->id);
-            Log::info('Elmentetett Resource ID: ' . $localOrder->inner_resource_id);
-
             $localOrder->draft_invoice_id = $invoice->getId();
             $localOrder->save();
-
-            Log::info('Elmentett piszkozat számla azonosító: ' . $localOrder->draft_invoice_id);
-            Log::info('---- TESZT VÉGE ----');
+            Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
         }
 
         return ['success' => true];
