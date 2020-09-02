@@ -140,14 +140,14 @@ class OrderTodoController extends Controller
     }
 
     /**
-     * @param $commentId
+     * @param $todoId
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function destroy($commentId) {
-        $comment = OrderComment::find($commentId);
+    public function destroy($todoId) {
+        $todo = OrderTodo::find($todoId);
 
         try {
-            $comment->delete();
+            $todo->delete();
         } catch (\Exception $e) {
             \Log::error('Hiba történt a megjegyzés törlésekor!');
             \Log::error($e->getMessage());

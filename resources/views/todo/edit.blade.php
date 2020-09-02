@@ -5,7 +5,7 @@
     <div class="container">
         <p class="mb-0">
             @if($todo->order)
-                <a href="{{ action('OrderTodoController@show', $todo->order->inner_resource_id) }}" class="btn-muted font-weight-bold text-decoration-none">
+                <a href="{{ action('OrderController@show', $todo->order->inner_resource_id) }}" class="btn-muted font-weight-bold text-decoration-none">
                     <span class="icon icon-sm">
                         <i class="fas fa-arrow-left"></i>
                     </span>
