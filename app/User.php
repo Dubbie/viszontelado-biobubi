@@ -70,4 +70,11 @@ class User extends Authenticatable
     public function expenses() {
         return $this->hasMany(Expense::class, 'user_id', 'id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function todos() {
+        return $this->hasMany(OrderTodo::class, 'user_id', 'id');
+    }
 }

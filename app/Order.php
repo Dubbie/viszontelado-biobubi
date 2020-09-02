@@ -7,6 +7,7 @@ use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
@@ -89,6 +90,15 @@ class Order extends Model
      */
     public function comments() {
         return $this->hasMany(OrderComment::class, 'order_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function todos() {
+        return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function(Builder $query) {
+            $query->where('user_id', \Auth::id());
+        });
     }
 
     /**

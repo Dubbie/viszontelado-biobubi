@@ -32,11 +32,9 @@ class UserController extends Controller
      */
     public function home()
     {
-//        /** @var BillingoNewService $bns */
-//        $bns = resolve('App\Subesz\BillingoNewService');
         /** @var RevenueService $revenueService */
         $revenueService = resolve('App\Subesz\RevenueService');
-//        /** @var BillingoNewService $billingoService */
+        /** @var BillingoNewService $billingoService */
         $billingoService = resolve('App\Subesz\BillingoNewService');
 
         $start = Carbon::now()->startOfMonth();
@@ -62,6 +60,9 @@ class UserController extends Controller
         /** @var OrderService $os */
         $os = resolve('App\Subesz\OrderService');
 
+        // Mai teendők
+        $todos = Auth::user()->todos()->whereDate('deadline', Carbon::now())->where('completed_at', '=', null)->orderBy('deadline')->get();
+
         return view('home')->with([
             'orders' => $os->getLatestOrder(5),
             'income' => $income,
@@ -69,6 +70,7 @@ class UserController extends Controller
             'profit' => $profit,
             'billingo' => $billingoResults,
             'news' => Post::orderByDesc('created_at')->limit(5)->get(),
+            'todos' => $todos
         ]);
     }
 

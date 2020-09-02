@@ -31,7 +31,7 @@
 
                 <div class="form-group mt-3">
                     <label for="comment-content" style="display:none;">Megjegyzés tartalma</label>
-                    <textarea name="comment-content" id="comment-content" cols="30" rows="2" class="form-control">{{ $comment->content }}</textarea>
+                    <textarea name="comment-content" id="comment-content" cols="30" rows="2" class="form-control" required>{{ $comment->content }}</textarea>
                 </div>
 
                 <p class="mb-0">

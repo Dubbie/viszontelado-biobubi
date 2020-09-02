@@ -83,6 +83,14 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/megjegyzesek/{commentId}/szerkesztes', 'OrderCommentController@edit');
     Route::post('/megjegyzesek/frissites', 'OrderCommentController@update');
     Route::delete('/megjegyzesek/{commentId}/torles', 'OrderCommentController@destroy');
+
+    Route::get('/teendok', 'OrderTodoController@index');
+    Route::get('/teendok/uj', 'OrderTodoController@create');
+    Route::post('/teendok/mentes', 'OrderTodoController@store');
+    Route::get('/teendok/{todoId}/szerkesztes', 'OrderTodoController@edit');
+    Route::post('/teendok/frissites', 'OrderTodoController@update');
+    Route::get('/teendok/{todoId}/kapcsolas', 'OrderTodoController@toggle');
+    Route::delete('/teendok/{todoId}/torles', 'OrderTodoController@destroy');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');

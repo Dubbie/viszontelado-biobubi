@@ -36,6 +36,16 @@
                 </a>
             </li>
             <li class="nav-item">
+                <a href="{{ action('OrderTodoController@index') }}"
+                   class="nav-link @if(Request::is('teendok*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </span>
+                    <span class="flex-grow-1">Teendők</span>
+                    {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
+                </a>
+            </li>
+            <li class="nav-item">
                 <a href="{{ action('UserController@profile') }}"
                    class="nav-link @if(Request::is('fiok*')) active @endif d-flex align-items-center">
                     <span class="icon">
