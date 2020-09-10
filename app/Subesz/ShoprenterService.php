@@ -302,6 +302,22 @@ class ShoprenterService
     }
 
     /**
+     * Visszaadja a szűrt státuszokat
+     *
+     * @return array
+     */
+    public function getStatusesFiltered() {
+        $statuses = $this->getAllStatuses();
+        $filteredStatuses = [];
+        foreach ($statuses->items as $statusItem) {
+            if (strpos($statusItem->name, 'zzz') !== 0 && $statusItem->name != 'Törölt') {
+                $filteredStatuses[] = $statusItem;
+            }
+        }
+        return $filteredStatuses;
+    }
+
+    /**
      * @return mixed
      */
     public function getAllProducts() {
