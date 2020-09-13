@@ -107,10 +107,18 @@ class BillingoNewService
      */
     public function getPartnerUpsertFromOrder($order)
     {
-        $taxType = property_exists($order['order'], 'paymentTaxnumber') ? PartnerTaxType::HAS_TAX_NUMBER : PartnerTaxType::NO_TAX_NUMBER;
+        // Céget kezelünk
+        $taxType = PartnerTaxType::NO_TAX_NUMBER;
+        $name = sprintf('%s %s', $order['order']->firstname, $order['order']->lastname);
+        $taxCode = null;
+        if (strlen($order['order']->taxNumber) > 0 && strlen($order['order']->paymentCompany) > 0) {
+            $taxType = PartnerTaxType::HAS_TAX_NUMBER;
+            $name = $order['order']->paymentCompany;
+            $taxCode = $order['order']->taxNumber;
+        }
 
         $partnerUpsertData = [
-            'name' => sprintf('%s %s', $order['order']->firstname, $order['order']->lastname),
+            'name' => $name,
             'address' => [
                 'country_code' => Country::HU,
                 'post_code' => $order['order']->paymentPostcode,
@@ -118,8 +126,7 @@ class BillingoNewService
                 'address' => trim(sprintf('%s %s', $order['order']->paymentAddress1, $order['order']->paymentAddress2)),
             ],
             'emails' => [$order['order']->email],
-            'taxcode' => $order['order']->paymentTaxnumber ?? null,
-            'account_number' => '',
+            'taxcode' => $taxCode,
             'phone' => $order['order']->phone,
             'tax_type' => $taxType
         ];
