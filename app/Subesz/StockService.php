@@ -6,9 +6,37 @@ namespace App\Subesz;
 use App\Stock;
 use App\StockHistory;
 use App\User;
+use Illuminate\Mail\Message;
 
 class StockService
 {
+    private $skuMap;
+
+    public function __construct()
+    {
+        $this->skuMap = [
+            '1' => ['19', '15'],
+            'CEM3' => ['CEM1', 'CEM1', 'CEM1'],
+            'CEFSZ3' => ['CEFSZ1', 'CEFSZ1', 'CEFSZ1'],
+            'CEF3' => ['CEF1', 'CEF1', 'CEF1'],
+            'CEFMSZB' => ['CEM1', 'CEFSZ1', 'CEF1', '19'],
+            'CEFMSZ' => ['CEM1', 'CEFSZ1', 'CEF1'],
+            '11' => ['5', '5', '5'],
+            'CEM1' => 'CEM1',
+            'CEFSZ1' => 'CEFSZ1',
+            'CEF1' => 'CEF1',
+            '19' => '19',
+            '15' => '15',
+            '2' => '2',
+            '5' => '5',
+        ];
+    }
+
+    /**
+     * @param $arrSku
+     * @param $arrCount
+     * @return array
+     */
     public function getStockDataFromInput($arrSku, $arrCount)
     {
         $stockData = [];
@@ -34,6 +62,13 @@ class StockService
         return $stockData;
     }
 
+    /**
+     * @param User $recipient
+     * @param User $sender
+     * @param $sku
+     * @param $name
+     * @param $count
+     */
     public function addToStock(User $recipient, User $sender, $sku, $name, $count)
     {
         // 1. Megnézzük, hogy van-e már ilyen termékből készlete
@@ -82,5 +117,26 @@ class StockService
         $history->name = $stockItem->name;
         $history->amount = $newInventory - $oldInventory;
         $history->save();
+    }
+
+    /**
+     * Visszaadja átalakítva a megrendelt termékből az összetevőket.
+     *
+     * @param $sku
+     * @return bool|mixed
+     */
+    public function getPartsFromSku($sku)
+    {
+//        dump(strval($sku));
+//        dd($this->skuMap);
+        if (!array_key_exists(strval($sku), $this->skuMap)) {
+            \Log::error('----- ESÓES BAJ VAN! -------');
+            \Log::error(sprintf('-- NEM TALÁLHATÓ SKU: "%s" --', strval($sku)));
+            \Mail::raw(sprintf('Baj van, nem található ez az SKU: "%s"', strval($sku)), function(Message $message) {
+                $message->subject('Viszonteladó Portál HIBA')->to('dev.mihodaniel@gmail.com');
+            });
+            return false;
+        }
+        return $this->skuMap[strval($sku)];
     }
 }

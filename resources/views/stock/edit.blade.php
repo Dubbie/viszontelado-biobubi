@@ -13,7 +13,7 @@
         </p>
         <div class="row">
             <div class="col">
-                <h1 class="font-weight-bold mb-4">Készlet hozzáadása</h1>
+                <h1 class="font-weight-bold mb-4">Készlet szerkesztése</h1>
             </div>
         </div>
 
@@ -22,11 +22,8 @@
                 @csrf
                 @method('PUT')
                 <div class="form-group">
-                    <label for="stock-user-id">Viszonteladó *</label>
-                    <select name="stock-user-id" id="stock-user-id" class="custom-select" required readonly="readonly">
-                        @php /** @var \App\User $user */ @endphp
-                        <option value="{{ $user->id }}" selected>{{ $user->name }}</option>
-                    </select>
+                    <label for="stock-user">Viszonteladó *</label>
+                    <input type="text" id="stock-user" name="stock-user" class="form-control" value="{{ $user->name }}" readonly disabled>
                 </div>
 
                 <div id="stock-rows-container">

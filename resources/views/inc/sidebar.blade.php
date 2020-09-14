@@ -66,11 +66,11 @@
             </li>
             <li class="nav-item">
                 <a href="{{ action('StockController@index') }}"
-                   class="nav-link @if(Request::is('keszlet*')) active @endif d-flex align-items-center">
+                   class="nav-link @if(Request::is('keszletem*')) active @endif d-flex align-items-center">
                     <span class="icon">
                         <i class="fas fa-boxes"></i>
                     </span>
-                    <span class="flex-grow-1">Készlet</span>
+                    <span class="flex-grow-1">Készletem</span>
                 </a>
             </li>
 

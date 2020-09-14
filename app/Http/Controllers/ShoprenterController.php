@@ -8,6 +8,7 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StockService;
 use App\User;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -214,9 +215,5 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
-//        $orderId = 'b3JkZXItb3JkZXJfaWQ9MTI2MQ==';
-//        $order = $this->shoprenterApi->getOrder($orderId);
-//
-//        dd($this->billingoNewService->getOrderItems($order, User::find(1)));
     }
 }
