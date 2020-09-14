@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class StockController extends Controller
 {
-    /** @var StockService  */
+    /** @var StockService */
     private $stockService;
 
     /**
@@ -68,20 +68,19 @@ class StockController extends Controller
         ]);
 
         // Összerakjuk
-        foreach ($data['stock-item-sku'] as $key => $item) {
-            $split = explode('|', $item);
-
+        $stockData = $this->stockService->getStockDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
+        foreach ($stockData as $item) {
             // Elmentjük
             $this->stockService->addToStock(
                 User::find($data['stock-user-id']),
                 \Auth::user(),
-                $split[0],
-                $split[1],
-                str_replace(' ', '', $data['stock-item-count'][$key])
+                $item['sku'],
+                $item['name'],
+                $item['count']
             );
         }
 
-        return redirect(action('StockController@index'))->with([
+        return redirect(action('StockController@adminIndex'))->with([
             'success' => 'Készlet sikeresen mentve'
         ]);
     }
@@ -100,24 +99,76 @@ class StockController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Stock $stock
-     * @return \Illuminate\Http\Response
+     * @param $userId
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function edit(Stock $stock)
+    public function edit($userId)
     {
-        //
+        $user = User::find($userId);
+
+        /** @var ShoprenterService $ss */
+        $ss = resolve('App\Subesz\ShoprenterService');
+        $items = $ss->getBasicProducts();
+
+        return view('stock.edit')->with([
+            'items' => $items,
+            'user' => $user,
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Stock $stock
+     * @param $userId
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Stock $stock)
+    public function update(Request $request, $userId)
     {
-        //
+        $data = $request->validate([
+            'stock-item-sku' => 'required|array',
+            'stock-item-count' => 'required|array',
+        ]);
+
+        $user = User::find($userId);
+        $oldStock = $user->stock;
+        $newSkus = [];
+        $stockData = $this->stockService->getStockDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
+        foreach ($stockData as $item) {
+            // Megnézzük, van-e elmentve készlet belőle
+            /** @var Stock $stock */
+            $stock = $user->stock()->where('sku', $item['sku'])->first();
+            if ($stock && $item['count'] != $stock->inventory_on_hand) {
+                // 1. eset: Szerepl már az adatbázisban az SKU
+                //          - Megnézzük, mennyivel tér el
+                $this->stockService->updateStock($user, \Auth::user(), $stock->id, $item['count']);
+            } else if (!$stock) {
+                // 2. eset: Nem szerepel még az adatbázisban az SKU
+                //          - Hozzáadjuk
+                $this->stockService->addToStock($user, \Auth::user(), $item['sku'], $item['name'], $item['count']);
+            } else {
+                // Nem történik semmit, ugyanaz volt ami lett
+                \Log::info(sprintf('A készlet megegyezik a régivel (%s db %s)', $stock->inventory_on_hand, $stock->name));
+            }
+
+            // Hozzáadjuk az SKU-t, hogy össze tudjuk hasonlítani, mi van az adatbázisban.
+            $newSkus[] = $item['sku'];
+        }
+
+        foreach ($oldStock as $oldSku) {
+            if (!in_array($oldSku->sku, $newSkus)) {
+                try {
+                    $oldSku->delete();
+                } catch (\Exception $e) {
+                    \Log::error('Hiba történt az adatbázisban tárold készlet törlésekor!');
+                    \Log::error('%s %s', $e->getCode(), $e->getMessage());
+                }
+            }
+        }
+
+        return redirect(action('StockController@adminIndex'))->with([
+            'success' => 'Készlet sikeresen frissítve',
+        ]);
     }
 
     /**
@@ -148,7 +199,8 @@ class StockController extends Controller
         ]);
     }
 
-    public function adminIndex() {
+    public function adminIndex()
+    {
         return view('stock.admin-index')->with([
             'users' => User::all(),
         ]);

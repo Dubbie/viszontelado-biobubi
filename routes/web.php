@@ -94,6 +94,7 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('kozponti-keszlet', 'StockController@adminIndex');
     Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
+    Route::get('keszlet/{userId}/szerkesztes', 'StockController@edit');
     Route::resource('keszlet', 'StockController');
 });
 

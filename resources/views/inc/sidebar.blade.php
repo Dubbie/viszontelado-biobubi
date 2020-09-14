@@ -122,7 +122,7 @@
 
                 <li class="nav-item">
                     <a href="{{ action('StockController@adminIndex') }}"
-                       class="nav-link @if(Request::is('kozpoti-raktar*')) active @endif d-flex align-items-center">
+                       class="nav-link @if(Request::is('kozponti-keszlet*')) active @endif d-flex align-items-center">
                     <span class="icon">
                         <i class="fas fa-warehouse"></i>
                     </span>
