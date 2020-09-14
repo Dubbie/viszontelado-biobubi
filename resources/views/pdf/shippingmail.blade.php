@@ -61,11 +61,11 @@
         </table>
         <table style="margin-bottom: 2rem;">
             <tr>
-                <td>Termékek</td>
+                <td><b>Termékek</b></td>
             </tr>
             @foreach($order['products']->items as $item)
                 <tr>
-                    <td>{{ $item->name }} (Egységár: {{ Auth()->user()->vat_id == env('AAM_VAT_ID') ? round($item->price * 1.27) : $item->price }} Ft)
+                    <td>{{ $item->name }} (Egységár: {{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($item->price * 1.27)) }} Ft)
                     </td>
                     <td>({{ $item->stock1 }} db)</td>
                 </tr>
@@ -73,4 +73,23 @@
         </table>
     @endforeach
 
+    <table>
+        <thead>
+            <tr>
+                <th align="left">Termék</th>
+                <th align="left">Részösszeg</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($sum['items'] as $item)
+            <tr>
+                <td><b>{{ $item['count'] }} db</b> {{ $item['name'] }}</td>
+                <td>({{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($item['total'] * 1.27)) }} Ft)</td>
+            </tr>
+            @endforeach
+            <tr>
+                <td colspan="2">Összes bruttó bevétel: {{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($sum['income'])) }} Ft</td>
+            </tr>
+        </tbody>
+    </table>
 @endsection

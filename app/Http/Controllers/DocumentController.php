@@ -54,12 +54,46 @@ class DocumentController extends Controller
             }
         }
 
+        // Összegzés
+        $sum = [
+            'income' => 0,
+            'discount' => 0,
+            'items' => [],
+        ];
+        foreach ($orders as $order) {
+            // Egyéni
+            foreach ($order['products']->items as $item) {
+                $itemIndex = array_search($item->sku, array_column($sum['items'], 'sku'));
+
+                if (!$itemIndex) {
+                    $sum['items'][] = [
+                        'sku' => $item->sku,
+                        'name' => $item->name,
+                        'total' => floatval($item->total),
+                        'count' => intval($item->stock1),
+                    ];
+                } else {
+                    $sum['items'][$itemIndex]['total'] += floatval($item->total);
+                    $sum['items'][$itemIndex]['count'] += intval($item->stock1);
+                }
+            }
+
+            // Összegző iteráció
+            foreach ($order['totals'] as $total) {
+                if ($total->type == 'TOTAL') {
+                    $sum['income'] += floatval($total->value);
+                    break;
+                }
+            }
+        }
+
         // Adjuk át view-ba
         /** @var PDF $pdf */
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('pdf.shippingmail', [
             'data' => $orders,
             'pdf' => $pdf,
+            'sum' => $sum,
         ]);
 
         $filename = sprintf('szs_szallitolevel_%s.pdf', date('Y_m_d_his'));
