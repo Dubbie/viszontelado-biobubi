@@ -18213,6 +18213,21 @@ body {
   box-shadow: none;
 }
 
+.btn-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 25rem;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid #e9ecef;
+}
+
+.btn-del:hover {
+  background-color: #e9ecef;
+}
+
 .card {
   border: 0;
   border-radius: 0.75rem;
@@ -18243,6 +18258,24 @@ body {
 .tagify {
   min-height: calc(1.6em + 0.75rem + 2px);
   height: auto;
+}
+
+body .select2-container .select2-selection--single,
+body .select2-container--default .select2-selection--single {
+  height: calc(1.6em + 0.75rem + 2px);
+  border-color: #ced4da;
+}
+
+body .select2-container .select2-selection--single .select2-selection__rendered,
+body .select2-container--default .select2-selection--single .select2-selection__rendered {
+  line-height: calc(1.6em + 0.75rem + 2px);
+  padding: 0 0.75rem;
+}
+
+body .select2-container .select2-selection--single .select2-selection__arrow,
+body .select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: calc(1.6em + 0.75rem + 2px);
+  width: calc(1.6em + 0.75rem + 2px - 6px);
 }
 
 .icon {

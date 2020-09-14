@@ -4,12 +4,16 @@ namespace App\Subesz;
 
 
 use App\Order;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class ShoprenterService
 {
     /** @var array */
     private $statusMap;
+
+    /** @var array */
+    private $bundleSkus;
 
     /**
      * ShoprenterService constructor.
@@ -33,6 +37,11 @@ class ShoprenterService
                 'color' => $osd->color,
             ];
         }
+
+        // Lekezeljük a csomagokat
+        $this->bundleSkus = [
+            '1', 'CEM3', 'CEFSZ3', 'CEF3', 'CEFMSZB', 'CEFMSZ', '11'
+        ];
     }
 
     /**
@@ -335,6 +344,28 @@ class ShoprenterService
         curl_close($ch);
 
         return json_decode($response);
+    }
+
+    /**
+     * Visszaadja az alap termékeket, amikből a csomagok állhatnak.
+     *
+     * @return array
+     */
+    public function getBasicProducts() {
+        return array_values(Arr::where($this->getAllProducts()->items, function ($item) {
+            return !in_array($item->sku, $this->bundleSkus);
+        }));
+    }
+
+    /**
+     * Visszaadja azokat a termékeket, amik csomagok.
+     *
+     * @return array
+     */
+    public function getBundleProducts() {
+        return array_values(Arr::where($this->getAllProducts()->items, function ($item) {
+            return in_array($item->sku, $this->bundleSkus);
+        }));
     }
 
     /**

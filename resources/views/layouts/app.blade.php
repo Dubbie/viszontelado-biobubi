@@ -11,6 +11,7 @@
 
     {{-- Bundle --}}
     <link href="{{ mix('css/app.css') }}" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/select2.min.css') }}">
 
     <style>
         figure.media div {
@@ -53,6 +54,8 @@
 {{-- Bundle --}}
 <script src="{{ mix('js/app.js') }}"></script>
 <script src="{{ asset('js/ckeditor.js') }}"></script>
+<script src="{{ asset('js/select2.min.js') }}"></script>
+<script src="{{ asset('js/jquery.mask.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
 
 {{-- Tooltipek a sidebarnak --}}

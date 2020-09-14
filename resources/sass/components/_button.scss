@@ -60,3 +60,18 @@
     box-shadow: none;
   }
 }
+
+.btn-del {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 25rem;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 2px solid $gray-200;
+
+  &:hover {
+    background-color: $gray-200;
+  }
+}

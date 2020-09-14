@@ -64,6 +64,15 @@
                     {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
                 </a>
             </li>
+            <li class="nav-item">
+                <a href="{{ action('StockController@index') }}"
+                   class="nav-link @if(Request::is('keszlet*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-boxes"></i>
+                    </span>
+                    <span class="flex-grow-1">Készlet</span>
+                </a>
+            </li>
 
             {{-- Admin dolgok --}}
             @if(Auth()->user() && Auth()->user()->admin)
@@ -108,6 +117,16 @@
                         <i class="fas fa-newspaper"></i>
                     </span>
                         <span class="flex-grow-1">Bejegyzések</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a href="{{ action('StockController@adminIndex') }}"
+                       class="nav-link @if(Request::is('kozpoti-raktar*')) active @endif d-flex align-items-center">
+                    <span class="icon">
+                        <i class="fas fa-warehouse"></i>
+                    </span>
+                        <span class="flex-grow-1">Központi készlet</span>
                     </a>
                 </li>
             @endif

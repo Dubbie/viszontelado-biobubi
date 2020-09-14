@@ -91,6 +91,10 @@ Route::group(['middleware' => 'auth'], function() {
     Route::post('/teendok/frissites', 'OrderTodoController@update');
     Route::get('/teendok/{todoId}/kapcsolas', 'OrderTodoController@toggle');
     Route::delete('/teendok/{todoId}/torles', 'OrderTodoController@destroy');
+
+    Route::get('kozponti-keszlet', 'StockController@adminIndex');
+    Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
+    Route::resource('keszlet', 'StockController');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
