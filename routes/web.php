@@ -31,10 +31,6 @@ Route::group(['middleware' => 'auth'], function() {
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
 
-        // Próbacsomag termékek
-        Route::get('/termekek', 'TrialProductController@listProducts');
-        Route::post('/api/termek/atkapcsol/{sku}', 'TrialProductController@toggleProduct');
-
         Route::post('/api/billingo/test', 'UserController@testBillingo');
 
         Route::get('/dokumentumok/uj', 'DocumentController@create');
@@ -42,6 +38,17 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/dokumentumok/{id}/torles', 'DocumentController@deleteDocument');
 
         Route::post('/bejegyzesek/kep-feltoltes', 'PostController@handleUpload');
+
+        Route::get('/termekek', 'TrialProductController@listProducts');
+        Route::post('/api/termek/atkapcsol/{sku}', 'TrialProductController@toggleProduct');
+
+        Route::get('/termekek/csomagok', 'BundleController@index');
+        Route::get('/termekek/csomagok/uj', 'BundleController@create');
+        Route::get('/termekek/csomagok/uj-resztermek', 'BundleController@row');
+        Route::post('/termekek/csomagok/mentes', 'BundleController@store');
+        Route::put('/termekek/csomagok/{bundleSku}/frissites', 'BundleController@update');
+        Route::delete('/termekek/csomagok/{bundleSku}/torles', 'BundleController@destroy');
+        Route::get('/termekek/csomagok/{bundleSku}', 'BundleController@edit');
     });
 
     Route::get('/', 'UserController@home');
@@ -100,6 +107,7 @@ Route::group(['middleware' => 'auth'], function() {
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
+Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProducts');
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');
 Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');
 

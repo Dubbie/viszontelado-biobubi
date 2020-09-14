@@ -101,13 +101,24 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="{{ action('TrialProductController@listProducts') }}"
-                       class="nav-link @if(Request::is('termekek*')) active @endif d-flex align-items-center">
-                    <span class="icon">
-                        <i class="fas fa-shopping-basket"></i>
-                    </span>
+                    <a href="#products-collapse" class="nav-link @if(!Request::is('termekek*')) collapsed @endif"
+                       data-toggle="collapse">
+                        <span class="icon">
+                            <i class="fas fa-shopping-basket"></i>
+                        </span>
                         <span class="flex-grow-1">Termékek</span>
                     </a>
+
+                    <div id="products-collapse" class="collapse @if(Request::is('termekek*')) show @endif">
+                        <a class="nav-link @if(Request::is('termekek')) active @endif"
+                           href="{{ action('TrialProductController@listProducts') }}">
+                            <span>Összes termék</span>
+                        </a>
+                        <a class="nav-link @if(Request::is('termekek/csomagok*')) active @endif"
+                           href="{{ action('BundleController@index') }}">
+                            <span>Csomagok</span>
+                        </a>
+                    </div>
                 </li>
 
                 <li class="nav-item">

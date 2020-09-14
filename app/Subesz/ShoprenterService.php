@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 
 use App\Order;
+use App\Product;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -42,6 +43,22 @@ class ShoprenterService
         $this->bundleSkus = [
             '1', 'CEM3', 'CEFSZ3', 'CEF3', 'CEFMSZB', 'CEFMSZ', '11'
         ];
+    }
+
+    public function updateProducts() {
+        $srProducts = $this->getAllProducts()->items;
+
+        foreach ($srProducts as $product) {
+            $localProduct = Product::find($product->sku) ?? new Product();
+            $localProduct->sku = $product->sku;
+            $localProduct->name = $product->productDescriptions[0]->name;
+            $localProduct->picture_url = $product->allImages->mainImage;
+            $localProduct->status = $product->status;
+            $localProduct->gross_price = round($product->price * 1.27);
+            $localProduct->save();
+        }
+
+        Log::info('Termékek sikeresen frissítve a Shoprenter adatbázisából!');
     }
 
     /**

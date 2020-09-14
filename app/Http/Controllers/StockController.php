@@ -68,14 +68,13 @@ class StockController extends Controller
         ]);
 
         // Összerakjuk
-        $stockData = $this->stockService->getStockDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
+        $stockData = $this->stockService->getProductDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
         foreach ($stockData as $item) {
             // Elmentjük
             $this->stockService->addToStock(
                 User::find($data['stock-user-id']),
                 \Auth::user(),
                 $item['sku'],
-                $item['name'],
                 $item['count']
             );
         }
@@ -133,7 +132,7 @@ class StockController extends Controller
         $user = User::find($userId);
         $oldStock = $user->stock;
         $newSkus = [];
-        $stockData = $this->stockService->getStockDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
+        $stockData = $this->stockService->getProductDataFromInput($data['stock-item-sku'], $data['stock-item-count']);
         foreach ($stockData as $item) {
             // Megnézzük, van-e elmentve készlet belőle
             /** @var Stock $stock */
@@ -145,7 +144,7 @@ class StockController extends Controller
             } else if (!$stock) {
                 // 2. eset: Nem szerepel még az adatbázisban az SKU
                 //          - Hozzáadjuk
-                $this->stockService->addToStock($user, \Auth::user(), $item['sku'], $item['name'], $item['count']);
+                $this->stockService->addToStock($user, \Auth::user(), $item['sku'], $item['count']);
             } else {
                 // Nem történik semmit, ugyanaz volt ami lett
                 \Log::info(sprintf('A készlet megegyezik a régivel (%s db %s)', $stock->inventory_on_hand, $stock->name));
@@ -161,7 +160,7 @@ class StockController extends Controller
                     $oldSku->delete();
                 } catch (\Exception $e) {
                     \Log::error('Hiba történt az adatbázisban tárold készlet törlésekor!');
-                    \Log::error('%s %s', $e->getCode(), $e->getMessage());
+                    \Log::error(sprintf('%s %s', $e->getCode(), $e->getMessage()));
                 }
             }
         }

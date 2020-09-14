@@ -4,7 +4,7 @@
             <label for="stock-item-sku[{{ time() }}]">Termék *</label>
             <select name="stock-item-sku[{{ time() }}]" id="stock-item-sku[{{ time() }}]" class="custom-select" required>
                 @foreach($items as $item)
-                    <option value="{{ $item->sku }}|{{ $item->productDescriptions[0]->name }}">{{ $item->productDescriptions[0]->name }}</option>
+                    <option value="{{ $item->sku }}">{{ $item->productDescriptions[0]->name }}</option>
                 @endforeach
             </select>
         </div>

@@ -41,7 +41,7 @@
                                     <tbody>
                                     @foreach($user->stock as $item)
                                         <tr>
-                                            <td>{{ $item->name }}</td>
+                                            <td>{{ $item->product->name }}</td>
                                             <td>{{ $item->sku }}</td>
                                             <td class="text-right">{{ $item->inventory_on_hand }} db</td>
                                             <td class="text-right">{{ $item->inventory_booked }} db</td>

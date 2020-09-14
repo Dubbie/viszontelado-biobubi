@@ -262,7 +262,7 @@ class OrderController extends Controller
                             $realInvoice = $localOrder->createRealInvoice();
                             if (!$realInvoice) {
                                 Log::error(sprintf('Nem sikerült létrehozni valódi számlát. (Piszkozat: %s, Megr. Azonosító: %s)', $localOrder->draft_invoice_id, $localOrder->id));
-                                return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                                return redirect(action('OrderController@show', ['orderId' => $orderId]))->with([
                                     'error' => 'Hiba történt a piszkozat számla átalakításakor',
                                 ]);
                             } else {
@@ -273,7 +273,7 @@ class OrderController extends Controller
                                 $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
                                 if (!$path) {
                                     Log::error('Hiba történt a megrendelés állapotának frissítésekor');
-                                    return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
+                                    return redirect(action('OrderController@show', ['orderId' => $orderId]))->with([
                                         'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
                                     ]);
                                 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\NewOrder;
 use App\Order;
+use App\Product;
 use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
@@ -85,8 +86,16 @@ class ShoprenterController extends Controller
             $orderResources[] = $order->id;
 
             $muted = true;
-            if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
-                $successCount++;
+            if (env('APP_ENV') != 'local') {
+                if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
+                    $successCount++;
+                }
+            } else {
+                if (!$this->orderService->getLocalOrderByResourceId($order->id)) {
+                    if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
+                        $successCount++;
+                    }
+                }
             }
         }
 
@@ -202,10 +211,125 @@ class ShoprenterController extends Controller
         return ['success' => true];
     }
 
+    /**
+     *
+     */
+    public function updateProducts() {
+        $this->shoprenterApi->updateProducts();
+        Log::info('Termékek sikeresen frissítve a Shoprenter adatbázisából!');
+    }
 
     public function testShoprenter()
     {
-        echo "Nagyon jól megy!";
+        $_order = array(
+            'storeName' => 'biobubi',
+            'innerId' => '2326',
+            'innerResourceId' => 'orders/b3JkZXItb3JkZXJfaWQ9MjMyNg==',
+            'outerResourceId' => '',
+            'firstname' => 'dr. Feczkó',
+            'lastname' => 'Erika',
+            'phone' => '+36708821353',
+            'fax' => '',
+            'email' => 'feczkoeri@gmail.com',
+            'cart_token' => 'cart',
+            'shippingFirstname' => 'dr. Feczkó',
+            'shippingLastname' => 'Erika',
+            'shippingCompany' => '',
+            'shippingAddress1' => 'Újosztás 25.',
+            'shippingAddress2' => '',
+            'shippingCity' => 'Táborfalva',
+            'shippingCountryName' => 'Magyarország',
+            'shippingZoneName' => '',
+            'shippingPostcode' => '2381',
+            'paymentFirstname' => 'dr. Feczkó',
+            'paymentLastname' => 'Erika',
+            'paymentCompany' => '',
+            'paymentAddress1' => 'Újosztás 25.',
+            'paymentAddress2' => '',
+            'paymentCity' => 'Táborfalva',
+            'paymentCountryName' => 'Magyarország',
+            'paymentZoneName' => 'Pest',
+            'shippingMethodName' => 'Házhoz szállítás Semmi Szemét futárral',
+            'shippingNetPrice' => 0,
+            'shippingGrossPrice' => '0',
+            'shippingInnerResourceId' => 'shippingModeExtend/c2hpcHBpbmdNb2RlLWlkPTE4',
+            'paymentMethodName' => 'Utánvétel',
+            'paymentNetPrice' => 0,
+            'paymentGrossPrice' => 0,
+            'couponCode' => '',
+            'couponGrossPrice' => NULL,
+            'languageId' => '1',
+            'languageCode' => 'hu',
+            'comment' => '',
+            'total' => '1252',
+            'totalGross' => '1590',
+            'taxPrice' => '338',
+            'currency' => 'HUF',
+            'paymentPostcode' => '2381',
+            'paymentTaxnumber' => '',
+            'orderHistory' =>
+                array(
+                    'status' => '1',
+                    'statusText' => 'Függőben lévő',
+                    'comment' => '',
+                ),
+            'orderProducts' =>
+                array(
+                    'orderProduct' =>
+                        array(
+                            0 =>
+                                array(
+                                    'innerId' => '8467',
+                                    'innerResourceId' => 'orderProducts/b3JkZXJQcm9kdWN0LW9yZGVyX3Byb2R1Y3RfaWQ9ODQ2Nw==',
+                                    'outerResourceId' => '',
+                                    'name' => 'BioBubi mosószer próbacsomag',
+                                    'sku' => '1',
+                                    'price' => '1251.969',
+                                    'currency' => 'HUF',
+                                    'taxRate' => '27.0000',
+                                    'quantity' => '1',
+                                    'image' => 'https://biobubi.hu/custom/biobubi/image/data/Mososzer_probacsomag.png',
+                                    'category' => 'BioBubi Mosószer, Próbáld ki a betétdíjas mosószert',
+                                    'volume' =>
+                                        array(
+                                            'height' => '0.00',
+                                            'width' => '0.00',
+                                            'length' => '0.00',
+                                            'volumeUnit' =>
+                                                array(
+                                                    0 =>
+                                                        array(
+                                                            'unit' => 'cm',
+                                                            'language' => 'hu',
+                                                        ),
+                                                ),
+                                        ),
+                                    'weight' =>
+                                        array(
+                                            'weight' => '0.00',
+                                            'weightUnit' =>
+                                                array(
+                                                    0 =>
+                                                        array(
+                                                            'unit' => 'kg',
+                                                            'language' => 'hu',
+                                                        ),
+                                                ),
+                                        ),
+                                ),
+                        ),
+                ),
+        );
+
+        dd($this->shoprenterApi->getBasicProducts());
+
+        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
+        /** @var Order $localOrder */
+        $localOrder = $this->orderService->getLocalOrderByResourceId('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
+        $reseller = $localOrder->getReseller()['correct'];
+        /** @var StockService $ss */
+        $ss = resolve('App\Subesz\StockService');
+        dd($ss->subtractStockFromOrder($order['products']->items, $reseller));
     }
 
     /**

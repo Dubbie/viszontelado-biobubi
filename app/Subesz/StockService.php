@@ -3,6 +3,8 @@
 namespace App\Subesz;
 
 
+use App\BundleProduct;
+use App\Product;
 use App\Stock;
 use App\StockHistory;
 use App\User;
@@ -10,26 +12,22 @@ use Illuminate\Mail\Message;
 
 class StockService
 {
-    private $skuMap;
+    /**
+     * Visszaadja a csomag termékeket.
+     *
+     * @return Product[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getBundles() {
+        return Product::has('subProducts')->get();
+    }
 
-    public function __construct()
-    {
-        $this->skuMap = [
-            '1' => ['19', '15'],
-            'CEM3' => ['CEM1', 'CEM1', 'CEM1'],
-            'CEFSZ3' => ['CEFSZ1', 'CEFSZ1', 'CEFSZ1'],
-            'CEF3' => ['CEF1', 'CEF1', 'CEF1'],
-            'CEFMSZB' => ['CEM1', 'CEFSZ1', 'CEF1', '19'],
-            'CEFMSZ' => ['CEM1', 'CEFSZ1', 'CEF1'],
-            '11' => ['5', '5', '5'],
-            'CEM1' => 'CEM1',
-            'CEFSZ1' => 'CEFSZ1',
-            'CEF1' => 'CEF1',
-            '19' => '19',
-            '15' => '15',
-            '2' => '2',
-            '5' => '5',
-        ];
+    /**
+     * Visszaadja az alap termékeket
+     *
+     * @return Product[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getBaseProducts() {
+        return Product::doesntHave('subProducts')->get();
     }
 
     /**
@@ -37,14 +35,11 @@ class StockService
      * @param $arrCount
      * @return array
      */
-    public function getStockDataFromInput($arrSku, $arrCount)
+    public function getProductDataFromInput($arrSku, $arrCount)
     {
         $stockData = [];
 
-        foreach ($arrSku as $key => $item) {
-            $split = explode('|', $item);
-            $sku = $split[0];
-            $name = $split[1];
+        foreach ($arrSku as $key => $sku) {
             $count = intval(str_replace(' ', '', $arrCount[$key]));
 
             $stockIndex = array_search($sku, array_column($stockData, 'sku'));
@@ -53,7 +48,6 @@ class StockService
             } else {
                 $stockData[] = [
                     'sku' => $sku,
-                    'name' => $name,
                     'count' => $count
                 ];
             }
@@ -66,10 +60,9 @@ class StockService
      * @param User $recipient
      * @param User $sender
      * @param $sku
-     * @param $name
      * @param $count
      */
-    public function addToStock(User $recipient, User $sender, $sku, $name, $count)
+    public function addToStock(User $recipient, User $sender, $sku, $count)
     {
         // 1. Megnézzük, hogy van-e már ilyen termékből készlete
         $stockItem = $recipient->stock()->where('sku', $sku)->first() ?? new Stock();
@@ -77,7 +70,6 @@ class StockService
 
         $stockItem->user_id = $recipient->id;
         $stockItem->sku = $sku;
-        $stockItem->name = $name;
         $stockItem->inventory_on_hand += $count;
         $stockItem->save();
 
@@ -85,7 +77,7 @@ class StockService
         $history->recipient = $recipient->id;
         $history->sender = $sender->id;
         $history->sku = $sku;
-        $history->name = $name;
+        $history->name = $stockItem->product->name;
         $history->amount = $stockItem->inventory_on_hand - $oldInventory;
         $history->save();
     }
@@ -114,29 +106,43 @@ class StockService
         $history->recipient = $recipient->id;
         $history->sender = $sender->id;
         $history->sku = $stockItem->sku;
-        $history->name = $stockItem->name;
+        $history->name = $stockItem->product->name;
         $history->amount = $newInventory - $oldInventory;
         $history->save();
     }
 
-    /**
-     * Visszaadja átalakítva a megrendelt termékből az összetevőket.
-     *
-     * @param $sku
-     * @return bool|mixed
-     */
-    public function getPartsFromSku($sku)
+    public function subtractStockFromOrder(array $products, User $reseller)
     {
-//        dump(strval($sku));
-//        dd($this->skuMap);
-        if (!array_key_exists(strval($sku), $this->skuMap)) {
-            \Log::error('----- ESÓES BAJ VAN! -------');
-            \Log::error(sprintf('-- NEM TALÁLHATÓ SKU: "%s" --', strval($sku)));
-            \Mail::raw(sprintf('Baj van, nem található ez az SKU: "%s"', strval($sku)), function(Message $message) {
-                $message->subject('Viszonteladó Portál HIBA')->to('dev.mihodaniel@gmail.com');
-            });
-            return false;
+//        // Először összerakjuk, hogy miket kell majd levonni
+//        $stockList = [];
+//        foreach ($products as $product) {
+//            $stockParts = $this->getPartsFromSku($product->sku);
+//            if (!$stockParts) {
+//                return false;
+//            }
+//
+//            $stockList[] = $stockParts;
+//        }
+//
+//        dd($stockList);
+//        // Most, megnézzük, hogy letudjuk-e vonni
+//        foreach ($stockList as $itemSku) {
+//            $this->bookStock($reseller, $itemSku);
+//        }
+    }
+
+    public function bookStock(User $reseller, $sku, $count = 1)
+    {
+        $stockItem = $reseller->stock()->where('sku', $sku)->first();
+        if (!$stockItem) {
+            $stockItem = new Stock();
+            $stockItem->user_id = $reseller->id;
+            $stockItem->sku = $sku;
+            $stockItem->inventory_on_hand = -1;
+            $stockItem->inventory_booked = $count;
+        } else {
+            $stockItem->inventory_on_hand -= $count;
+            $stockItem->inventory_booked += $count;
         }
-        return $this->skuMap[strval($sku)];
     }
 }

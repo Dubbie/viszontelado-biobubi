@@ -125,7 +125,7 @@ class Order extends Model
         $trial = false;
 
         foreach ($order['products']->items as $product) {
-            if (in_array($product->sku, TrialProduct::all()->pluck('sku')->toArray())) {
+            if (in_array($product->sku, Product::where('trial_product', '=', true)->pluck('sku')->toArray())) {
                 $trial = true;
                 break;
             }

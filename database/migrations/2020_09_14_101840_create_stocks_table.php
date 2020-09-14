@@ -20,7 +20,6 @@ class CreateStocksTable extends Migration
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
             $table->string('sku');
-            $table->string('name');
 
             $table->bigInteger('inventory_on_hand');
             $table->bigInteger('inventory_booked')->default(0);

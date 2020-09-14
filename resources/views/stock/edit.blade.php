@@ -23,7 +23,8 @@
                 @method('PUT')
                 <div class="form-group">
                     <label for="stock-user">Viszonteladó *</label>
-                    <input type="text" id="stock-user" name="stock-user" class="form-control" value="{{ $user->name }}" readonly disabled>
+                    <input type="text" id="stock-user" name="stock-user" class="form-control" value="{{ $user->name }}"
+                           readonly disabled>
                 </div>
 
                 <div id="stock-rows-container">
@@ -35,7 +36,7 @@
                                     <select name="stock-item-sku[{{ $stock->sku }}]"
                                             id="stock-item-sku[{{ $stock->sku }}]" class="custom-select" required>
                                         @foreach($items as $item)
-                                            <option value="{{ $item->sku }}|{{ $item->productDescriptions[0]->name }}"
+                                            <option value="{{ $item->sku }}"
                                                     @if($stock->sku == $item->sku) selected @endif>{{ $item->productDescriptions[0]->name }}</option>
                                         @endforeach
                                     </select>

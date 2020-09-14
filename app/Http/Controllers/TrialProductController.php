@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Product;
 use App\Subesz\ShoprenterService;
 use App\TrialProduct;
 
@@ -23,32 +24,24 @@ class TrialProductController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function listProducts() {
-        $productsResponse = $this->shoprenterService->getAllProducts();
-        $trials = TrialProduct::all('sku')->pluck('sku')->toArray();
+        $this->shoprenterService->updateProducts();
 
-        return view('products')->with([
-            'products' => $productsResponse->items,
-            'trials' => $trials,
+        return view('product.all')->with([
+            'products' => Product::all()
         ]);
     }
 
     /**
      * @param $sku
-     * @return TrialProduct[]|\Illuminate\Database\Eloquent\Collection
+     * @return Product[]|\Illuminate\Database\Eloquent\Collection
      * @throws \Exception
      */
     public function toggleProduct($sku) {
-        $found = TrialProduct::where('sku', $sku)->first();
+        $found = Product::find($sku);
 
-        // Ha benne van akkor töröljük, ha nincs benne akkor hozzáadjuk
-        if ($found) {
-            $found->delete();
-        } else {
-            $trial = new TrialProduct();
-            $trial->sku = $sku;
-            $trial->save();
-        }
+        $found->trial_product = !$found->trial_product;
+        $found->save();
 
-        return TrialProduct::all();
+        return Product::all();
     }
 }
