@@ -133,7 +133,7 @@
             }
 
             function refreshCountMask() {
-                $('.input-count').mask('000 000 000 000 000', {reverse: true});
+                // $('.input-count').mask('000 000 000 000 000', {reverse: true});
             }
 
             function init() {

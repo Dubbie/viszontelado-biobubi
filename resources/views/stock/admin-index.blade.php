@@ -44,8 +44,8 @@
                                             <td>{{ $item->product->name }}</td>
                                             <td>{{ $item->sku }}</td>
                                             <td class="text-right">{{ $item->inventory_on_hand }} db</td>
-                                            <td class="text-right">{{ $item->inventory_booked }} db</td>
-                                            <td class="text-right">{{ $item->inventory_shipped }} db</td>
+                                            <td class="text-right">{{ $item->getBookedCount() }} db</td>
+                                            <td class="text-right">{{ $item->getSoldCount() }} db</td>
                                         </tr>
                                     @endforeach
                                     </tbody>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\BundleProduct;
 use App\Product;
+use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
 use Illuminate\Http\Request;
 
@@ -26,6 +27,10 @@ class BundleController extends Controller
      */
     public function index()
     {
+        /** @var ShoprenterService $ss */
+        $ss = resolve('App\Subesz\ShoprenterService');
+        $ss->updateProducts();
+
         return view('product.bundle.index')->with([
             'products' => $this->stockService->getBundles(),
         ]);

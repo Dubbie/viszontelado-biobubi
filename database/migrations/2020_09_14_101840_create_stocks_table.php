@@ -18,13 +18,8 @@ class CreateStocksTable extends Migration
 
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-
             $table->string('sku');
-
             $table->bigInteger('inventory_on_hand');
-            $table->bigInteger('inventory_booked')->default(0);
-            $table->bigInteger('inventory_shipped')->default(0);
-
             $table->timestamps();
         });
     }

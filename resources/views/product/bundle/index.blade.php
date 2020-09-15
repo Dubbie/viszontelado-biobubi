@@ -12,44 +12,52 @@
             </div>
         </div>
         <div class="card card-body">
-            @php /** @var \App\Product $product */ @endphp
-            @foreach($products as $product)
-                <div class="row @if($products->last() != $product) mb-4 @endif">
-                    <div class="col-5">
-                        <div class="d-flex align-items-center">
-                            <img src="{{ $product->picture_url }}" alt="{{ $product->name }}"
-                                 class="d-block img-thumbnail mr-3"
-                                 style="width: 48px; height: 48px; object-fit: cover">
-                            <p class="lead font-weight-bold mb-0">{{ $product->name }}</p>
+            @if(count($products) > 0)
+                @php /** @var \App\Product $product */ @endphp
+                @foreach($products as $product)
+                    <div class="row @if($products->last() != $product) mb-4 @endif">
+                        <div class="col-5">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ $product->picture_url }}" alt="{{ $product->name }}"
+                                     class="d-block img-thumbnail mr-3"
+                                     style="width: 48px; height: 48px; object-fit: cover">
+                                <p class="lead font-weight-bold mb-0">{{ $product->name }} <span class="text-muted">(sku: {{ $product->sku }})</span></p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-7">
-                        <div class="bg-muted rounded-lg p-3 border">
-                            @php /** @var \App\BundleProduct $subProduct */ @endphp
-                            @foreach($product->subProducts as $subProduct)
-                                <div class="d-flex align-items-center @if($product->subProducts->last() != $subProduct) mb-2 @endif">
-                                    <img src="{{ $subProduct->product->picture_url }}"
-                                         alt="{{ $subProduct->product->name }}"
-                                         class="d-block img-thumbnail mr-3"
-                                         style="width: 48px; height: 48px; object-fit: cover">
-                                    <p class="mb-0"><b>{{ $subProduct->product_qty }}
-                                            db</b> {{ $subProduct->product->name }}</p>
-                                </div>
-                            @endforeach
+                        <div class="col-7">
+                            <div class="bg-muted rounded-lg p-3 border">
+                                @php /** @var \App\BundleProduct $subProduct */ @endphp
+                                @foreach($product->subProducts as $subProduct)
+                                    <div class="d-flex align-items-center @if($product->subProducts->last() != $subProduct) mb-2 @endif">
+                                        <img src="{{ $subProduct->product->picture_url }}"
+                                             alt="{{ $subProduct->product->name }}"
+                                             class="d-block img-thumbnail mr-3"
+                                             style="width: 48px; height: 48px; object-fit: cover">
+                                        <p class="mb-0"><b>{{ $subProduct->product_qty }}
+                                                db</b> {{ $subProduct->product->name }} <span class="text-muted">(sku: {{ $subProduct->product_sku }})</span></p>
+                                    </div>
+                                @endforeach
 
-                            <div class="d-flex mt-4">
-                                <a href="{{ action('BundleController@edit', $product->sku) }}"
-                                   class="btn btn-success btn-sm">Csomag szerkesztése</a>
-                                <form action="{{ action('BundleController@destroy', $product->sku) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-muted btn-del-bundle">Csomag törlése</button>
-                                </form>
+                                <div class="d-flex mt-4">
+                                    <a href="{{ action('BundleController@edit', $product->sku) }}"
+                                       class="btn btn-success btn-sm">Csomag szerkesztése</a>
+                                    <form action="{{ action('BundleController@destroy', $product->sku) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-muted btn-del-bundle">Csomag törlése</button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
+                @endforeach
+            @else
+                <p class="lead mb-4">Még nincs létrehozva egy csomag sem.</p>
+                <p class="mb-0">
+                    <a href="{{ action('BundleController@create') }}" class="btn btn-teal shadow-sm">Csomag
+                        hozzáadása</a>
+                </p>
+            @endif
         </div>
     </div>
 @endsection

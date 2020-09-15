@@ -7,8 +7,10 @@ use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StockService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -102,12 +104,39 @@ class Order extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function products() {
+        return $this->hasMany(OrderProducts::class, 'order_id', 'id');
+    }
+
+    /**
      * @return array
      */
     public function getShoprenterOrder() {
         /** @var ShoprenterService $ss */
         $ss = resolve('App\Subesz\ShoprenterService');
         return $ss->getOrder($this->inner_resource_id);
+    }
+
+    /**
+     * @return Collection
+     */
+    public function getBaseProducts() {
+        $orderBaseProducts = new Collection();
+        if (count($this->products) > 0) {
+            /** @var OrderProducts $orderProduct */
+            foreach ($this->products as $orderProduct) {
+                // Kiszedjük, a darabjait
+                foreach ($orderProduct->product->getSubProducts() as $baseProduct) {
+                    // Felszorozzuk annyival, amennyit rendelt
+                    $baseProduct['count'] *= $orderProduct->product_qty;
+                    $orderBaseProducts->add($baseProduct);
+                }
+            }
+        }
+
+        return $orderBaseProducts;
     }
 
     /**
@@ -178,5 +207,29 @@ class Order extends Model
         }
 
         return true;
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($order) {
+            /** @var Order $order */
+            if ($order->products) {
+                $baseProducts = $order->getBaseProducts();
+                foreach ($baseProducts as $baseProduct) {
+                    /** @var Product $product */
+                    /** @var User $reseller */
+                    /** @var Stock $stockItem */
+                    $product = $baseProduct['product'];
+                    $stockCount = $baseProduct['count'];
+                    $reseller = $order->getReseller()['correct'];
+                    $stockItem = $reseller->stock()->where('sku', $product->sku)->first();
+
+                    if ($stockItem) {
+                        $stockItem->inventory_on_hand += $stockCount;
+                        $stockItem->save();
+                    }
+                }
+            }
+        });
     }
 }

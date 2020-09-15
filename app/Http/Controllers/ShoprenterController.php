@@ -214,7 +214,8 @@ class ShoprenterController extends Controller
     /**
      *
      */
-    public function updateProducts() {
+    public function updateProducts()
+    {
         $this->shoprenterApi->updateProducts();
         Log::info('Termékek sikeresen frissítve a Shoprenter adatbázisából!');
     }
@@ -321,15 +322,15 @@ class ShoprenterController extends Controller
                 ),
         );
 
-        dd($this->shoprenterApi->getBasicProducts());
 
-        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
-        /** @var Order $localOrder */
-        $localOrder = $this->orderService->getLocalOrderByResourceId('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
-        $reseller = $localOrder->getReseller()['correct'];
         /** @var StockService $ss */
+        /** @var Order $localOrder */
         $ss = resolve('App\Subesz\StockService');
-        dd($ss->subtractStockFromOrder($order['products']->items, $reseller));
+        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
+        $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
+        $localOrder = $this->orderService->getLocalOrderByResourceId('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
+        $localOrder->delete();
+//        dd($ss->bookOrder($orderedProducts, $localOrder->id));
     }
 
     /**

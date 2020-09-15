@@ -242,6 +242,23 @@ class OrderService
     }
 
     /**
+     * Visszaadja a megrendelésből a megrendelt termékeket és darabszámukat.
+     *
+     * @param array $order
+     * @return array
+     */
+    public function getOrderedProductsFromOrder(array $order) {
+        $productsList = [];
+        foreach ($order['products']->items as $item) {
+            $productsList[] = [
+                'sku' => $item->sku,
+                'count' => intval($item->stock1),
+            ];
+        }
+        return $productsList;
+    }
+
+    /**
      * @param $order
      * @return string
      */

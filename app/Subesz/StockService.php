@@ -4,11 +4,14 @@ namespace App\Subesz;
 
 
 use App\BundleProduct;
+use App\Order;
+use App\OrderProducts;
 use App\Product;
 use App\Stock;
 use App\StockHistory;
 use App\User;
 use Illuminate\Mail\Message;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class StockService
 {
@@ -17,7 +20,8 @@ class StockService
      *
      * @return Product[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      */
-    public function getBundles() {
+    public function getBundles()
+    {
         return Product::has('subProducts')->get();
     }
 
@@ -26,7 +30,8 @@ class StockService
      *
      * @return Product[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      */
-    public function getBaseProducts() {
+    public function getBaseProducts()
+    {
         return Product::doesntHave('subProducts')->get();
     }
 
@@ -111,38 +116,67 @@ class StockService
         $history->save();
     }
 
-    public function subtractStockFromOrder(array $products, User $reseller)
+    /**
+     * Létrehozza a megrendeléshez tartozó termékeket.
+     *
+     * @param array $skuList
+     * @param $orderId
+     * @return bool
+     */
+    public function bookOrder(array $skuList, $orderId)
     {
-//        // Először összerakjuk, hogy miket kell majd levonni
-//        $stockList = [];
-//        foreach ($products as $product) {
-//            $stockParts = $this->getPartsFromSku($product->sku);
-//            if (!$stockParts) {
-//                return false;
-//            }
-//
-//            $stockList[] = $stockParts;
-//        }
-//
-//        dd($stockList);
-//        // Most, megnézzük, hogy letudjuk-e vonni
-//        foreach ($stockList as $itemSku) {
-//            $this->bookStock($reseller, $itemSku);
-//        }
+        /** @var User $reseller */
+        $localOrder = Order::find($orderId);
+        $reseller = $localOrder->getReseller()['correct'];
+
+        foreach ($skuList as $orderedProduct) {
+            // Kikeressük, hogy mi is ez a termék nálunk
+            $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
+
+            // Kiszejdük, hogy ez a termék mikből áll
+            foreach ($localProduct->getSubProducts() as $subProduct) {
+                /** @var Product $baseProduct */
+                $baseProduct = $subProduct['product'];
+                $baseProductCount = $subProduct['count'];
+
+                $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
+                // Ha nincs még, akkor létrehozzuk
+                if (!$stockItem) {
+                    $stockItem = new Stock();
+                    $stockItem->sku = $baseProduct->sku;
+                    $stockItem->inventory_on_hand = -1 * ($orderedProduct['count'] * $baseProductCount); // Megrendelt termék mennyiség (pl.: 3db 3 liter mosószer csomag, akkor 3 * 3)
+                    $stockItem->user_id = $reseller->id;
+                } else {
+                    $stockItem->inventory_on_hand = $stockItem->inventory_on_hand - ($orderedProduct['count'] * $baseProductCount);
+                }
+                // Elmentsük
+                $stockItem->save();
+            }
+
+            $op = new OrderProducts();
+            $op->order_id = $orderId;
+            $op->product_sku = $orderedProduct['sku'];
+            $op->product_qty = $orderedProduct['count'];
+            $op->save();
+        }
+
+        return true;
     }
 
-    public function bookStock(User $reseller, $sku, $count = 1)
+    /**
+     * @param $sku
+     * @return Product|Product[]|bool|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null
+     */
+    public function getLocalProductBySku($sku)
     {
-        $stockItem = $reseller->stock()->where('sku', $sku)->first();
-        if (!$stockItem) {
-            $stockItem = new Stock();
-            $stockItem->user_id = $reseller->id;
-            $stockItem->sku = $sku;
-            $stockItem->inventory_on_hand = -1;
-            $stockItem->inventory_booked = $count;
-        } else {
-            $stockItem->inventory_on_hand -= $count;
-            $stockItem->inventory_booked += $count;
+        $product = Product::find($sku);
+
+        if (!$product) {
+            \Log::error('---- Hiba a megrendelés termékeinek átalakításakor ----');
+            \Log::error(sprintf('-- Nem található ilyen cikkszámú termék (Cikkszám: "%s") --', $sku));
+            return false;
         }
+
+        return $product;
     }
 }
