@@ -9,7 +9,7 @@
             </select>
         </div>
     </div>
-    <div class="col-2">
+    <div class="col-3">
         <div class="from-group mb-0">
             <label for="stock-item-count[{{ time() }}]">Darabszám *</label>
             <div class="input-group">

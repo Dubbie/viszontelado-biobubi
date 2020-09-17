@@ -70,6 +70,11 @@ class OrderService
             });
         }
 
+        // Filter
+        if (array_key_exists('with_products', $filter)) {
+            $orders->has('products');
+        }
+
         // Státusz
         if (array_key_exists('status', $filter)) {
             $orders = $orders->where('status_text', '=', $filter['status']);

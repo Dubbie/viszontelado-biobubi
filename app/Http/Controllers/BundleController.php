@@ -27,10 +27,6 @@ class BundleController extends Controller
      */
     public function index()
     {
-        /** @var ShoprenterService $ss */
-        $ss = resolve('App\Subesz\ShoprenterService');
-        $ss->updateProducts();
-
         return view('product.bundle.index')->with([
             'products' => $this->stockService->getBundles(),
         ]);
@@ -42,6 +38,10 @@ class BundleController extends Controller
      */
     public function create(Request $request)
     {
+        /** @var ShoprenterService $ss */
+        $ss = resolve('App\Subesz\ShoprenterService');
+        $ss->updateProducts();
+
         return view('product.bundle.create')->with([
             'products' => $this->stockService->getBaseProducts(),
             'hash' => $request->server->get('REQUEST_TIME'),
@@ -94,9 +94,13 @@ class BundleController extends Controller
 
     /**
      * @param $bundleSku
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function edit($bundleSku)
     {
+        /** @var ShoprenterService $ss */
+        $ss = resolve('App\Subesz\ShoprenterService');
+        $ss->updateProducts();
         $bundle = Product::find($bundleSku);
 
         return view('product.bundle.edit')->with([

@@ -198,10 +198,22 @@ class StockController extends Controller
         ]);
     }
 
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function adminIndex()
     {
         return view('stock.admin-index')->with([
             'users' => User::all(),
         ]);
+    }
+
+    /**
+     * @param $userId
+     * @return Stock[]|\Illuminate\Database\Eloquent\Collection|mixed
+     */
+    public function fetch($userId) {
+        $user = User::find($userId);
+        return $user->stock->load('product', 'reseller');
     }
 }

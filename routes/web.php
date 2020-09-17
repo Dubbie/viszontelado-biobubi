@@ -101,6 +101,7 @@ Route::group(['middleware' => 'auth'], function() {
 
     Route::get('kozponti-keszlet', 'StockController@adminIndex');
     Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
+    Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
     Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
     Route::resource('keszletem', 'StockController');
 });

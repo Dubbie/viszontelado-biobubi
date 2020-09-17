@@ -326,11 +326,10 @@ class ShoprenterController extends Controller
         /** @var StockService $ss */
         /** @var Order $localOrder */
         $ss = resolve('App\Subesz\StockService');
-        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
+        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9MjM1Nw==');
         $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-        $localOrder = $this->orderService->getLocalOrderByResourceId('b3JkZXItb3JkZXJfaWQ9MjMyNg==');
-        $localOrder->delete();
-//        dd($ss->bookOrder($orderedProducts, $localOrder->id));
+        $localOrder = $this->orderService->getLocalOrderByResourceId('b3JkZXItb3JkZXJfaWQ9MjM1Nw==');
+        dd($ss->bookOrder($orderedProducts, $localOrder->id));
     }
 
     /**

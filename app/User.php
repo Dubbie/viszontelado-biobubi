@@ -7,6 +7,11 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * Class User
+ * @package App
+ * @mixin User
+ */
 class User extends Authenticatable
 {
     use Notifiable;
@@ -62,6 +67,17 @@ class User extends Authenticatable
         $orderService = resolve('App\Subesz\OrderService');
 
         return $orderService->getOrdersFiltered(['reseller' => $this->id]);
+    }
+
+    public function getOrdersWithProducts() {
+        /** @var OrderService $orderService */
+        $orderService = resolve('App\Subesz\OrderService');
+
+        return $orderService->getOrdersFiltered([
+            'reseller' => $this->id,
+            'status' => 'Függőben lévő',
+            'with_products' => true,
+        ]);
     }
 
     /**
