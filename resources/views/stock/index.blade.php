@@ -35,7 +35,7 @@
                             <td>{{ $item->sku }}</td>
                             <td class="text-right">{{ $item->inventory_on_hand }} db</td>
                             <td class="text-right">{{ $item->getBookedCount() }} db</td>
-                            {{--<td class="text-right">{{ $item->getSoldCount() }} db</td>--}}
+                            <td class="text-right">{{ $item->getSoldCount() }} db</td>
                             <td class="text-right">- db</td>
                         </tr>
                     @endforeach

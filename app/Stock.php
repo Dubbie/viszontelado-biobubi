@@ -34,14 +34,13 @@ class Stock extends Model
         $reseller = $this->reseller;
         $booked = 0;
 
-        foreach ($reseller->getOrdersWithProducts() as $order) {
-            if (count($order->products) > 0 && $order->status_text == 'Függőben lévő') {
-                $found = $order->getBaseProducts()->where('product.sku', $this->sku)->first();
-                if($found) {
-                    $booked += $found['count'];
-                }
+        foreach ($reseller->getOrdersWithProducts()->where('status_text','==',  'Függőben lévő') as $order) {
+            $found = $order->getBaseProducts()->where('product.sku', $this->sku)->first();
+            if($found) {
+                $booked += $found['count'];
             }
         }
+
         return $booked;
     }
 
@@ -51,12 +50,13 @@ class Stock extends Model
         $reseller = $this->reseller;
         $sold = 0;
 
-        foreach ($reseller->getOrdersWithProducts() as $order) {
+        foreach ($reseller->getOrdersWithProducts()->where('status_text','==',  'Teljesítve') as $order) {
             $found = $order->getBaseProducts()->where('product.sku', $this->sku)->first();
-            if ($found) {
+            if($found) {
                 $sold += $found['count'];
             }
         }
+
         return $sold;
     }
 }

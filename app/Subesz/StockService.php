@@ -129,16 +129,21 @@ class StockService
         $localOrder = Order::find($orderId);
         $reseller = $localOrder->getReseller()['correct'];
 
+        \Log::info('-- Új megrendelés készletének levezetése: --');
+        \Log::info('-- - Viszonteladó: ' . $reseller->name);
+        \Log::info('-- - Megrendelt termékek: ');
         foreach ($skuList as $orderedProduct) {
             // Kikeressük, hogy mi is ez a termék nálunk
             $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
 
             // Kiszejdük, hogy ez a termék mikből áll
+            \Log::info(sprintf('-- -- %s (Cikkszám: %s) ami a következőkből áll:', $localProduct->name, $localProduct->sku));
             foreach ($localProduct->getSubProducts() as $subProduct) {
                 /** @var Product $baseProduct */
                 $baseProduct = $subProduct['product'];
                 $baseProductCount = $subProduct['count'];
 
+                \Log::info(sprintf('-- -- - %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
                 $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
                 // Ha nincs még, akkor létrehozzuk
                 if (!$stockItem) {

@@ -75,7 +75,6 @@ class User extends Authenticatable
 
         return $orderService->getOrdersFiltered([
             'reseller' => $this->id,
-            'status' => 'Függőben lévő',
             'with_products' => true,
         ]);
     }
