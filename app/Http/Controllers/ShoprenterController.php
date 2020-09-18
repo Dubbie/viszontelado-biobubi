@@ -241,7 +241,7 @@ class ShoprenterController extends Controller
             'shippingCity' => 'Táborfalva',
             'shippingCountryName' => 'Magyarország',
             'shippingZoneName' => '',
-            'shippingPostcode' => '2381',
+            'shippingPostcode' => '2440',
             'paymentFirstname' => 'dr. Feczkó',
             'paymentLastname' => 'Erika',
             'paymentCompany' => '',
@@ -322,11 +322,11 @@ class ShoprenterController extends Controller
                 ),
         );
 
-
         /** @var StockService $ss */
         /** @var Order $localOrder */
         $ss = resolve('App\Subesz\StockService');
-        $orderId = 'b3JkZXItb3JkZXJfaWQ9MjM0NA==';
+        $orderId = 'b3JkZXItb3JkZXJfaWQ9MjMzMg==';
+//        $orderId = 'b3JkZXItb3JkZXJfaWQ9MjM1Nw==';
         $order = $this->shoprenterApi->getOrder($orderId);
         $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
         $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);

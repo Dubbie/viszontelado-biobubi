@@ -49,6 +49,12 @@ Route::group(['middleware' => 'auth'], function() {
         Route::put('/termekek/csomagok/{bundleSku}/frissites', 'BundleController@update');
         Route::delete('/termekek/csomagok/{bundleSku}/torles', 'BundleController@destroy');
         Route::get('/termekek/csomagok/{bundleSku}', 'BundleController@edit');
+
+        Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
+        Route::get('kozponti-keszlet', 'StockController@adminIndex');
+        Route::get('kozponti-keszlet/letrehozas', 'StockController@create');
+        Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
+        Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
     });
 
     Route::get('/', 'UserController@home');
@@ -99,11 +105,9 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/teendok/{todoId}/kapcsolas', 'OrderTodoController@toggle');
     Route::delete('/teendok/{todoId}/torles', 'OrderTodoController@destroy');
 
-    Route::get('kozponti-keszlet', 'StockController@adminIndex');
-    Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
-    Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
-    Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
-    Route::resource('keszletem', 'StockController');
+    Route::resource('keszletem', 'StockController', ['only' => [
+        'index', 'store'
+    ]]);
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');

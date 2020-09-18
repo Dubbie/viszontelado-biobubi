@@ -28,7 +28,7 @@ class Product extends Model
     public function getSubProducts() {
         $subProducts = new Collection();
 
-        if ($this->subProducts) {
+        if ($this->subProducts()->count() > 0) {
             foreach ($this->subProducts as $subProduct) {
                 $subProducts->add([
                     'product' => $subProduct->product,

@@ -54,10 +54,21 @@ class Order extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function reseller() {
+        return $this->hasOne(User::class, 'id', 'reseller_id');
+    }
+
+    /**
      * @return array
      */
     public function getReseller() {
-        // Megnézzük, hogy a Viszonteladók irányítószámai közt benne van-e
+        return [
+            'resellers' => $this->reseller,
+            'correct' => $this->reseller,
+        ];
+        /*// Megnézzük, hogy a Viszonteladók irányítószámai közt benne van-e
         $userZips = UserZip::where('zip', $this->shipping_postcode)->get();
         $resellers = [];
         $reseller = null;
@@ -84,7 +95,7 @@ class Order extends Model
         return [
             'resellers' => $resellers,
             'correct' => $reseller,
-        ];
+        ];*/
     }
 
     /**
@@ -211,6 +222,22 @@ class Order extends Model
 
     protected static function booted()
     {
+        // Létrehozásnál nézzünk viszonteladót a megrendeléshez
+        static::creating(function (Order $order) {
+            /** @var UserZip $uZip */
+            $uZip = UserZip::where('zip', $order->shipping_postcode)->first();
+            if ($uZip) {
+                $order->reseller_id = $uZip->user->id;
+            } else {
+                $order->reseller_id = env('ADMIN_USER_ID');
+            }
+        });
+
+        static::created(function (Order $order) {
+            Log::info('Helyi megrendelés elmentve, hozzárendelt viszonteladó: ' . User::find($order->reseller_id)->name);
+        });
+
+        // Törléskör a termékeket kukázzuk
         static::deleting(function ($order) {
             /** @var Order $order */
             if ($order->products) {

@@ -130,8 +130,8 @@ class StockService
         $reseller = $localOrder->getReseller()['correct'];
 
         \Log::info('-- Új megrendelés készletének levezetése: --');
-        \Log::info('-- - Viszonteladó: ' . $reseller->name);
-        \Log::info('-- - Megrendelt termékek: ');
+        \Log::info('-- -- Viszonteladó: ' . $reseller->name);
+        \Log::info('-- -- Megrendelt termékek: ');
         foreach ($skuList as $orderedProduct) {
             // Kikeressük, hogy mi is ez a termék nálunk
             $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
@@ -143,10 +143,12 @@ class StockService
                 $baseProduct = $subProduct['product'];
                 $baseProductCount = $subProduct['count'];
 
-                \Log::info(sprintf('-- -- - %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
+                \Log::info(sprintf('-- -- -- Alaptermék: %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
+                /** @var Stock $stockItem */
                 $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
                 // Ha nincs még, akkor létrehozzuk
                 if (!$stockItem) {
+                    \Log::info('-- -- -- A viszonteladónak még nincs ilyen termékből készlete, ezért létrehozzuk.');
                     $stockItem = new Stock();
                     $stockItem->sku = $baseProduct->sku;
                     $stockItem->inventory_on_hand = -1 * ($orderedProduct['count'] * $baseProductCount); // Megrendelt termék mennyiség (pl.: 3db 3 liter mosószer csomag, akkor 3 * 3)
@@ -154,15 +156,19 @@ class StockService
                 } else {
                     $stockItem->inventory_on_hand = $stockItem->inventory_on_hand - ($orderedProduct['count'] * $baseProductCount);
                 }
+
                 // Elmentsük
                 $stockItem->save();
+                \Log::info('-- -- -- Készlet frissítve.');
             }
 
+            \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
             $op = new OrderProducts();
             $op->order_id = $orderId;
             $op->product_sku = $orderedProduct['sku'];
             $op->product_qty = $orderedProduct['count'];
             $op->save();
+            \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
         }
 
         return true;

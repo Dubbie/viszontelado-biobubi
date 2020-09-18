@@ -58,6 +58,13 @@ class User extends Authenticatable
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function orders() {
+        return $this->hasMany(Order::class, 'reseller_id', 'id');
+    }
+
+    /**
      * Visszaadja a felhasználóhoz tartozó megrendeléseket
      *
      * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection

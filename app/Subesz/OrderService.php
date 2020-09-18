@@ -6,6 +6,7 @@ namespace App\Subesz;
 use App\Order;
 use App\User;
 use App\UserZip;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -57,7 +58,7 @@ class OrderService
             $userId = intval($filter['reseller']);
         }
 
-        $orders = $this->getOrdersQueryByUserId($userId);
+        $orders = Order::where('reseller_id', $userId);
 
         // Filter
         if (array_key_exists('query', $filter)) {
@@ -89,29 +90,29 @@ class OrderService
      */
     public function getOrdersQueryByUserId($userId)
     {
-        $user = User::find($userId);
+//        $user = User::find($userId);
+//
+//        $userZips = array_column($user->zips->toArray(), 'zip');
+//        $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
+//
+//        $orders = Order::query();
+//
+//        if ($user->admin && count($user->zips) > 0) {
+//            // Kiszedjük azokat amik megfeleltek a feltételeknek
+//            $orders = $orders->where(function (Builder $query) use ($userZips, $resellerZips) {
+//                $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
+//            });
+//        } else if ($user->admin && count($user->zips) == 0) {
+//            $orders = $orders->where(function (Builder $query) use ($resellerZips) {
+//                $query->whereNotIn('shipping_postcode', $resellerZips);
+//            });
+//        } else if (!$user->admin) {
+//            $orders = $orders->where(function (Builder $query) use ($userZips) {
+//                $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');
+//            });
+//        }
 
-        $userZips = array_column($user->zips->toArray(), 'zip');
-        $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
-
-        $orders = Order::query();
-
-        if ($user->admin && count($user->zips) > 0) {
-            // Kiszedjük azokat amik megfeleltek a feltételeknek
-            $orders = $orders->where(function ($query) use ($userZips, $resellerZips) {
-                $query->whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips);
-            });
-        } else if ($user->admin && count($user->zips) == 0) {
-            $orders = $orders->where(function ($query) use ($resellerZips) {
-                $query->whereNotIn('shipping_postcode', $resellerZips);
-            });
-        } else if (!$user->admin) {
-            $orders = $orders->where(function ($query) use ($userZips) {
-                $query->whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc');
-            });
-        }
-
-        return $orders;
+        return Order::where('reseller_id', $userId)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -276,5 +277,20 @@ class OrderService
         }
 
         return $out;
+    }
+
+    /**
+     * @param string $string
+     * @return User|Builder|\Illuminate\Database\Eloquent\Model|mixed|null|object
+     */
+    public function getResellerByZip(string $string)
+    {
+        /** @var UserZip $userZip */
+        $userZip = UserZip::where('zip', $string)->first();
+        if ($userZip) {
+            return $userZip->user;
+        } else {
+            return User::where('email', 'hello@semmiszemet.hu')->first();
+        }
     }
 }
