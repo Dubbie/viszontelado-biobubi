@@ -135,6 +135,15 @@ class StockService
         foreach ($skuList as $orderedProduct) {
             // Kikeressük, hogy mi is ez a termék nálunk
             $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
+            if (!$localProduct) {
+                $sp = resolve('App\Subesz\ShoprenterService');
+                $sp->updateProducts();
+
+                $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
+                if (!$localProduct) {
+                    return false;
+                }
+            }
 
             // Kiszejdük, hogy ez a termék mikből áll
             \Log::info(sprintf('-- -- %s (Cikkszám: %s) ami a következőkből áll:', $localProduct->name, $localProduct->sku));

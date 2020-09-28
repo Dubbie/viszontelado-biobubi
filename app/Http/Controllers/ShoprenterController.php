@@ -174,8 +174,10 @@ class ShoprenterController extends Controller
 
             // Elmentjük a készlethez szükséges dolgokat
             $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-            $ss->bookOrder($orderedProducts, $localOrder->id);
-            $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            $booked = $ss->bookOrder($orderedProducts, $localOrder->id);
+            if ($booked) {
+                $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            }
 
             // Mentsük el a számlát
             /** @var Order $localOrder */
