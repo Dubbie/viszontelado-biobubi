@@ -55,6 +55,7 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('kozponti-keszlet/letrehozas', 'StockController@create');
         Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
         Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
+        Route::put('kozponti-keszlet/{userId}/frissites', 'StockController@update');
     });
 
     Route::get('/', 'UserController@home');

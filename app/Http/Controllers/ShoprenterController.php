@@ -139,6 +139,8 @@ class ShoprenterController extends Controller
             return ['error' => 'Hibás privát kulcs lett megadva'];
         }
 
+        /** @var StockService $ss */
+        $ss = resolve('App\Subesz\StockService');
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
@@ -169,6 +171,11 @@ class ShoprenterController extends Controller
             }
 
             $order = $this->shoprenterApi->getOrder($orderId);
+
+            // Elmentjük a készlethez szükséges dolgokat
+            $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
+            $ss->bookOrder($orderedProducts, $localOrder->id);
+            $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
 
             // Mentsük el a számlát
             /** @var Order $localOrder */
@@ -330,7 +337,10 @@ class ShoprenterController extends Controller
         $order = $this->shoprenterApi->getOrder($orderId);
         $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
         $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);
-        dd($ss->bookOrder($orderedProducts, $localOrder->id));
+        $ss->bookOrder($orderedProducts, $localOrder->id);
+//        $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+//        $localOrder->delete();
+//        dd($ss->subtractStockFromOrder($localOrder->id));
     }
 
     /**

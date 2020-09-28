@@ -10,6 +10,7 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StockService;
 use App\User;
 use Billingo\API\Connector\Exceptions\JSONParseException;
 use Billingo\API\Connector\Exceptions\RequestErrorException;
@@ -27,15 +28,20 @@ class OrderController extends Controller
     /** @var OrderService */
     private $orderService;
 
+    /** @var StockService */
+    private $stockService;
+
     /**
      * OrderController constructor.
      * @param ShoprenterService $shoprenterService
      * @param OrderService $orderService
+     * @param StockService $stockService
      */
-    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService)
+    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService, StockService $stockService)
     {
         $this->shoprenterApi = $shoprenterService;
         $this->orderService = $orderService;
+        $this->stockService = $stockService;
     }
 
     /**
@@ -157,6 +163,9 @@ class OrderController extends Controller
                 /** @var User $reseller */
                 $reseller = $localOrder->getReseller()['correct'];
 
+                // Levonjuk a készletet
+                $this->stockService->subtractStockFromOrder($localOrder->id);
+
                 if (!$bs->isBillingoConnected($reseller)) {
                     Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
                 } else {
@@ -252,6 +261,9 @@ class OrderController extends Controller
                     // Kikeressük a helyi megrendelést
                     $localOrder = Order::find($localOrderId);
                     $reseller = $localOrder->getReseller()['correct'];
+
+                    // A készletet lerendezzük
+                    $this->stockService->subtractStockFromOrder($localOrder->id);
 
                     if (!$bs->isBillingoConnected($reseller)) {
                         Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');

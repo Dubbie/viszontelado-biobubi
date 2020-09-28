@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 
 use App\Order;
+use App\OrderProducts;
 use App\User;
 use App\UserZip;
 use Illuminate\Database\Eloquent\Builder;
@@ -291,6 +292,22 @@ class OrderService
             return $userZip->user;
         } else {
             return User::where('email', 'hello@semmiszemet.hu')->first();
+        }
+    }
+
+    /**
+     * @param array $skuList
+     * @param $orderId
+     */
+    public function saveOrderedProducts(array $skuList, $orderId) {
+        foreach ($skuList as $orderedProduct) {
+            \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
+            $op = new OrderProducts();
+            $op->order_id = $orderId;
+            $op->product_sku = $orderedProduct['sku'];
+            $op->product_qty = $orderedProduct['count'];
+            $op->save();
+            \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
         }
     }
 }

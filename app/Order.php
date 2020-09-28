@@ -251,7 +251,7 @@ class Order extends Model
                     $reseller = $order->getReseller()['correct'];
                     $stockItem = $reseller->stock()->where('sku', $product->sku)->first();
 
-                    if ($stockItem) {
+                    if ($stockItem && $order->status_text == 'Teljesítve') {
                         $stockItem->inventory_on_hand += $stockCount;
                         $stockItem->save();
                     }

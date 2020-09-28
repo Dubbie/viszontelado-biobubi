@@ -151,24 +151,63 @@ class StockService
                     \Log::info('-- -- -- A viszonteladónak még nincs ilyen termékből készlete, ezért létrehozzuk.');
                     $stockItem = new Stock();
                     $stockItem->sku = $baseProduct->sku;
-                    $stockItem->inventory_on_hand = -1 * ($orderedProduct['count'] * $baseProductCount); // Megrendelt termék mennyiség (pl.: 3db 3 liter mosószer csomag, akkor 3 * 3)
+                    $stockItem->inventory_on_hand = 0;
+                    $stockItem->user_id = $reseller->id;
+
+                    // Elmentsük
+                    $stockItem->save();
+                }
+
+                \Log::info('-- -- -- Készlet frissítve.');
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Létrehozza a megrendeléshez tartozó termékeket.
+     *
+     * @param $orderId
+     * @return bool
+     */
+    public function subtractStockFromOrder($orderId)
+    {
+        /** @var User $reseller */
+        $localOrder = Order::find($orderId);
+        $reseller = $localOrder->reseller;
+
+        \Log::info('-- Megrendelés teljesítve, készletének levezetése: --');
+        \Log::info('-- -- Viszonteladó: ' . $reseller->name);
+        \Log::info('-- -- Megrendelt termékek: ');
+        foreach ($localOrder->products as $orderedProduct) {
+            $localProduct = $orderedProduct->product;
+
+            // Kiszejdük, hogy ez a termék mikből áll
+            \Log::info(sprintf('-- -- %s (Cikkszám: %s) ami a következőkből áll:', $localProduct->name, $localProduct->sku));
+            foreach ($localProduct->getSubProducts() as $subProduct) {
+                /** @var Product $baseProduct */
+                $baseProduct = $subProduct['product'];
+                $baseProductCount = $subProduct['count'];
+
+                \Log::info(sprintf('-- -- -- Alaptermék: %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
+                /** @var Stock $stockItem */
+                $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
+                // Ha nincs még, akkor létrehozzuk
+                if (!$stockItem) {
+                    \Log::info('-- -- -- A viszonteladónak még nincs ilyen termékből készlete, ezért létrehozzuk.');
+                    $stockItem = new Stock();
+                    $stockItem->sku = $baseProduct->sku;
+                    $stockItem->inventory_on_hand = -1 * ($orderedProduct->product_qty * $baseProductCount); // Megrendelt termék mennyiség (pl.: 3db 3 liter mosószer csomag, akkor 3 * 3)
                     $stockItem->user_id = $reseller->id;
                 } else {
-                    $stockItem->inventory_on_hand = $stockItem->inventory_on_hand - ($orderedProduct['count'] * $baseProductCount);
+                    $stockItem->inventory_on_hand = $stockItem->inventory_on_hand - ($orderedProduct->product_qty * $baseProductCount);
                 }
 
                 // Elmentsük
                 $stockItem->save();
                 \Log::info('-- -- -- Készlet frissítve.');
             }
-
-            \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
-            $op = new OrderProducts();
-            $op->order_id = $orderId;
-            $op->product_sku = $orderedProduct['sku'];
-            $op->product_qty = $orderedProduct['count'];
-            $op->save();
-            \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
         }
 
         return true;
