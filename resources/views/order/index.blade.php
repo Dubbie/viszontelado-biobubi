@@ -7,7 +7,7 @@
                 <h1 class="font-weight-bold mb-4">Megrendelések</h1>
             </div>
             <div class="col text-right">
-                @if(Auth()->user()->admin)
+                @if(Auth::user()->admin)
                     <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
                     data-toggle="tooltip"
                     title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
@@ -18,7 +18,7 @@
             </div>
         </div>
 
-        @if(Auth()->user()->admin && count(Auth()->user()->zips) == 0)
+        @if(Auth::user()->admin && count(Auth::user()->zips) == 0)
             <div class="alert alert-info">
                 <p class="mb-0">Ez a fiók adminisztrátori jogkörrel rendelkezik és nincs hozzárendelve irányítószám,
                     ezért csak azokat a megrendeléseket látod, amikhez nincs hozzárendelve egy viszonteladó sem.</p>
@@ -51,7 +51,7 @@
                             </select>
                         </div>
                     </div>
-                    @if(Auth()->user()->admin)
+                    @if(Auth::user()->admin)
                         <div class="col-xl-3 col-lg-5 col-md-5">
                             <div class="form-group">
                                 <label for="filter-reseller">Viszonteladó</label>
@@ -153,6 +153,7 @@
 
     @include('inc.orders-toolbar')
     @include('modal.mass-order-status')
+    @include('modal.mass-update-reseller')
 @endsection
 
 @section('scripts')
@@ -172,18 +173,16 @@
     {{-- Tömeges státusz változtató --}}
     <script>
         $(() => {
-            const btnOrderMassStatusUpdate = document.getElementById('btn-order-mass-status-update');
             const chAllOrders = document.getElementById('ch-order-select-all');
             const chOrders = $('.ch-order-select');
             const ordersCount = document.getElementById('toolbar-order-counter');
             const toolbar = document.getElementById('toolbar-orders');
-            const inputOrderIds = document.getElementById('order-ids');
-            const inputShippingOrderIds = document.getElementById('sm-order-ids');
+            const $inputOrderIds = $('.mass-order-id-input');
 
             /**
              * Visszaállítja a checkboxokat.
              */
-            function resetVehicleCheckboxes() {
+            function resetOrderCheckboxes() {
                 chAllOrders.checked = false;
                 chOrders.each((i, el) => {
                     el.checked = false;
@@ -216,35 +215,10 @@
                     toolbar.classList.remove('show');
                 }
                 ordersCount.innerText = selectedOrders.length.toLocaleString();
-                inputOrderIds.value = JSON.stringify(selectedOrders);
-                inputShippingOrderIds.value = JSON.stringify(selectedOrders);
-            }
-
-            /**
-             * Megrendelések tömeges státuszváltoztatása gomb
-             */
-            $(btnOrderMassStatusUpdate).on('click', () => {
-                const input = prompt('Biztosan törölni szeretné a kijelölt járműveket?\nEz a folyamat nem visszafordítható!\n\nHa biztos benne írja be azt hogy "TÖRLÉS". (Idézőjelek nélkül)');
-                if (input === null || input.toLowerCase() !== 'törlés') {
-                    return;
+                for (const el of $inputOrderIds) {
+                    el.value = JSON.stringify(selectedOrders);
                 }
-                const toDelete = getSelectedOrders();
-
-                // fetch('/jarmu/torles/tomeges', {
-                //     method: 'DELETE',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //         'X-CSRF-Token': csrfToken,
-                //     },
-                //     body: JSON.stringify({
-                //         'vehicles': toDelete,
-                //     }),
-                // }).then(response => response.json()).then(json => {
-                //     if (json.success) {
-                //         location.reload();
-                //     }
-                // });
-            });
+            }
 
             /**
              * Összes jármű kiválasztó gomb
@@ -264,7 +238,10 @@
                 updateOrdersToolbar();
             });
 
-            resetVehicleCheckboxes();
+            resetOrderCheckboxes();
+            $('#mur-reseller-id').select2({
+                width: '100%',
+            });
         });
     </script>
 @endsection

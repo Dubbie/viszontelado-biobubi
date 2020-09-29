@@ -31,6 +31,8 @@ Route::group(['middleware' => 'auth'], function() {
         Route::put('/felhasznalok/{userId}/frissites', 'UserController@update');
         Route::get('/felhasznalok/{userId}', 'UserController@show');
 
+        Route::post('/megrendelesek/viszontelado-frissitese', 'OrderController@massUpdateReseller');
+
         Route::post('/api/billingo/test', 'UserController@testBillingo');
 
         Route::get('/dokumentumok/uj', 'DocumentController@create');

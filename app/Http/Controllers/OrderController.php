@@ -233,12 +233,12 @@ class OrderController extends Controller
         $bs = resolve('App\Subesz\BillingoNewService');
 
         $data = $request->validate([
-            'order-ids' => 'required',
+            'mos-order-ids' => 'required',
             'order-status-href' => 'required',
         ]);
 
         // Átalakítjuk a bemenetet
-        $orderIds = json_decode($data['order-ids']);
+        $orderIds = json_decode($data['mos-order-ids']);
 
         // Átalakítjuk a státusz linkjét, hogy csak az azonosítót kapjuk vissza
         $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
@@ -321,6 +321,89 @@ class OrderController extends Controller
 
         return redirect(action('OrderController@index'))->with([
             'error' => 'Hiba történt az állapotok frissítésekor',
+        ]);
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function massUpdateReseller(Request $request)
+    {
+        /** @var BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
+
+        $data = $request->validate([
+            'mur-order-ids' => 'required',
+            'mur-reseller-id' => 'required',
+        ]);
+
+        // Átalakítjuk a bemenetet
+        $orderIds = json_decode($data['mur-order-ids']);
+        $reseller = User::find($data['mur-reseller-id']);
+        if (!$reseller) {
+            Log::error('Hiba történt a viszonteladó megtalálásakor. Nincs ilyen azonosítójú viszonteladó.');
+            return redirect(url()->previous(action('OrderController@index')))->with([
+                'error' => 'Hiba történt a viszonteladó megtalálásakor. Nincs ilyen azonosítójú viszonteladó.',
+            ]);
+        }
+
+        // Végigmegyünk a kijelölésen
+        $successCount = 0;
+        $failCount = 0;
+
+        // Kell számlákkal foglalkozni?
+        $createInvoice = $bs->isBillingoConnected($reseller);
+        if (!$createInvoice) {
+            Log::info('A viszonteladónak nincs beállítva Billingo API összekötés, ezért nem hozunk létre számlákat.');
+        }
+
+        foreach ($orderIds as $orderId) {
+            /** @var Order $localOrder */
+            $srOrder = $this->shoprenterApi->getOrder($orderId);
+            $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);
+            $localOrder->reseller_id = $reseller->id;
+            $localOrder->save();
+            $localOrder->refresh();
+
+            // Ha még nincs lementve számla, akkor generáljunk újat
+            if (!$localOrder->invoice_path && !$localOrder->invoice_id && $createInvoice) {
+                // 1. Partner
+                $partner = $bs->createPartner($srOrder, $reseller);
+                if (!$partner) {
+                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehetett létrehozni.');
+                    $failCount++;
+                    continue;
+                }
+
+                // 2. Számla
+                $invoice = $bs->createDraftInvoice($srOrder, $partner, $reseller);
+                if (!$invoice) {
+                    Log::error('Hiba történt a piszkozat számla létrehozásakor.');
+                    $failCount++;
+                    continue;
+                }
+                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
+
+                // 3. Elmentjük a piszkozatot
+                $localOrder->draft_invoice_id = $invoice->getId();
+                $localOrder->save();
+                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+            }
+
+            $successCount++;
+        }
+
+        $returnType = $successCount == 0 ? 'error' : 'success';
+        $output = sprintf('%s db megrendelés sikeresen frissítve', $successCount);
+        if ($failCount > 0) {
+            $output .= sprintf(', %s db megrendeléshez a számla nem jött létre sikeresen.', $failCount);
+        } else {
+            $output .= '.';
+        }
+
+        return redirect(url()->previous(action('OrderController@index')))->with([
+            $returnType => $output,
         ]);
     }
 }
