@@ -248,13 +248,15 @@ class ShoprenterController extends Controller
         $klaviyoProduct = [
             "ProductName" => $product->productDescriptions[0]->name,
             "ProductID" => $product->innerId,
-//            "Categories" => ["Fiction", "Children"],
+            "Categories" => [],
             "ImageURL" => $product->allImages->mainImage,
             "URL" => 'https://biobubi.hu/' . $product->urlAliases[0]->urlAlias,
             "Brand" => $product->manufacturer->name,
             "Price" => $product->price * 1.27,
-//            "CompareAtPrice" => 14.99
+            "CompareAtPrice" => $product->price * 1.27,
         ];
+
+        header('Access-Control-Allow-Origin: https://biobubi.hu');
         return $klaviyoProduct;
     }
 }

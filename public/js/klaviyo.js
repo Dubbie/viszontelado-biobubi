@@ -28,21 +28,25 @@ var KlaviyoIntegration = function() {
                 },
                 success: function(res) {
                     console.log(res);
-                    var item = ShopRenter.product;
+                    var item = res;
 
                     _learnq.push(["track", "Viewed Product", item]);
 
                     _learnq.push(["trackViewedItem", {
-                        "id": item.id,
-                        "sku": item.sku,
-                        "parent": {
-                            "id": item.parent.id,
-                            "sku": item.parent.sku
-                        },
+                        "Title": item.ProductName,
+                        "ItemId": item.ProductID,
+                        "Categories": item.Categories,
+                        "ImageUrl": item.ImageURL,
+                        "Url": item.URL,
+                        "Metadata": {
+                            "Brand": item.Brand,
+                            "Price": item.Price,
+                            "CompareAtPrice": item.CompareAtPrice
+                        }
                     }]);
                 },
                 error: function(request, status, error) {
-                    console.error(request.responseText);
+                    console.log(request);
                 }
             });
         }
