@@ -231,118 +231,6 @@ class ShoprenterController extends Controller
 
     public function testShoprenter()
     {
-        $_order = array(
-            'storeName' => 'biobubi',
-            'innerId' => '2326',
-            'innerResourceId' => 'orders/b3JkZXItb3JkZXJfaWQ9MjMyNg==',
-            'outerResourceId' => '',
-            'firstname' => 'dr. Feczkó',
-            'lastname' => 'Erika',
-            'phone' => '+36708821353',
-            'fax' => '',
-            'email' => 'feczkoeri@gmail.com',
-            'cart_token' => 'cart',
-            'shippingFirstname' => 'dr. Feczkó',
-            'shippingLastname' => 'Erika',
-            'shippingCompany' => '',
-            'shippingAddress1' => 'Újosztás 25.',
-            'shippingAddress2' => '',
-            'shippingCity' => 'Táborfalva',
-            'shippingCountryName' => 'Magyarország',
-            'shippingZoneName' => '',
-            'shippingPostcode' => '2440',
-            'paymentFirstname' => 'dr. Feczkó',
-            'paymentLastname' => 'Erika',
-            'paymentCompany' => '',
-            'paymentAddress1' => 'Újosztás 25.',
-            'paymentAddress2' => '',
-            'paymentCity' => 'Táborfalva',
-            'paymentCountryName' => 'Magyarország',
-            'paymentZoneName' => 'Pest',
-            'shippingMethodName' => 'Házhoz szállítás Semmi Szemét futárral',
-            'shippingNetPrice' => 0,
-            'shippingGrossPrice' => '0',
-            'shippingInnerResourceId' => 'shippingModeExtend/c2hpcHBpbmdNb2RlLWlkPTE4',
-            'paymentMethodName' => 'Utánvétel',
-            'paymentNetPrice' => 0,
-            'paymentGrossPrice' => 0,
-            'couponCode' => '',
-            'couponGrossPrice' => NULL,
-            'languageId' => '1',
-            'languageCode' => 'hu',
-            'comment' => '',
-            'total' => '1252',
-            'totalGross' => '1590',
-            'taxPrice' => '338',
-            'currency' => 'HUF',
-            'paymentPostcode' => '2381',
-            'paymentTaxnumber' => '',
-            'orderHistory' =>
-                array(
-                    'status' => '1',
-                    'statusText' => 'Függőben lévő',
-                    'comment' => '',
-                ),
-            'orderProducts' =>
-                array(
-                    'orderProduct' =>
-                        array(
-                            0 =>
-                                array(
-                                    'innerId' => '8467',
-                                    'innerResourceId' => 'orderProducts/b3JkZXJQcm9kdWN0LW9yZGVyX3Byb2R1Y3RfaWQ9ODQ2Nw==',
-                                    'outerResourceId' => '',
-                                    'name' => 'BioBubi mosószer próbacsomag',
-                                    'sku' => '1',
-                                    'price' => '1251.969',
-                                    'currency' => 'HUF',
-                                    'taxRate' => '27.0000',
-                                    'quantity' => '1',
-                                    'image' => 'https://biobubi.hu/custom/biobubi/image/data/Mososzer_probacsomag.png',
-                                    'category' => 'BioBubi Mosószer, Próbáld ki a betétdíjas mosószert',
-                                    'volume' =>
-                                        array(
-                                            'height' => '0.00',
-                                            'width' => '0.00',
-                                            'length' => '0.00',
-                                            'volumeUnit' =>
-                                                array(
-                                                    0 =>
-                                                        array(
-                                                            'unit' => 'cm',
-                                                            'language' => 'hu',
-                                                        ),
-                                                ),
-                                        ),
-                                    'weight' =>
-                                        array(
-                                            'weight' => '0.00',
-                                            'weightUnit' =>
-                                                array(
-                                                    0 =>
-                                                        array(
-                                                            'unit' => 'kg',
-                                                            'language' => 'hu',
-                                                        ),
-                                                ),
-                                        ),
-                                ),
-                        ),
-                ),
-        );
-
-        /** @var StockService $ss */
-        /** @var Order $localOrder */
-        $ss = resolve('App\Subesz\StockService');
-        $orderId = 'b3JkZXItb3JkZXJfaWQ9MjMzMg==';
-//        $orderId = 'b3JkZXItb3JkZXJfaWQ9MjM1Nw==';
-        $order = $this->shoprenterApi->getOrder($orderId);
-        $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-        $localOrder = $this->orderService->getLocalOrderByResourceId($orderId);
-        $ss->bookOrder($orderedProducts, $localOrder->id);
-//        $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
-//        $localOrder->delete();
-//        dd($ss->subtractStockFromOrder($localOrder->id));
     }
 
     /**
@@ -352,5 +240,21 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
+    }
+
+    public function getProduct(Request $request)
+    {
+        $product = $this->shoprenterApi->getProduct($request->input('sku'));
+        $klaviyoProduct = [
+            "ProductName" => $product->productDescriptions[0]->name,
+            "ProductID" => $product->innerId,
+//            "Categories" => ["Fiction", "Children"],
+            "ImageURL" => $product->allImages->mainImage,
+            "URL" => 'https://biobubi.hu/' . $product->urlAliases[0]->urlAlias,
+            "Brand" => $product->manufacturer->name,
+            "Price" => $product->price * 1.27,
+//            "CompareAtPrice" => 14.99
+        ];
+        return $klaviyoProduct;
     }
 }

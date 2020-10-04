@@ -118,6 +118,7 @@ Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@update
 Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProducts');
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');
 Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');
+Route::post('/sr/termek-lekerdezes', 'ShoprenterController@getProduct');
 
 /**
  * Runs database migrations

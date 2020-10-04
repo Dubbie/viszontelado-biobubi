@@ -385,6 +385,43 @@ class ShoprenterService
         }));
     }
 
+    public function getProduct($input)
+    {
+        $apiUrl = sprintf('%s/productExtend?sku=%s&limit=1&full=1', env('SHOPRENTER_API'), $input);
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $apiUrl,
+            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT => 120,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        $response = curl_exec($ch);
+        curl_close($ch);
+
+        // Termék megvan
+        $product = json_decode($response)->items[0];
+        $product->categories = [];
+        foreach ($product->productCategoryRelations as $categoryRelation) {
+            $apiUrl = sprintf('%s?full=1', str_replace('categories', 'categoryExtend', $categoryRelation->category->href));
+
+            $ch = curl_init();
+            curl_setopt_array($ch, [
+                CURLOPT_URL => $apiUrl,
+                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT => 120,
+                CURLOPT_RETURNTRANSFER => true,
+            ]);
+            $response = curl_exec($ch);
+            curl_close($ch);
+            $product->categories[] = json_decode($response)->categoryDescriptions[0]->name;
+        }
+
+        return $product;
+    }
+
     /**
      * It recursively converts the multi dimension (deep) array to single dimension array as it was posted from an html form
      *
