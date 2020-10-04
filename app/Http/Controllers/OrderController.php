@@ -70,9 +70,7 @@ class OrderController extends Controller
                 continue;
             }
 
-            if (count($u->zips) > 0) {
-                $resellers[] = $u;
-            }
+            $resellers[] = $u;
         }
 
         $lastUpdate = [
