@@ -215,6 +215,10 @@ class ShoprenterController extends Controller
             $localOrder->draft_invoice_id = $invoice->getId();
             $localOrder->save();
             Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+            // Trackeljük Klaviyo-ba
+            $ks = resolve('App\Subesz\KlaviyoService');
+            $ks->trackOrder($order);
         }
 
         return ['success' => true];
@@ -248,10 +252,9 @@ class ShoprenterController extends Controller
         $klaviyoProduct = [
             "ProductName" => $product->productDescriptions[0]->name,
             "ProductID" => $product->innerId,
-            "Categories" => [],
             "ImageURL" => $product->allImages->mainImage,
             "URL" => 'https://biobubi.hu/' . $product->urlAliases[0]->urlAlias,
-            "Brand" => $product->manufacturer->name,
+            "Brand" => $product->manufacturer->name ?? 'Semmiszemét',
             "Price" => $product->price * 1.27,
             "CompareAtPrice" => $product->price * 1.27,
         ];
