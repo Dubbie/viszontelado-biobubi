@@ -6,12 +6,9 @@
 
 Kedves {{ $order->lastname }}!
 
-Csatolva küldöm neked az e-számlát!<br>
-Köszönjük, hogy megtiszteltél minket és környezetünket a tudatos döntéseddel! :)
+Csatolva küldöm neked a számlát!<br>
+Köszönöm, hogy nálunk vásároltál!<br>
 
-**Ne feledd!**<br>
-**Az összes tőlünk vásárolt, kiürült flakont visszaváltjuk és újrahasznosítjuk!**
 
-*Barátsággal,*<br>
-*Balázs a Semmi Szeméttől*
+**További szép napot neked!**
 @endcomponent
