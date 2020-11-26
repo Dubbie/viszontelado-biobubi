@@ -244,6 +244,14 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
+        $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '55826612-d7f0-11ea-9aab-0adb4fd9a356');
+
+        $docu = new DocumentApi(new Client(), $config);
+        try {
+            $docu->listDocument();
+        } catch (ApiException $e) {
+            dd($e->getMessage());
+        }
     }
 
     public function getProduct(Request $request)

@@ -8,6 +8,7 @@ use App\Mail\TrialOrderCompleted;
 use App\Order;
 use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
+use App\Subesz\KlaviyoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
@@ -128,6 +129,8 @@ class OrderController extends Controller
     {
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
+        /** @var KlaviyoService $ks */
+        $ks = resolve('App\Subesz\KlaviyoService');
 
         $data = $request->validate([
             'order-id' => 'required',
@@ -156,6 +159,9 @@ class OrderController extends Controller
 
                 // Kikeressük a helyi megrendelést
                 $localOrder = Order::find($orderId);
+                $order = $localOrder->getShoprenterOrder();
+                $ks->fulfillOrder($order);
+
                 Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
 
                 /** @var User $reseller */
@@ -229,6 +235,8 @@ class OrderController extends Controller
     {
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
+        /** @var KlaviyoService $ks */
+        $ks = resolve('App\Subesz\KlaviyoService');
 
         $data = $request->validate([
             'mos-order-ids' => 'required',
@@ -259,6 +267,8 @@ class OrderController extends Controller
                     // Kikeressük a helyi megrendelést
                     $localOrder = Order::find($localOrderId);
                     $reseller = $localOrder->getReseller()['correct'];
+                    $order = $localOrder->getShoprenterOrder();
+                    $ks->fulfillOrder($order);
 
                     // A készletet lerendezzük
                     $this->stockService->subtractStockFromOrder($localOrder->id);

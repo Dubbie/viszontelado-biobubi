@@ -106,4 +106,11 @@ class User extends Authenticatable
     public function todos() {
         return $this->hasMany(OrderTodo::class, 'user_id', 'id');
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function details() {
+        return $this->hasOne(UserDetails::class, 'user_id', 'id');
+    }
 }

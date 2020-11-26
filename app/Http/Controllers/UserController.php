@@ -8,6 +8,7 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
+use App\UserDetails;
 use App\UserZip;
 use Billingo\API\Connector\HTTP\Route;
 use Illuminate\Http\Request;
@@ -197,6 +198,19 @@ class UserController extends Controller
             'u-aam' => 'nullable',
             'u-billingo-api-key' => 'nullable',
             'u-block-uid' => 'nullable',
+            'u-billing-name' => 'nullable',
+            'u-billing-zip' => 'nullable',
+            'u-billing-city' => 'required_with:u-billing-zip|nullable',
+            'u-billing-address1' => 'required_with:u-billing-zip|nullable',
+            'u-billing-address2' => 'nullable',
+            'u-billing-tax-number' => 'nullable',
+            'u-shipping-name' => 'nullable',
+            'u-shipping-email' => 'nullable',
+            'u-shipping-phone' => 'nullable',
+            'u-shipping-zip' => 'nullable',
+            'u-shipping-city' => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address1' => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address2' => 'nullable',
         ]);
 
         $user = User::find($userId);
@@ -205,6 +219,69 @@ class UserController extends Controller
         $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
         $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
         $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
+
+        $detailsKeys = [
+            'u-billing-name',
+            'u-billing-zip',
+            'u-billing-city',
+            'u-billing-address1',
+            'u-billing-address2',
+            'u-billing-tax-number',
+            'u-shipping-name',
+            'u-shipping-email',
+            'u-shipping-phone',
+            'u-shipping-zip',
+            'u-shipping-city',
+            'u-shipping-address1',
+            'u-shipping-address2'
+        ];
+        $shouldHaveDetails = false;
+        foreach ($detailsKeys as $key) {
+            if (strlen($data[$key]) > 0) {
+                $shouldHaveDetails = true;
+                break;
+            }
+        }
+
+        // Megnézzük, hogy kell-e foglalkozni a részletekkel
+        if ($shouldHaveDetails) {
+            $ud = $user->details;
+            $as = resolve('App\Subesz\AddressService');
+
+            if (!$ud) {
+                $ud = new UserDetails();
+                $ud->user_id = $user->id;
+            }
+
+            // Mentsük el a címeket
+            $billingAddress = $as->storeAddress($data['u-billing-zip'],
+                $data['u-billing-city'],
+                $data['u-billing-address1'],
+                $data['u-billing-address2']
+            );
+            $shippingAddress = $as->storeAddress($data['u-shipping-zip'],
+                $data['u-shipping-city'],
+                $data['u-shipping-address1'],
+                $data['u-shipping-address2']
+            );
+
+            // Mentsük el az egyéb adatokat
+            $ud->billing_name = $data['u-billing-name'];
+            $ud->billing_tax_number = $data['u-billing-tax-number'];
+            $ud->shipping_email = $data['u-shipping-email'];
+            $ud->shipping_phone = $data['u-shipping-phone'];
+            $ud->billing_address_id = $billingAddress ? $billingAddress->id : null;
+            $ud->shipping_address_id = $shippingAddress ? $shippingAddress->id : null;
+
+            $ud->save();
+        } else if (!$shouldHaveDetails && $user->details) {
+            try {
+                $user->details->delete();
+            } catch (\Exception $e) {
+                Log::error('Hiba történt a felhasználó részleteinek törlésekor');
+                Log::error($e->getMessage());
+            }
+        }
 
         // Kitöröljük a régieket...
         UserZip::where('user_id', $userId)->delete();

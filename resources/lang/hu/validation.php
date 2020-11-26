@@ -99,7 +99,7 @@ return [
     'required' => 'A(z) :attribute mező kitöltése kötelező.',
     'required_if' => 'The :attribute field is required when :other is :value.',
     'required_unless' => 'The :attribute field is required unless :other is in :values.',
-    'required_with' => 'The :attribute field is required when :values is present.',
+    'required_with' => 'A(z) :attribute mezőt kötelező kitölteni, ha a(z) :values ki van töltve.',
     'required_with_all' => 'The :attribute field is required when :values are present.',
     'required_without' => 'The :attribute field is required when :values is not present.',
     'required_without_all' => 'The :attribute field is required when none of :values are present.',
@@ -150,6 +150,12 @@ return [
         'u-billingo-public-key' => 'Billingo nyilvános kulcs',
         'u-billingo-private-key' => 'Billingo privát kulcs',
         'u-block-uid' => 'számlatömb azonosító',
+        'u-billing-city' => 'számlázási cím város',
+        'u-billing-address1' => 'számlázási cím első sora',
+        'u-billing-zip' => 'számlázási cím irányítószám',
+        'u-shipping-city' => 'kiszállítási cím város',
+        'u-shipping-address1' => 'kiszállítási cím első sora',
+        'u-shipping-zip' => 'kiszállítási cím irányítószám',
     ],
 
 ];
