@@ -3,7 +3,7 @@
 @section('content')
     <div class="container">
         <p class="mb-0">
-            <a href="{{ action('StockController@adminIndex') }}"
+            <a href="{{ action('CentralStockController@index') }}"
                class="btn-muted font-weight-bold text-decoration-none">
                 <span class="icon icon-sm">
                     <i class="fas fa-arrow-left"></i>

@@ -73,7 +73,7 @@ $(function () {
 
                 const amount = document.createElement('p');
                 amount.classList.add('mb-1', 'text-muted', 'font-weight-bold');
-                amount.innerText = expense.amount.toLocaleString() + ' Ft';
+                amount.innerText = expense['gross_value'].toLocaleString() + ' Ft';
 
                 const date = document.createElement('small');
                 date.classList.add('mb-0', 'text-muted');

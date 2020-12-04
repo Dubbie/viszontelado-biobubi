@@ -15,8 +15,10 @@
                     <th scope="col">Név</th>
                     <th scope="col">Cikkszám</th>
                     <th scope="col" class="text-right">Bruttó alapár</th>
+                    <th scope="col" class="text-right">Beszer. ár</th>
+                    <th scope="col" class="text-right">Nagyker ár</th>
                     <th scope="col">Állapot</th>
-                    <th scope="col" class="text-center">Próbacsomag</th>
+                    <th scope="col"></th>
                 </tr>
                 </thead>
                 <tbody>
@@ -30,14 +32,20 @@
                         <td class="align-middle"><b>{{ $product->name }}</b></td>
                         <td class="align-middle">{{ $product->sku }}</td>
                         <td class="align-middle text-right">{{ number_format($product->gross_price, 0, '.', ' ') . ' Ft' }}</td>
+                        <td class="align-middle text-right">{{ number_format($product->purchase_price, 0, '.', ' ') . ' Ft' }}</td>
+                        <td class="align-middle text-right">{{ number_format($product->wholesale_price, 0, '.', ' ') . ' Ft' }}</td>
                         <td class="align-middle">{{ $product->status ? 'Engedélyezve' : 'Letiltva' }}</td>
-                        <td class="align-middle text-center">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input ch-trial-product"
-                                       id="product-{{ $product->sku }}" data-product-sku="{{ $product->sku }}"
-                                        {{ $product->trial_product ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="product-{{ $product->sku }}"></label>
-                            </div>
+                        <td class="align-middle text-right">
+                            <a href="#editProduct" data-toggle="modal" class="btn btn-muted btn-edit-product"
+                               data-product-img="{{ $product->picture_url }}"
+                               data-product-name="{{ $product->name }}" data-product-sku="{{ $product->sku }}"
+                               data-gross-price="{{ $product->gross_price }}"
+                               data-purchase-price="{{ $product->purchase_price }}"
+                               data-wholesale-price="{{ $product->wholesale_price }}">
+                                <span class="bs-icon">
+                                    <i class="fas fa-edit"></i>
+                                </span>
+                            </a>
                         </td>
                     </tr>
                 @endforeach
@@ -45,22 +53,35 @@
             </table>
         </div>
     </div>
+
+    @include('modal.edit-product')
 @endsection
 
 @section('scripts')
     <script>
         $( () => {
-            const $chTrial = $('.ch-trial-product');
+            const $btnEditProduct = $('.btn-edit-product');
+            const imgProduct = document.getElementById('ep-product-img');
+            const productName = document.getElementById('ep-product-name');
+            const productSku = document.getElementById('ep-product-sku');
+            const grossPrice = document.getElementById('ep-gross-price');
+            const purchasePrice = document.getElementById('ep-purchase-price');
+            const wholesalePrice = document.getElementById('ep-wholesale-price');
+            const hiddenSku = document.getElementById('ep-hidden-product-sku');
 
-            $chTrial.on('change', e => {
-                console.log(e.currentTarget.dataset.productSku);
-                $.ajax('/api/termek/atkapcsol/' + e.currentTarget.dataset.productSku, {
-                    method: 'POST',
-                }).done(response => {
-                    console.log(response);
-                }).fail(response => {
-                    alert('Hiba történt a próbacsomag átállításakor!');
-                });
+            $btnEditProduct.on('click', e => {
+                const btn = e.currentTarget;
+
+                imgProduct.src = btn.dataset.productImg;
+                productName.innerText = btn.dataset.productName;
+                productSku.innerText = btn.dataset.productSku;
+                hiddenSku.value = btn.dataset.productSku;
+                productName.innerText = btn.dataset.productName;
+                productName.innerText = btn.dataset.productName;
+                productName.innerText = btn.dataset.productName;
+                grossPrice.value = (btn.dataset.grossPrice.toLocaleString()) + ' Ft';
+                purchasePrice.value = btn.dataset.purchasePrice.toLocaleString();
+                wholesalePrice.value = btn.dataset.wholesalePrice.toLocaleString();
             });
         });
     </script>

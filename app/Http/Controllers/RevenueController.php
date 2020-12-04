@@ -100,14 +100,10 @@ class RevenueController extends Controller
             'e-name' => 'required',
             'e-amount' => 'required',
             'e-date' => 'required',
+            'e-comment' => 'required',
         ]);
 
-        $expense = new Expense();
-        $expense->name = $data['e-name'];
-        $expense->amount = intval($data['e-amount']);
-        $expense->date = date('Y-m-d H:i:s', strtotime($data['e-date']));
-        $expense->user_id = Auth::id();
-        $expense->save();
+        $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), Auth::user(), date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
 
         return redirect(url()->previous())->with([
             'success' => 'Kiadás sikeresen hozzáadva',

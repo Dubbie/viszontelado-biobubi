@@ -43,6 +43,7 @@ Route::group(['middleware' => 'auth'], function() {
 
         Route::get('/termekek', 'TrialProductController@listProducts');
         Route::post('/api/termek/atkapcsol/{sku}', 'TrialProductController@toggleProduct');
+        Route::post('/termekek/szerkesztes', 'TrialProductController@editProduct');
 
         Route::get('/termekek/csomagok', 'BundleController@index');
         Route::get('/termekek/csomagok/uj', 'BundleController@create');
@@ -53,11 +54,18 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/termekek/csomagok/{bundleSku}', 'BundleController@edit');
 
         Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
-        Route::get('kozponti-keszlet', 'StockController@adminIndex');
+        Route::get('kozponti-keszlet', 'CentralStockController@index');
+        Route::get('kozponti-keszlet/uj-sor', 'CentralStockController@getCentralStockRow');
+        Route::post('kozponti-keszlet/hozzaadas', 'CentralStockController@store');
+        Route::get('kozponti-keszlet/viszontelado/uj-sor', 'CentralStockController@getResellerStockRow');
+        Route::post('kozponti-keszlet/viszontelado/feltoltes', 'CentralStockController@addStockToReseller');
+
         Route::get('kozponti-keszlet/letrehozas', 'StockController@create');
         Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
         Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
         Route::put('kozponti-keszlet/{userId}/frissites', 'StockController@update');
+
+        Route::get('kozponti-keszlet/hmtl', 'CentralStockController@stockHtml');
     });
 
     Route::get('/', 'UserController@home');

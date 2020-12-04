@@ -13,14 +13,17 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="e-name">Kiadás megnevezése</label>
-                        <input type="text" name="e-name" id="e-name" class="form-control" required>
+                        <select name="e-name" id="e-name" class="custom-select">
+                            <option value="Benzin">Benzin</option>
+                            <option value="Egyéb">Egyéb</option>
+                        </select>
                     </div>
                     <div class="form-row">
                         <div class="col-md-8">
                             <div class="form-group">
                                 <label for="e-amount">Kiadás összege</label>
                                 <div class="input-group">
-                                    <input type="text" name="e-amount" id="e-amount" class="form-control text-right" required>
+                                    <input type="text" name="e-amount" id="e-amount" class="form-control text-right" placeholder="0" min="1" required>
                                     <div class="input-group-append">
                                         <span class="input-group-text">Ft</span>
                                     </div>
@@ -33,6 +36,10 @@
                                 <input type="text" name="e-date" id="e-date" class="form-control" required>
                             </div>
                         </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="e-comment">Megjegyzés</label>
+                        <textarea name="e-comment" id="e-comment" rows="2" class="form-control" placeholder="Ide tudsz hozzáfűzni dolgokat..."></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -76,6 +76,9 @@ class User extends Authenticatable
         return $orderService->getOrdersFiltered(['reseller' => $this->id]);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
     public function getOrdersWithProducts() {
         /** @var OrderService $orderService */
         $orderService = resolve('App\Subesz\OrderService');
@@ -112,5 +115,21 @@ class User extends Authenticatable
      */
     public function details() {
         return $this->hasOne(UserDetails::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function incomes() {
+        return $this->hasMany(Income::class, 'user_id', 'id');
+    }
+
+    /**
+     * Visszaadja, hogy a felhasználó AAM-es-e.
+     *
+     * @return bool
+     */
+    public function isAAM() {
+        return $this->vat_id == 992;
     }
 }

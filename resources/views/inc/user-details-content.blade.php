@@ -40,7 +40,7 @@
 <div class="row mt-5">
     <div class="col-md-5">
         <p class="h5 font-weight-bold mb-1">Irányítószámok</p>
-        <p class="mb-0 text-muted">Ezek az irányítószámok lettek hozzárendelve a felhasználóhoz.<br>Új megrendeléskr nézi a rendszer.</p>
+        <p class="mb-0 text-muted">Ezek az irányítószámok lettek hozzárendelve a felhasználóhoz.<br>Új megrendeléskor nézi a rendszer.</p>
     </div>
     <div class="col-md-7">
         <div class="row">
