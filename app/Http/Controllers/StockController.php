@@ -140,14 +140,14 @@ class StockController extends Controller
             if ($stock && $item['count'] != $stock->inventory_on_hand) {
                 // 1. eset: Szerepl már az adatbázisban az SKU
                 //          - Megnézzük, mennyivel tér el
-                $this->stockService->updateStock($user, \Auth::user(), $stock->id, $item['count']);
+                $this->stockService->updateStock($user, $stock->id, $item['count']);
             } else if (!$stock) {
                 // 2. eset: Nem szerepel még az adatbázisban az SKU
                 //          - Hozzáadjuk
-                $this->stockService->addToStock($user, \Auth::user(), $item['sku'], $item['count']);
+                $this->stockService->addToStock($user, $item['sku'], $item['count']);
             } else {
                 // Nem történik semmit, ugyanaz volt ami lett
-                \Log::info(sprintf('A készlet megegyezik a régivel (%s db %s)', $stock->inventory_on_hand, $stock->name));
+                \Log::info(sprintf('A készlet megegyezik a régivel (%s db %s)', $stock->inventory_on_hand, $stock->product->name));
             }
 
             // Hozzáadjuk az SKU-t, hogy össze tudjuk hasonlítani, mi van az adatbázisban.
@@ -165,7 +165,7 @@ class StockController extends Controller
             }
         }
 
-        return redirect(action('StockController@adminIndex'))->with([
+        return redirect(action('CentralStockController@index'))->with([
             'success' => 'Készlet sikeresen frissítve',
         ]);
     }

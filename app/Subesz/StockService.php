@@ -109,18 +109,17 @@ class StockService
         $revenueService->storeCentralIncome('Készletértékesítés', $amount, null, sprintf('Készlet átadva %s viszonteladónak.', $recipient->name));
 
         // 5. Hozzáadjuk a viszonteladónak, mint kiadás
-        $revenueService->storeResellerExpense('Készletvásárlás', $amount, null, null);
+        $revenueService->storeResellerExpense('Készletvásárlás', $amount, null, null, sprintf('%s db %s', $count, $product->name));
 
         return true;
     }
 
     /**
      * @param User $recipient
-     * @param User $sender
      * @param int $stockId
      * @param $newInventory
      */
-    public function updateStock(User $recipient, User $sender, int $stockId, $newInventory)
+    public function updateStock(User $recipient, int $stockId, $newInventory)
     {
         /** @var Stock $stockItem */
         $oldInventory = null;
@@ -134,13 +133,14 @@ class StockService
         $stockItem->save();
 
         // Létrehozzuk az új eseményt
-        $history = new StockMovement();
-        $history->recipient = $recipient->id;
-        $history->sender = $sender->id;
-        $history->sku = $stockItem->sku;
-        $history->name = $stockItem->product->name;
-        $history->amount = $newInventory - $oldInventory;
-        $history->save();
+        $mvmt = new StockMovement();
+        $mvmt->user_id = $recipient->id;
+        $mvmt->product_sku = $stockItem->sku;
+        $mvmt->quantity = ($newInventory - $oldInventory);
+        $mvmt->gross_price = $stockItem->product->gross_price;
+        $mvmt->purchase_price = $stockItem->product->purchase_price;
+        $mvmt->wholesale_price = $stockItem->product->wholesale_price;
+        $mvmt->save();
     }
 
     /**

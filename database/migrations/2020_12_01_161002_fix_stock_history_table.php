@@ -21,7 +21,7 @@ class FixStockHistoryTable extends Migration
             $table->foreign('product_sku')->references('sku')->on('products');
             $table->unsignedBigInteger('user_id')->comment('Viszonteladó aki kapja a készletet');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->unsignedBigInteger('quantity');
+            $table->bigInteger('quantity');
             $table->unsignedFloat('gross_price');
             $table->unsignedFloat('purchase_price');
             $table->unsignedFloat('wholesale_price');

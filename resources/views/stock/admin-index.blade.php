@@ -60,8 +60,8 @@
                                     </tbody>
                                 </table>
 
-                                {{--<a href="{{ action('StockController@edit', $user) }}"--}}
-                                   {{--class="btn btn-success btn-sm mt-4">Viszonteladó készletének szerkesztése</a>--}}
+                                <a href="{{ action('StockController@edit', $user) }}"
+                                   class="btn btn-success btn-sm mt-4">Viszonteladó készletének szerkesztése</a>
                             @else
                                 <p class="mb-0 text-muted">Nincs a viszonteladóhoz még készlet nyilvántartás
                                     létrehozva.</p>
