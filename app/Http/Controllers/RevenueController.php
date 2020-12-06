@@ -106,9 +106,9 @@ class RevenueController extends Controller
         ]);
 
         if (array_key_exists('e-hq', $data) && $data['e-hq'] == true) {
-            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), null, date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
+            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), null, date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment'] ?? null);
         } else {
-            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), Auth::user(), date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
+            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), Auth::user(), date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment'] ?? null);
         }
 
         return redirect(url()->previous())->with([
