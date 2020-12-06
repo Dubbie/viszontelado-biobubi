@@ -27,7 +27,7 @@ class CentralStockController extends Controller
      */
     public function index()
     {
-        return view('stock.admin-index')->with([
+        return view('hq.stock-index')->with([
             'users' => User::all(),
             'products' => resolve('App\Subesz\StockService')->getBaseProducts()
         ]);

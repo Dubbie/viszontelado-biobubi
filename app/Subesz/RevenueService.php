@@ -86,7 +86,7 @@ class RevenueService
     public function getExpenseByRange($start, $end, $userId)
     {
         // Visszanyerjük a megfelelő lekérdezéssel
-        $result = Expense::select('id', 'name', 'gross_value', 'date')->where([
+        $result = Expense::select(['id', 'name', 'gross_value', 'date'])->where([
             ['user_id', $userId],
             ['date', '>=', $start],
             ['date', '<=', $end],
@@ -140,14 +140,77 @@ class RevenueService
         $expense = new Expense();
         $expense->gross_value = $amount;
         $expense->name = $name;
-        $expense->user_id = $reseller->id;
+        $expense->user_id = $reseller ? $reseller->id : null;
         $expense->comment = $comment;
-        if (!$reseller->isAAM()) {
+        if (($reseller && !$reseller->isAAM()) || !$reseller) {
             $expense->tax_value = $amount - ($amount / 1.27);
         }
         $expense->date = $date ? $date : date('Y-m-d');
         $expense->save();
-        \Log::info(sprintf('Viszonteladó kiadása elmentve. (%s, %s Ft, %s)', $reseller->name, $amount, $name));
+
+        if ($reseller) {
+            \Log::info(sprintf('Viszonteladó kiadása elmentve. (%s, %s Ft, %s)', $reseller->name, $amount, $name));
+        } else {
+            \Log::info(sprintf('Központ kiadása elmentve. (%s Ft, %s)', $amount, $name));
+        }
+
         return true;
+    }
+
+    /**
+     * @param $start
+     * @param $end
+     * @return array
+     */
+    public function getHqFinanceDaily($start, $end)
+    {
+        $sum = [
+            'expense' => 0,
+            'income' => 0,
+            'tax' => 0,
+        ];
+
+        // Visszanyerjük a megfelelő lekérdezéssel a bevételeit és kiadásait
+        /** @var Expense[] $expenses */
+        $expenses = Expense::select(['id', 'name', 'gross_value', 'tax_value', 'comment', 'date'])->where([
+            ['user_id', '=', null],
+            ['date', '>=', $start],
+            ['date', '<=', $end],
+        ])->orderBy('date', 'DESC')
+            ->get();
+        /** @var Income[] $incoms */
+        $incomes = Income::select(['id', 'name', 'gross_value', 'tax_value', 'comment', 'date'])->where([
+            ['user_id', '=', null],
+            ['date', '>=', $start],
+            ['date', '<=', $end],
+        ])->orderBy('date', 'DESC')
+            ->get();
+
+        /** @var Expense $expense */
+        foreach ($expenses as $expense) {
+            $sum['expense'] += $expense->gross_value;
+        }
+
+        /** @var Income $income */
+        foreach ($incomes as $income) {
+            $sum['income'] += $income->gross_value;
+            $sum['tax'] += $income->tax_value;
+        }
+
+        $result = [
+            'data' => [
+                'expenses' => $expenses,
+                'incomes' => $incomes,
+            ],
+            'sum' => $sum,
+        ];
+
+        $result['tableHTML'] = view('inc.finance.hq-daily')->with(['hqFinanceData' => $result])->toHtml();
+        return $result;
+    }
+
+    public function getHqFinanceMonthly($start, $end)
+    {
+        return [];
     }
 }

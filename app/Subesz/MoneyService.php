@@ -12,6 +12,6 @@ class MoneyService
     public function getFormattedMoney($value) {
         $money = intval($value);
 
-        return number_format($money, 0, '.', '.');
+        return number_format($money, 0, '.', ' ');
     }
 }

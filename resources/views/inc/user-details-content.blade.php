@@ -86,10 +86,10 @@
     </div>
 @endif
 
-<p class="h5 font-weight-bold mb-1">Készlet</p>
+<p class="h5 font-weight-bold mt-4 mb-2">Készlet</p>
 @if($user->stock()->count() > 0)
     @php /** @var \App\Stock $item */ @endphp
-    <table class="table table-sm table-borderless mt-4 mb-0">
+    <table class="table table-sm table-borderless mb-0">
         <thead>
         <tr>
             <th>Termék neve</th>

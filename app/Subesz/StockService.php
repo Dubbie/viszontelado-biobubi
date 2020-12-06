@@ -109,7 +109,7 @@ class StockService
         $revenueService->storeCentralIncome('Készletértékesítés', $amount, null, sprintf('Készlet átadva %s viszonteladónak.', $recipient->name));
 
         // 5. Hozzáadjuk a viszonteladónak, mint kiadás
-        $revenueService->storeResellerExpense('Készletvásárlás', $amount, null, null, sprintf('%s db %s', $count, $product->name));
+        $revenueService->storeResellerExpense('Készletvásárlás', $amount, $recipient, null, sprintf('%s db %s', $count, $product->name));
 
         return true;
     }

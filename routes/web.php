@@ -54,18 +54,21 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/termekek/csomagok/{bundleSku}', 'BundleController@edit');
 
         Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
-        Route::get('kozponti-keszlet', 'CentralStockController@index');
-        Route::get('kozponti-keszlet/uj-sor', 'CentralStockController@getCentralStockRow');
-        Route::post('kozponti-keszlet/hozzaadas', 'CentralStockController@store');
-        Route::get('kozponti-keszlet/viszontelado/uj-sor', 'CentralStockController@getResellerStockRow');
-        Route::post('kozponti-keszlet/viszontelado/feltoltes', 'CentralStockController@addStockToReseller');
+        Route::get('kozpont/keszlet', 'CentralStockController@index');
+        Route::get('kozpont/keszlet/uj-sor', 'CentralStockController@getCentralStockRow');
+        Route::post('kozpont/keszlet/hozzaadas', 'CentralStockController@store');
+        Route::get('kozpont/keszlet/viszontelado/uj-sor', 'CentralStockController@getResellerStockRow');
+        Route::post('kozpont/keszlet/viszontelado/feltoltes', 'CentralStockController@addStockToReseller');
 
-        Route::get('kozponti-keszlet/letrehozas', 'StockController@create');
-        Route::get('kozponti-keszlet/{userId}/lekerdezes', 'StockController@fetch');
-        Route::get('kozponti-keszlet/{userId}/szerkesztes', 'StockController@edit');
-        Route::put('kozponti-keszlet/{userId}/frissites', 'StockController@update');
+        Route::get('kozpont/keszlet/letrehozas', 'StockController@create');
+        Route::get('kozpont/keszlet/{userId}/lekerdezes', 'StockController@fetch');
+        Route::get('kozpont/keszlet/{userId}/szerkesztes', 'StockController@edit');
+        Route::put('kozpont/keszlet/{userId}/frissites', 'StockController@update');
 
-        Route::get('kozponti-keszlet/hmtl', 'CentralStockController@stockHtml');
+        Route::get('kozpont/keszlet/hmtl', 'CentralStockController@stockHtml');
+
+        Route::get('kozpont/penzugy', 'RevenueController@hqFinance');
+        Route::get('api/kozpont/penzugy', 'RevenueController@getHqFinance');
     });
 
     Route::get('/', 'UserController@home');

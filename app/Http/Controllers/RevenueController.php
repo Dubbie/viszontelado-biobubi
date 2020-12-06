@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Expense;
+use App\Income;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
@@ -97,13 +98,18 @@ class RevenueController extends Controller
     public function storeExpense(Request $request)
     {
         $data = $request->validate([
+            'e-hq' => 'nullable',
             'e-name' => 'required',
             'e-amount' => 'required',
             'e-date' => 'required',
-            'e-comment' => 'required',
+            'e-comment' => 'nullable',
         ]);
 
-        $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), Auth::user(), date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
+        if (array_key_exists('e-hq', $data) && $data['e-hq'] == true) {
+            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), null, date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
+        } else {
+            $this->revenueService->storeResellerExpense($data['e-name'], intval($data['e-amount']), Auth::user(), date('Y-m-d H:i:s', strtotime($data['e-date'])), $data['e-comment']);
+        }
 
         return redirect(url()->previous())->with([
             'success' => 'Kiadás sikeresen hozzáadva',
@@ -127,22 +133,6 @@ class RevenueController extends Controller
             Auth::id()
         );
 
-        if (in_array(Auth::id(), [1, 2])) {
-            $benji = User::where('email', 'gbenji20@gmail.com')->first();
-
-            if (!$benji) {
-                return $userExpenses;
-            }
-
-            $benjiExpenses = $this->revenueService->getExpenseByRange(
-                Carbon::parse($input['start-date']),
-                Carbon::parse($input['end-date'] . ' 23:59:59'),
-                $benji->id
-            );
-
-            $userExpenses['benji'] = $benjiExpenses['sum'];
-        }
-
         return $userExpenses;
     }
 
@@ -155,7 +145,12 @@ class RevenueController extends Controller
         $success = false;
 
         if ($expense) {
-            $expense->delete();
+            try {
+                $expense->delete();
+            } catch (\Exception $e) {
+                \Log::error('Hiba történt a kiadás törlésekor...');
+                \Log::error($e->getMessage());
+            }
             $success = true;
         }
 
@@ -164,5 +159,37 @@ class RevenueController extends Controller
         ];
     }
 
+    /**
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
+    public function hqFinance() {
+        return view('hq.finance')->with([
+            'hqFinanceData' => $this->revenueService->getHqFinanceDaily(Carbon::now()->firstOfMonth(), Carbon::now()->endOfDay()),
+        ]);
+    }
 
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function getHqFinance(Request $request) {
+        $input = $request->validate([
+            'view-mode' => 'required',
+            'start-date' => 'required',
+            'end-date' => 'required',
+        ]);
+
+        $hqFinance = $this->revenueService->getHqFinanceDaily(
+            Carbon::parse($input['start-date']),
+            Carbon::parse($input['end-date'] . ' 23:59:59')
+        );
+        if ($input['view-mode'] != 'DAILY') {
+            $hqFinance = $this->revenueService->getHqFinanceMonthly(
+                Carbon::parse($input['start-date']),
+                Carbon::parse($input['end-date'] . ' 23:59:59')
+            );
+        }
+
+        return $hqFinance;
+    }
 }

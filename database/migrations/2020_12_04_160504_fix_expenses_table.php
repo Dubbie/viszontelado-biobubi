@@ -18,8 +18,8 @@ class FixExpensesTable extends Migration
             $table->string('name')->comment('Kiadás megnevezése')->change();
             $table->unsignedFloat('gross_value')->comment('Bruttó összeg');
             $table->unsignedFloat('tax_value')->default(0)->comment('ÁFA tartalma');
-            $table->text('comment')->comment('Megjegyzés a bevételhez');
-            $table->unsignedBigInteger('user_id')->nullable()->comment('Viszonteladó aki kapja a készletet')->change();
+            $table->text('comment')->nullable()->comment('Megjegyzés a kiadáshoz');
+            $table->unsignedBigInteger('user_id')->nullable()->comment('Viszonteladó akihez a kiadás tartozik (Üres esetén központ)')->change();
             $table->date('date')->useCurrent()->change();
         });
     }

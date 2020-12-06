@@ -16,7 +16,7 @@
   --orange: #f6993f;
   --yellow: #ffed4a;
   --green: #38c172;
-  --teal: #00bdca;
+  --teal: #00aea5;
   --cyan: #6cb2eb;
   --white: #fff;
   --gray: #6c757d;
@@ -17811,7 +17811,7 @@ a.text-dark:focus {
 }
 
 .text-teal {
-  color: #00bdca !important;
+  color: #00aea5 !important;
 }
 
 .text-normal {
@@ -17873,7 +17873,6 @@ body {
   width: 250px;
   height: 100vh;
   background-color: #fff;
-  border-right: 1px solid #e9ecef;
   z-index: 2;
 }
 
@@ -17899,9 +17898,9 @@ body {
 
 .sidebar .nav-title {
   letter-spacing: 1px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #adb5bd;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   padding-left: 1.5rem;
   margin-top: 1rem;
@@ -17912,10 +17911,11 @@ body {
 }
 
 .sidebar .nav-link {
-  font-weight: 700;
+  font-weight: 400;
   position: relative;
   color: #adb5bd;
-  padding: 0.75rem 1.5rem;
+  padding: 0.25rem 1.5rem;
+  font-size: 0.8rem;
 }
 
 .sidebar .nav-link:hover,
@@ -17925,7 +17925,7 @@ body {
 
 .sidebar .nav-link:hover .icon,
 .sidebar .nav-link.active .icon {
-  color: #3490dc;
+  color: #00aea5;
 }
 
 .sidebar .nav-link[data-toggle=collapse] {
@@ -17933,7 +17933,7 @@ body {
 }
 
 .sidebar .nav-link[data-toggle=collapse] .icon {
-  color: #3490dc;
+  color: #00aea5;
 }
 
 .sidebar .nav-link.collapsed[data-toggle=collapse] {
@@ -17962,13 +17962,13 @@ body {
   position: absolute;
   top: 50%;
   right: 1.5rem;
-  color: #3490dc;
-  transform: translateY(-50%) rotate(180deg);
+  color: #00aea5;
+  transform: translateY(-50%) rotate(0deg);
   transition: all 250ms ease-in-out;
 }
 
 .sidebar .nav-link.collapsed[data-toggle=collapse]:after {
-  transform: translateY(-50%) rotate(0deg);
+  transform: translateY(-50%) rotate(90deg);
   color: #adb5bd;
 }
 
@@ -18172,25 +18172,25 @@ body {
 }
 
 .btn-teal {
-  background-color: #00bdca;
+  background-color: #00aea5;
   color: #ffffff;
 }
 
 .btn-teal:hover {
-  background-color: #22cbd7;
+  background-color: #1cddd3;
   color: #ffffff;
 }
 
 .btn-outline-teal {
   background-color: transparent;
-  border-color: #00bdca;
-  color: #00bdca;
+  border-color: #00aea5;
+  color: #00aea5;
 }
 
 .btn-outline-teal:hover {
   background-color: transparent;
-  border-color: #22cbd7;
-  color: #22cbd7;
+  border-color: #1cddd3;
+  color: #1cddd3;
 }
 
 .btn-toolbar .btn-sm,
