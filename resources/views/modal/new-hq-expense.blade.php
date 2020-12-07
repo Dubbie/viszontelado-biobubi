@@ -34,7 +34,7 @@
                         <div class="col-md-4">
                             <div class="form-group">
                                 <label for="e-date">Dátum</label>
-                                <input type="text" name="e-date" id="e-date" class="form-control" value="{{ date('Y/m/d') }}" required>
+                                <input type="text" name="e-date" id="e-date" class="datepicker-single form-control" value="{{ date('Y/m/d') }}" required>
                             </div>
                         </div>
                     </div>

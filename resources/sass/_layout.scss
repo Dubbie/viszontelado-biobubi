@@ -60,6 +60,14 @@ a.text-normal {
   color: $pastel-orange !important;
 }
 
+.font-weight-bold {
+  font-weight: 600 !important;
+}
+
+.font-weight-semibold {
+  font-weight: 500 !important;
+}
+
 body {
   color: $text-base;
 }
@@ -70,8 +78,8 @@ body {
   left: 0;
   width: $sidebar-width;
   height: 100vh;
-  background-color: $white;
-  //border-right: 1px solid $gray-200;
+  background-color: $body-bg;
+  border-right: 1px solid $gray-300;
   z-index: 2;
 
   .sidebar-nav {
@@ -88,10 +96,10 @@ body {
   }
 
   .navbar-brand {
-    padding: 1.5rem;
+    padding: 3rem 1.5rem 1.5rem 1.5rem;
     width: 100%;
     color: $gray-900;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .nav-title {
@@ -109,15 +117,15 @@ body {
   }
 
   .nav-link {
-    font-weight: 400;
+    font-weight: 500;
     position: relative;
     color: $gray-500;
     padding: 0.25rem 1.5rem;
-    font-size: 0.8rem;
+    font-size: 14px;
 
     &:hover,
     &.active {
-      color: $gray-700;
+      color: $black;
 
       .icon {
         color: $teal;
@@ -125,7 +133,7 @@ body {
     }
 
     &[data-toggle="collapse"] {
-      color: $gray-700;
+      color: $black;
 
       .icon {
         color: $teal;
@@ -178,11 +186,12 @@ body {
       padding-left: 2.25rem;
 
       .nav-link {
+        padding-left: 2rem;
         color: $gray-500;
 
         &:hover,
         &.active {
-          color: $gray-700;
+          color: $black;
         }
       }
     }

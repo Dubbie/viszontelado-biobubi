@@ -9,7 +9,7 @@
     </tr>
     </thead>
     <tbody>
-    @foreach($hqFinanceData['data']['incomes']->merge($hqFinanceData['data']['expenses']) as $entry)
+    @foreach(($hqFinanceData['data']['incomes']->merge($hqFinanceData['data']['expenses']))->sortByDesc('date') as $entry)
         {{--@dump($entry)--}}
         <tr>
             <td>{{ $entry->name }}</td>

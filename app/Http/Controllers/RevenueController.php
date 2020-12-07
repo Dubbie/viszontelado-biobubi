@@ -192,4 +192,24 @@ class RevenueController extends Controller
 
         return $hqFinance;
     }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function storeIncome(Request $request)
+    {
+        $data = $request->validate([
+            'hqi-name' => 'required',
+            'hqi-amount' => 'required',
+            'hqi-date' => 'required',
+            'hqi-comment' => 'nullable',
+        ]);
+
+        $this->revenueService->storeCentralIncome($data['hqi-name'], intval($data['hqi-amount']), date('Y-m-d H:i:s', strtotime($data['hqi-date'])), $data['hqi-comment'] ?? null);
+
+        return redirect(url()->previous())->with([
+            'success' => 'Bevétel sikeresen hozzáadva',
+        ]);
+    }
 }

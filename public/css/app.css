@@ -1,11 +1,6 @@
-@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,700&display=swap);@charset "UTF-8";
+@import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;
 
-/*!
- * Bootstrap v4.4.1 (https://getbootstrap.com/)
- * Copyright 2011-2019 The Bootstrap Authors
- * Copyright 2011-2019 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- */
+400;500;600&display=swap);@charset "UTF-8";
 
 :root {
   --blue: #3490dc;
@@ -34,7 +29,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
-  --font-family-sans-serif: "Ubuntu", sans-serif;
+  --font-family-sans-serif: "Poppins", sans-serif;
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -66,7 +61,7 @@ section {
 
 body {
   margin: 0;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.6;
@@ -6376,7 +6371,7 @@ a.close.disabled {
   z-index: 1070;
   display: block;
   margin: 0;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -6501,7 +6496,7 @@ a.close.disabled {
   z-index: 1060;
   display: block;
   max-width: 276px;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -17862,6 +17857,14 @@ a.text-normal:hover {
   color: #bc8668 !important;
 }
 
+.font-weight-bold {
+  font-weight: 600 !important;
+}
+
+.font-weight-semibold {
+  font-weight: 500 !important;
+}
+
 body {
   color: #2b4149;
 }
@@ -17872,7 +17875,8 @@ body {
   left: 0;
   width: 250px;
   height: 100vh;
-  background-color: #fff;
+  background-color: #f5f9fa;
+  border-right: 1px solid #dee2e6;
   z-index: 2;
 }
 
@@ -17890,10 +17894,10 @@ body {
 }
 
 .sidebar .navbar-brand {
-  padding: 1.5rem;
+  padding: 3rem 1.5rem 1.5rem 1.5rem;
   width: 100%;
   color: #212529;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .sidebar .nav-title {
@@ -17911,16 +17915,16 @@ body {
 }
 
 .sidebar .nav-link {
-  font-weight: 400;
+  font-weight: 500;
   position: relative;
   color: #adb5bd;
   padding: 0.25rem 1.5rem;
-  font-size: 0.8rem;
+  font-size: 14px;
 }
 
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .nav-link:hover .icon,
@@ -17929,7 +17933,7 @@ body {
 }
 
 .sidebar .nav-link[data-toggle=collapse] {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .nav-link[data-toggle=collapse] .icon {
@@ -17984,6 +17988,7 @@ body {
 
 .sidebar .nav-item .collapse .nav-link,
 .sidebar .nav-item .collapsing .nav-link {
+  padding-left: 2rem;
   color: #adb5bd;
 }
 
@@ -17991,7 +17996,7 @@ body {
 .sidebar .nav-item .collapse .nav-link.active,
 .sidebar .nav-item .collapsing .nav-link:hover,
 .sidebar .nav-item .collapsing .nav-link.active {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .sidebar-bottom-menu {

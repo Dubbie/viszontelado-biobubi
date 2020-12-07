@@ -91,7 +91,7 @@ $(() => {
 
         // Kiadás
         // Új kiadáshoz
-        $('#e-date').daterangepicker({
+        $('.datepicker-single').daterangepicker({
             "locale": {
                 "format": "YYYY/MM/DD",
                 "separator": " - ",
