@@ -1,0 +1,22 @@
+.nav-tabs {
+  border: 0;
+  margin-left: 1rem;
+
+  .nav-link {
+    border: 0;
+    color: $gray-500;
+
+    &:hover {
+      color: $gray-700;
+    }
+
+    &.active {
+      border-bottom: 4px solid $teal;
+      font-weight: 600;
+
+      &:hover {
+        color: $gray-700;
+      }
+    }
+  }
+}

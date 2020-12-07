@@ -139,7 +139,7 @@ class CentralStockController extends Controller
             $this->stockService->addToStock($reseller, $sku, $qty);
         }
 
-        return redirect(action('CentralStockController@index'))->with([
+        return redirect(url()->previous())->with([
             'success' => 'Viszonteladó készlete sikeresen frissítve',
         ]);
     }

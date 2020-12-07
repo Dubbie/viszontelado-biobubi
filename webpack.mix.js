@@ -15,7 +15,8 @@ mix.js([
     'resources/js/app.js',
     'resources/js/user.js',
     'resources/js/income.js',
-    'resources/js/hq-finance.js'
+    'resources/js/hq-finance.js',
+    'resources/js/reseller-finance.js'
 ], 'public/js')
     .sourceMaps()
     .version();

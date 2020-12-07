@@ -27,12 +27,19 @@ class RevenueService
     /**
      * @param Carbon|CarbonInterface $start
      * @param Carbon|CarbonInterface $end
+     * @param null $userId
      * @return array
      */
-    public function getIncomeByRange($start, $end)
+    public function getIncomeByRange($start, $end, $userId = null)
     {
         // Alap lekérés a jelenlegi felhasználóhoz
-        $query = $this->orderService->getOrdersQueryByUserId(Auth::id());
+        $query = null;
+
+        if ($userId) {
+            $query = $this->orderService->getOrdersQueryByUserId($userId);
+        } else {
+            $query = $this->orderService->getOrdersQueryByUserId(Auth::id());
+        }
 
         $data = [];
         $dayDiff = $start->diffInDays($end);
@@ -86,8 +93,8 @@ class RevenueService
     public function getExpenseByRange($start, $end, $userId)
     {
         // Visszanyerjük a megfelelő lekérdezéssel
-        $result = Expense::select(['id', 'name', 'gross_value', 'date'])->where([
-            ['user_id', $userId],
+        $result = Expense::select(['id', 'name', 'gross_value', 'date', 'user_id'])->where([
+            ['user_id', '=', $userId],
             ['date', '>=', $start],
             ['date', '<=', $end],
         ])->orderBy('date', 'DESC')

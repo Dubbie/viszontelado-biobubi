@@ -103,7 +103,7 @@ class UserController extends Controller
     {
         $user = User::where('id', $userId)->withCount('deliveries')->first();
 
-        return view('inc.user-details-content')->with([
+        return view('user.show')->with([
             'user' => $user,
         ]);
     }
@@ -302,7 +302,7 @@ class UserController extends Controller
         if ($zipSuccess == count($zips)) {
             $user->save();
 
-            return redirect(action('UserController@index'))->with([
+            return redirect(url()->previous())->with([
                 'success' => 'Felhasználó sikeresen frissítve!',
             ]);
         } else {

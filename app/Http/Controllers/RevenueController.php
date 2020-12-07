@@ -45,14 +45,16 @@ class RevenueController extends Controller
     public function fetchIncome(Request $request)
     {
         $input = $request->validate([
+            'user-id' => 'nullable',
             'start-date' => 'required',
             'end-date' => 'required',
         ]);
 
         $dateFormat = 'M. d.';
         $apiResults = $this->revenueService->getIncomeByRange(
-                Carbon::parse($input['start-date']),
-                Carbon::parse($input['end-date'] . ' 23:59:59')
+            Carbon::parse($input['start-date']),
+            Carbon::parse($input['end-date'] . ' 23:59:59'),
+            $input['user-id'] ?? null
         );
 
         $labels = [];
@@ -123,6 +125,7 @@ class RevenueController extends Controller
     public function fetchExpense(Request $request)
     {
         $input = $request->validate([
+            'user-id' => 'nullable',
             'start-date' => 'required',
             'end-date' => 'required',
         ]);
@@ -130,7 +133,7 @@ class RevenueController extends Controller
         $userExpenses = $this->revenueService->getExpenseByRange(
             Carbon::parse($input['start-date']),
             Carbon::parse($input['end-date'] . ' 23:59:59'),
-            Auth::id()
+            $input['user-id'] ?? Auth::id()
         );
 
         return $userExpenses;

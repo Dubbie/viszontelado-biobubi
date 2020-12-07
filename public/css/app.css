@@ -18318,6 +18318,29 @@ body .select2-container--default .select2-selection--single .select2-selection__
   pointer-events: none;
 }
 
+.nav-tabs {
+  border: 0;
+  margin-left: 1rem;
+}
+
+.nav-tabs .nav-link {
+  border: 0;
+  color: #adb5bd;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+  border-bottom: 4px solid #00aea5;
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link.active:hover {
+  color: #495057;
+}
+
 .toolbar {
   position: fixed;
   bottom: 0;
