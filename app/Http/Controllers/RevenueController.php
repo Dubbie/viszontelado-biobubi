@@ -167,6 +167,7 @@ class RevenueController extends Controller
      */
     public function hqFinance() {
         return view('hq.finance')->with([
+            'resellers' => User::where('admin', false)->orderBy('name')->get(),
             'hqFinanceData' => $this->revenueService->getHqFinanceDaily(Carbon::now()->firstOfMonth(), Carbon::now()->endOfDay()),
         ]);
     }
@@ -205,11 +206,12 @@ class RevenueController extends Controller
         $data = $request->validate([
             'hqi-name' => 'required',
             'hqi-amount' => 'required',
+            'hqi-reseller-id' => 'nullable',
             'hqi-date' => 'required',
             'hqi-comment' => 'nullable',
         ]);
 
-        $this->revenueService->storeCentralIncome($data['hqi-name'], intval($data['hqi-amount']), date('Y-m-d H:i:s', strtotime($data['hqi-date'])), $data['hqi-comment'] ?? null);
+        $this->revenueService->storeCentralIncome($data['hqi-name'], $data['hqi-reseller-id'] ?? null, intval($data['hqi-amount']), date('Y-m-d H:i:s', strtotime($data['hqi-date'])), $data['hqi-comment'] ?? null);
 
         return redirect(url()->previous())->with([
             'success' => 'Bevétel sikeresen hozzáadva',

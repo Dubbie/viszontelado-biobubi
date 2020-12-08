@@ -93,7 +93,7 @@ class RevenueService
     public function getExpenseByRange($start, $end, $userId)
     {
         // Visszanyerjük a megfelelő lekérdezéssel
-        $result = Expense::select(['id', 'name', 'gross_value', 'date', 'user_id'])->where([
+        $result = Expense::select(['id', 'name', 'gross_value', 'date', 'comment', 'user_id'])->where([
             ['user_id', '=', $userId],
             ['date', '>=', $start],
             ['date', '<=', $end],
@@ -116,13 +116,16 @@ class RevenueService
 
     /**
      * @param $name
+     * @param $resellerId
      * @param $amount
      * @param $date
      * @param $comment
      * @return bool
      */
-    public function storeCentralIncome($name, $amount, $date, $comment)
+    public function storeCentralIncome($name, $resellerId, $amount, $date, $comment)
     {
+        $reseller = User::find($resellerId);
+
         $inc = new Income();
         $inc->gross_value = $amount;
         $inc->tax_value = $amount - ($amount / 1.27);
@@ -131,6 +134,24 @@ class RevenueService
         $inc->comment = $comment;
         $inc->save();
         \Log::info(sprintf('Központ bevétele elmentve. (%s Ft, %s)', $amount, $name));
+
+        if ($resellerId) {
+            if (!$reseller) {
+                \Log::error('Nem található ilyen viszonteladó, ezért törlésre kerül a megadott bevétel.');
+
+                try {
+                    $inc->delete();
+                } catch (\Exception $e) {
+                    \Log::error('Hiba történt a bevétel törlésekor.');
+                }
+
+                return false;
+            }
+
+            // Létrehozzuk a kiadást neki
+            return $this->storeResellerExpense($name, $amount, $reseller, $date ? $date : date('Y-m-d'), $comment);
+        }
+
         return true;
     }
 

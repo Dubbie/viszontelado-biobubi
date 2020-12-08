@@ -45,6 +45,9 @@ $(function () {
 
             for (const expense of data) {
                 const listGroupItem = document.createElement('div');
+                listGroupItem.title = expense.comment;
+                listGroupItem.classList.add('has-tooltip');
+                listGroupItem.dataset.toggle='tooltip';
 
                 const row = document.createElement('div');
                 row.classList.add('row', 'mb-2');
@@ -104,6 +107,8 @@ $(function () {
             label.classList.add('mb-0');
             elExpenseContainer.appendChild(label);
         }
+
+        $('.has-tooltip[data-toggle="tooltip"]').tooltip();
     }
 
     function updateProfit() {

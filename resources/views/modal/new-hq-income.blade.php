@@ -4,7 +4,6 @@
         <div class="modal-content">
             <form action="{{ action('RevenueController@storeIncome') }}" method="POST">
                 @csrf
-                <input type="hidden" name="hqi-name" value="Egyéb">
                 <div class="modal-header">
                     <h5 class="modal-title" id="newHqIncomeLabel">Új központi bevétel</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -12,6 +11,25 @@
                     </button>
                 </div>
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label for="hqi-name">Bevétel neve</label>
+                        <select name="hqi-name" id="hqi-name" class="custom-select">
+                            <option value="Hálózati díj">Hálózati díj</option>
+                            <option value="Egyenlegfeltöltés">Egyenlegfeltöltés</option>
+                            <option value="Csatlakozási díj">Csatlakozási díj</option>
+                            <option value="Egyéb">Egyéb</option>
+                        </select>
+                    </div>
+                    <div id="hq-income-reseller">
+                        <div class="form-group">
+                            <label for="hqi-reseller-id">Kihez jöjjön létre kiadás?</label>
+                            <select name="hqi-reseller-id" id="hqi-reseller-id" class="custom-select">
+                                @foreach($resellers as $reseller)
+                                    <option value="{{ $reseller->id }}">{{ $reseller->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
                     <div class="form-row">
                         <div class="col-md-8">
                             <div class="form-group">

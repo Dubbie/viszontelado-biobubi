@@ -15,6 +15,8 @@ $(() => {
     const elIncomeSum = document.getElementById('hq-income-sum');
     const elExpenseSum = document.getElementById('hq-expense-sum');
     const elTaxSum = document.getElementById('hq-tax-sum');
+    const elResellerSelector = document.getElementById('hq-income-reseller');
+    const elSelectName = document.getElementById('hqi-name');
 
     function updateFinance() {
         showTextLoaders();
@@ -135,14 +137,25 @@ $(() => {
         elRangePickerLabel.innerText = moment(startDate).format('YYYY MMMM Do') + ' - ' + moment(endDate).format('YYYY MMMM Do');
     }
 
-    function bindAllElements() {
+    function updateResellerSelector() {
+        if (elSelectName.options[elSelectName.selectedIndex].value !== 'Egyéb') {
+            $(elResellerSelector).slideDown();
+        } else {
+            $(elResellerSelector).slideUp();
+        }
+    }
 
+    function bindAllElements() {
+        $('select[name="hqi-name"]').on('change', e => {
+            updateResellerSelector();
+        });
     }
 
     function init() {
         updateDatepicker();
         updateRangeLabel();
         bindAllElements();
+        updateResellerSelector();
     }
 
     init();
