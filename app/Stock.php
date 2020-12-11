@@ -35,61 +35,40 @@ class Stock extends Model
         /** @var User $reseller */
         /** @var Order $order */
         $reseller = $this->reseller;
-        $booked = 0;
-
-        $orderedProducts = OrderProducts::whereHas('order', function (Builder $query) use ($reseller) {
+        return OrderProducts::whereHas('order', function (Builder $query) use ($reseller) {
             $query->where([
                 ['orders.reseller_id', $reseller->id],
                 ['orders.status_text', 'Függőben lévő'],
             ]);
-        })->get();
-        foreach ($orderedProducts as $op) {
-            // 1. eset, EZ MONEY
-            if ($op->product_sku == $this->sku) {
-                $booked += ($op->product_qty);
-            } else {
-                // 2. eset, megnézzük, hogy ha ez csomag termék és tartalmazza ezt az SKU-t akkor mennyivel növeljük
-                /** @var BundleProduct[] $bps */
-                $bps = BundleProduct::where('bundle_sku', $op->product_sku)->get();
-                foreach ($bps as $bp) {
-                    if ($bp->product_sku == $this->sku) {
-                        $booked += ($op->product_qty * $bp->product_qty);
-                    }
-                }
-            }
-        }
-
-        return $booked;
+        })->where('product_sku', '=', $this->sku)->sum('product_qty');
+//        foreach ($orderedProducts as $op) {
+//            // 1. eset, EZ MONEY
+//            if ($op->product_sku == $this->sku) {
+//                $booked += ($op->product_qty);
+//            } else {
+//                // 2. eset, megnézzük, hogy ha ez csomag termék és tartalmazza ezt az SKU-t akkor mennyivel növeljük
+//                /** @var BundleProduct[] $bps */
+//                $bps = BundleProduct::where('bundle_sku', $op->product_sku)->get();
+//                foreach ($bps as $bp) {
+//                    if ($bp->product_sku == $this->sku) {
+//                        $booked += ($op->product_qty * $bp->product_qty);
+//                    }
+//                }
+//            }
+//        }
+//
+//        return $booked;
     }
 
     public function getSoldCount() {
         /** @var User $reseller */
         /** @var Order $order */
-        $resellerId = $this->user_id;
-        $sold = 0;
-
-        $orderedProducts = OrderProducts::whereHas('order', function (Builder $query) use ($resellerId) {
+        $reseller = $this->reseller;
+        return OrderProducts::whereHas('order', function (Builder $query) use ($reseller) {
             $query->where([
-                ['orders.reseller_id', $resellerId],
-                ['orders.status_text', 'Teljesítve'],
+                ['orders.reseller_id', $reseller->id],
+                ['orders.status_text', 'Függőben lévő'],
             ]);
-        })->get();
-        foreach ($orderedProducts as $op) {
-            // 1. eset, EZ MONEY
-            if ($op->product_sku == $this->sku) {
-                $sold += $op->product_qty;
-            } else {
-                // 2. eset, megnézzük, hogy ha ez csomag termék és tartalmazza ezt az SKU-t akkor mennyivel növeljük
-                /** @var BundleProduct[] $bps */
-                $bps = BundleProduct::where('bundle_sku', $op->product_sku)->get();
-                foreach ($bps as $bp) {
-                    if ($bp->product_sku == $this->sku) {
-                        $sold += ($op->product_qty * $bp->product_qty);
-                    }
-                }
-            }
-        }
-
-        return $sold;
+        })->where('product_sku', '=', $this->sku)->sum('product_qty');
     }
 }

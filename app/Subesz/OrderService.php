@@ -300,13 +300,21 @@ class OrderService
      * @param $orderId
      */
     public function saveOrderedProducts(array $skuList, $orderId) {
+        $ss = resolve('App\Subesz\StockService');
+
         foreach ($skuList as $orderedProduct) {
             \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
-            $op = new OrderProducts();
-            $op->order_id = $orderId;
-            $op->product_sku = $orderedProduct['sku'];
-            $op->product_qty = $orderedProduct['count'];
-            $op->save();
+            $lp = $ss->getLocalProductBySku($orderedProduct['sku']);
+            foreach ($lp->getSubProducts() as $subProduct) {
+                $subProduct['product'];
+                $subProduct['count'];
+
+                $op = new OrderProducts();
+                $op->order_id = $orderId;
+                $op->product_sku = $subProduct['product']->sku;
+                $op->product_qty = $subProduct['count'];
+                $op->save();
+            }
             \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
         }
     }

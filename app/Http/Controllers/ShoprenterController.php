@@ -61,6 +61,12 @@ class ShoprenterController extends Controller
         Log::info('-- Shoprenter API-ból frissítés megkezdése --');
         $start = Carbon::now();
         $osds = $this->shoprenterApi->getAllStatuses();
+        if (!$osds || !property_exists($osds, 'items')) {
+            Log::error('A Shoprenter API nem tért vissza eredményekkel');
+            return redirect(action('UserController@home'))->with([
+                'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
+            ]);
+        }
 
         $statusMap = [];
         foreach ($osds->items as $osd) {
@@ -235,6 +241,15 @@ class ShoprenterController extends Controller
 
     public function testShoprenter()
     {
+        $ss = resolve('App\Subesz\StockService');
+        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9Mzk2OA==');
+
+        // Elmentjük a készlethez szükséges dolgokat
+        $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
+        $booked = $ss->bookOrder($orderedProducts, '4233');
+        if ($booked) {
+            $this->orderService->saveOrderedProducts($orderedProducts, '4233');
+        }
     }
 
     /**

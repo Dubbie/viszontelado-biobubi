@@ -26,8 +26,8 @@
                 <div class="row @if($users->last() != $user) mb-5 @endif">
                     <div class="col-md-3">
                         <p class="mb-0 h4 font-weight-bold">{{ $user->name }}</p>
-                        <p class="mb-0">
-                            <small class="text-muted">{{ $user->email }}</small>
+                        <p class="mb-0 has-tooltip" data-toggle="tooltip" title="{{ $user->email }}">
+                            <small class="text-muted">{{ \Illuminate\Support\Str::limit($user->email, 30) }}</small>
                         </p>
 
                         <a href="#addStockToReseller" data-toggle="modal" data-reseller-id="{{ $user->id }}"
@@ -41,7 +41,6 @@
                                     <thead>
                                     <tr>
                                         <th>Termék megnevezés</th>
-                                        <th>Cikkszám</th>
                                         <th class="text-right">Raktáron</th>
                                         <th class="text-right">Lefoglalva</th>
                                         <th class="text-right">Kiszállítva</th>
@@ -50,8 +49,7 @@
                                     <tbody>
                                     @foreach($user->stock as $item)
                                         <tr>
-                                            <td>{{ $item->product->name }}</td>
-                                            <td>{{ $item->sku }}</td>
+                                            <td>{{ $item->product->name }} <span class="text-muted">(Cikksz.: <b>{{ $item->sku }}</b>)</span></td>
                                             <td class="text-right">{{ $item->inventory_on_hand }} db</td>
                                             <td class="text-right">{{ $item->getBookedCount() }} db</td>
                                             <td class="text-right">{{ $item->getSoldCount() }} db</td>
