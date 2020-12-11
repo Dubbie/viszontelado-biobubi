@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Delivery;
 use App\Http\Requests\BillingoApiTestRequest;
 use App\Post;
 use App\Subesz\BillingoNewService;
@@ -101,10 +102,23 @@ class UserController extends Controller
      */
     public function show($userId)
     {
-        $user = User::where('id', $userId)->withCount('deliveries')->first();
+        $deliveries = Delivery::select(\DB::raw('COUNT(*) as count'), \DB::raw('MONTH(delivered_at) as month'))->where('user_id', '=', $userId)->orderBy('month')->groupBy(\DB::raw('MONTH(delivered_at)'))->get();
 
+        // Létrehozzuk a havi bontást
+        $monthlyDeliveries = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $monthlyDeliveries[$i] = 0;
+        }
+
+        // Feltöltjük adatokkal
+        foreach ($deliveries as $delivery) {
+            $monthlyDeliveries[$delivery->month] = $delivery->count;
+        }
+
+        $user = User::where('id', $userId)->withCount('deliveries')->first();
         return view('user.show')->with([
             'user' => $user,
+            'monthlyDeliveries' => $monthlyDeliveries,
         ]);
     }
 

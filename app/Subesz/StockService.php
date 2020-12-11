@@ -338,7 +338,7 @@ class StockService
         /** @var CentralStock $cs */
         $sum = 0;
         foreach (CentralStock::all() as $cs) {
-            $sum += ($cs->product->gross_price * $cs->inventory_on_hand);
+            $sum += ($cs->product->wholesale_price * $cs->inventory_on_hand);
         }
 
         if ($formatted) {

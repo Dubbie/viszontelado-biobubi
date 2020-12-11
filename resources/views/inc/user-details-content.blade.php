@@ -107,13 +107,12 @@
     <div class="col-md-5">
         <p class="h5 font-weight-bold mb-1">Kiszállítások</p>
     </div>
-    <div class="col-md-7">
-        <ul class="list-unstyled">
-            @if($user->deliveries_count > 0)
-                <li>Kiszállítva: {{ $user->deliveries_count }}</li>
-            @else
-                <li>A felhasználó még egy megrendelést sem szállított ki a portálon keresztül.</li>
-            @endif
-        </ul>
+    <div class="col-md-6 offset-md-1">
+        @if($user->deliveries_count > 0)
+            <p class="mb-1">Összesen kiszállítva: <b>{{ $user->deliveries_count }}</b></p>
+            <p class="mb-0">Ebben a hónapban: <b>{{ $user->getDeliveryCountThisMonth() }}</b></p>
+        @else
+            <p class="mb-0">A felhasználó még egy megrendelést sem szállított ki a portálon keresztül.</p>
+        @endif
     </div>
 </div>

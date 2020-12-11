@@ -10,7 +10,7 @@
             <p class="mb-0"><small class="font-weight-bold">Darabszám</small></p>
         </div>
         <div class="col-md-2 text-right">
-            <p class="mb-0"><small class="font-weight-bold">Érték</small></p>
+            <p class="mb-0"><small class="font-weight-bold">Érték (Nagyker. Ár)</small></p>
         </div>
     </div>
     @foreach($centralStock as $cs)
@@ -23,7 +23,7 @@
                 <p class="mb-0">{{ $cs->inventory_on_hand }} db</p>
             </div>
             <div class="col-6 col-md-2 text-right">
-                <p class="lead text-muted mb-0">{{ number_format(($cs->inventory_on_hand * $cs->product->gross_price), 0, '.', ' ') . ' Ft' }}</p>
+                <p class="lead text-muted mb-0">{{ number_format(($cs->inventory_on_hand * $cs->product->wholesale_price), 0, '.', ' ') . ' Ft' }}</p>
             </div>
         </div>
     @endforeach

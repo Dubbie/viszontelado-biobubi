@@ -6,6 +6,11 @@ use App\Subesz\ShoprenterService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * Class Delivery
+ * @package App
+ * @mixin Delivery
+ */
 class Delivery extends Model
 {
     /** @var ShoprenterService */

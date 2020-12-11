@@ -5,7 +5,7 @@
             <select name="cs-new-product[]" id="cs-new-product-{{ time() }}" class="custom-select">
                 @php /** @var \App\Product $product */ @endphp
                 @foreach($products as $product)
-                    <option value="{{ $product->sku }}" data-gross-price="{{ $product->gross_price }}">{{ $product->name }} (Cikkszám: {{ $product->sku }})</option>
+                    <option value="{{ $product->sku }}" data-gross-price="{{ $product->wholesale_price }}">{{ $product->name }} (Cikkszám: {{ $product->sku }})</option>
                 @endforeach
             </select>
         </div>

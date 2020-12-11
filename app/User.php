@@ -3,6 +3,7 @@
 namespace App;
 
 use App\Subesz\OrderService;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -130,6 +131,15 @@ class User extends Authenticatable
      * @return bool
      */
     public function isAAM() {
-        return $this->vat_id == 992;
+        return $this->vat_id == env('AAM_VAT_ID');
+    }
+
+    /**
+     * @return int
+     */
+    public function getDeliveryCountThisMonth() {
+        $start = Carbon::now()->firstOfMonth();
+        $end = Carbon::now()->endOfDay();
+        return $this->deliveries()->whereBetween('delivered_at', [$start, $end])->count();
     }
 }
