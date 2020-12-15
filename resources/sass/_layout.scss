@@ -60,6 +60,14 @@ a.text-normal {
   color: $pastel-orange !important;
 }
 
+.font-weight-bold {
+  font-weight: 600 !important;
+}
+
+.font-weight-semibold {
+  font-weight: 500 !important;
+}
+
 body {
   color: $text-base;
 }
@@ -70,8 +78,8 @@ body {
   left: 0;
   width: $sidebar-width;
   height: 100vh;
-  background-color: $white;
-  border-right: 1px solid $gray-200;
+  background-color: $body-bg;
+  border-right: 1px solid $gray-300;
   z-index: 2;
 
   .sidebar-nav {
@@ -88,17 +96,17 @@ body {
   }
 
   .navbar-brand {
-    padding: 1.5rem;
+    padding: 3rem 1.5rem 1.5rem 1.5rem;
     width: 100%;
     color: $gray-900;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   .nav-title {
     letter-spacing: 1px;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: $gray-500;
-    font-weight: 700;
+    font-weight: 600;
     text-transform: uppercase;
     padding-left: 1.5rem;
     margin-top: 1rem;
@@ -109,25 +117,26 @@ body {
   }
 
   .nav-link {
-    font-weight: 700;
+    font-weight: 500;
     position: relative;
     color: $gray-500;
-    padding: 0.75rem 1.5rem;
+    padding: 0.25rem 1.5rem;
+    font-size: 14px;
 
     &:hover,
     &.active {
-      color: $gray-700;
+      color: $black;
 
       .icon {
-        color: $blue;
+        color: $teal;
       }
     }
 
     &[data-toggle="collapse"] {
-      color: $gray-700;
+      color: $black;
 
       .icon {
-        color: $blue;
+        color: $teal;
       }
     }
 
@@ -156,13 +165,13 @@ body {
       position: absolute;
       top: 50%;
       right: 1.5rem;
-      color: $blue;
-      transform: translateY(-50%) rotate(180deg);
+      color: $teal;
+      transform: translateY(-50%) rotate(0deg);
       transition: all 250ms ease-in-out;
     }
 
     &.collapsed[data-toggle="collapse"]:after {
-      transform: translateY(-50%) rotate(0deg);
+      transform: translateY(-50%) rotate(90deg);
       color: $gray-500;
     }
 
@@ -177,11 +186,12 @@ body {
       padding-left: 2.25rem;
 
       .nav-link {
+        padding-left: 2rem;
         color: $gray-500;
 
         &:hover,
         &.active {
-          color: $gray-700;
+          color: $black;
         }
       }
     }

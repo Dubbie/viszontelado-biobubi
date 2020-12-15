@@ -33,11 +33,7 @@
                         <td>{{ $user->zips_count }} db</td>
                         <td>{{ $user->deliveries_count }} db</td>
                         <td class="text-right">
-                            <button type="button" class="btn-user-details btn-icon" data-toggle="modal" data-target="#userDetailsModal" data-user-id="{{ $user->id }}">
-                                <span class="icon">
-                                    <i class="fas fa-expand"></i>
-                                </span>
-                            </button>
+                            <a href="{{ action('UserController@show', $user) }}" class="btn btn-sm btn-outline-secondary">Részletek</a>
                         </td>
                     </tr>
                 @endforeach

@@ -14,7 +14,6 @@ $(function () {
     const elIncomeSum = document.getElementById('income-sum');
     let countMap = null;
     let incomeSum = null;
-    let benjiSum = null;
 
     const elExpenseSum = document.getElementById('expense-sum');
     const elExpenseContainer = document.getElementById('expense-container');
@@ -31,19 +30,7 @@ $(function () {
             .then(json => {
                 elExpenseSum.innerText = json.sum.toLocaleString() + ' Ft';
                 expenseSum = json.sum;
-
-                if ('benji' in json) {
-                   benjiSum = json.benji;
-                    renderExpenseData(json.data);
-
-                    if (benjiSum > 0) {
-                        const elBenji = createBenjiElement(json.benji);
-                        elExpenseContainer.appendChild(elBenji);
-                    }
-                } else {
-                    renderExpenseData(json.data);
-                }
-
+                renderExpenseData(json.data);
                 updateProfit();
             });
     }
@@ -58,6 +45,9 @@ $(function () {
 
             for (const expense of data) {
                 const listGroupItem = document.createElement('div');
+                listGroupItem.title = expense.comment;
+                listGroupItem.classList.add('has-tooltip');
+                listGroupItem.dataset.toggle='tooltip';
 
                 const row = document.createElement('div');
                 row.classList.add('row', 'mb-2');
@@ -73,7 +63,7 @@ $(function () {
 
                 const amount = document.createElement('p');
                 amount.classList.add('mb-1', 'text-muted', 'font-weight-bold');
-                amount.innerText = expense.amount.toLocaleString() + ' Ft';
+                amount.innerText = expense['gross_value'].toLocaleString() + ' Ft';
 
                 const date = document.createElement('small');
                 date.classList.add('mb-0', 'text-muted');
@@ -117,42 +107,15 @@ $(function () {
             label.classList.add('mb-0');
             elExpenseContainer.appendChild(label);
         }
-    }
 
-    function createBenjiElement(benjiSum) {
-        const listGroupItem = document.createElement('div');
-
-        const row = document.createElement('div');
-        row.classList.add('row', 'mt-2');
-
-        const colLeft = document.createElement('div');
-        colLeft.classList.add('col-md-10');
-        colLeft.style.lineHeight = '1';
-
-        const name = document.createElement('p');
-        name.classList.add('mb-1', 'font-weight-bold');
-        name.innerText = 'Benji költségei';
-
-        const amount = document.createElement('p');
-        amount.classList.add('mb-1', 'text-muted', 'font-weight-bold');
-        amount.innerText = benjiSum.toLocaleString() + ' Ft';
-
-        colLeft.appendChild(name);
-        colLeft.appendChild(amount);
-
-        row.appendChild(colLeft);
-
-        listGroupItem.appendChild(row);
-
-        return listGroupItem;
+        $('.has-tooltip[data-toggle="tooltip"]').tooltip();
     }
 
     function updateProfit() {
         if (incomeSum != null && expenseSum != null) {
             const profit = incomeSum - expenseSum;
-            const profitWithBenjiExpenses = benjiSum ? profit - benjiSum : profit;
             elProfit.classList.remove('text-muted', 'text-danger', 'text-succes');
-            elProfit.innerText = profitWithBenjiExpenses.toLocaleString() + ' Ft';
+            elProfit.innerText = profit.toLocaleString() + ' Ft';
             elProfit.classList.add('text-success');
             if (profit < 0) {
                 elProfit.classList.add('text-danger');
@@ -204,36 +167,36 @@ $(function () {
                 updateProfit();
             });
     }
-
-    function fetchDeliveries() {
-        $(elDeliveries).html('<span class="text-white-50">Betöltés alatt...</span>');
-        // Szedjük ki az új adatokat
-        fetch('/benji-penz?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
-            .then(response => response.text())
-            .then(html => {
-                $(elDeliveries).html(html);
-            });
-    }
-
-    $(document).on('submit', '#form-benji-money', (e) => {
-        e.preventDefault();
-        const formBenjiMoney = e.currentTarget;
-        $(formBenjiMoney).find('button[type="submit"]')[0].disabled = true;
-        $.ajax('/benji-penz/mentes', {
-            method: 'POST',
-            data: $(formBenjiMoney).serialize()
-        }).done(response => {
-            if (response.success === true) {
-                fetchDeliveries();
-            }
-        }).fail(response => {
-            console.log(response);
-        }).always(() => {
-            if (formBenjiMoney) {
-                $(formBenjiMoney).find('button[type="submit"]')[0].disabled = false;
-            }
-        });
-    });
+    //
+    // function fetchDeliveries() {
+    //     $(elDeliveries).html('<span class="text-white-50">Betöltés alatt...</span>');
+    //     // Szedjük ki az új adatokat
+    //     fetch('/benji-penz?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
+    //         .then(response => response.text())
+    //         .then(html => {
+    //             $(elDeliveries).html(html);
+    //         });
+    // }
+    //
+    // $(document).on('submit', '#form-benji-money', (e) => {
+    //     e.preventDefault();
+    //     const formBenjiMoney = e.currentTarget;
+    //     $(formBenjiMoney).find('button[type="submit"]')[0].disabled = true;
+    //     $.ajax('/benji-penz/mentes', {
+    //         method: 'POST',
+    //         data: $(formBenjiMoney).serialize()
+    //     }).done(response => {
+    //         if (response.success === true) {
+    //             fetchDeliveries();
+    //         }
+    //     }).fail(response => {
+    //         console.log(response);
+    //     }).always(() => {
+    //         if (formBenjiMoney) {
+    //             $(formBenjiMoney).find('button[type="submit"]')[0].disabled = false;
+    //         }
+    //     });
+    // });
 
     // Chart.JS
     const ctx = document.getElementById('income-chart');
@@ -414,8 +377,4 @@ $(function () {
 
     fetchIncome();
     fetchExpenses();
-
-    if (elDeliveries) {
-        fetchDeliveries();
-    }
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Product;
 use App\Subesz\ShoprenterService;
 use App\TrialProduct;
+use Illuminate\Http\Request;
 
 class TrialProductController extends Controller
 {
@@ -27,7 +28,7 @@ class TrialProductController extends Controller
         $this->shoprenterService->updateProducts();
 
         return view('product.all')->with([
-            'products' => Product::all()
+            'products' => Product::orderByDesc('status')->orderBy('name')->get()
         ]);
     }
 
@@ -43,5 +44,32 @@ class TrialProductController extends Controller
         $found->save();
 
         return Product::all();
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function editProduct(Request $request) {
+        $data = $request->validate([
+            'ep-product-sku' => 'required',
+            'ep-purchase-price' => 'required',
+            'ep-wholesale-price' => 'required',
+        ]);
+
+        $product = Product::find($data['ep-product-sku']);
+        if (!$product) {
+            \Log::error(sprintf('Hiba a termék frissítésekor, nincs ilyen cikkszámú termék. (%s)', $data['ep-product-sku']));
+            return redirect(action('TrialProductController@listProducts'))->with([
+                'error' => sprintf('Hiba a termék frissítésekor, nincs ilyen cikkszámú termék. (%s)', $data['ep-product-sku']),
+            ]);
+        }
+        $product->purchase_price = $data['ep-purchase-price'];
+        $product->wholesale_price = $data['ep-wholesale-price'];
+        $product->save();
+
+        return redirect(action('TrialProductController@listProducts'))->with([
+            'success' => 'Termék sikeresen frissítve',
+        ]);
     }
 }

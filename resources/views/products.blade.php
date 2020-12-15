@@ -31,13 +31,12 @@
                         <td class="align-middle">{{ $product->sku }}</td>
                         <td class="align-middle text-right">{{ number_format($product->gross_price, 0, '.', ' ') . ' Ft' }}</td>
                         <td class="align-middle">{{ $product->status ? 'Engedélyezve' : 'Letiltva' }}</td>
-                        <td class="align-middle text-center">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input ch-trial-product"
-                                       id="product-{{ $product->sku }}" data-product-sku="{{ $product->sku }}"
-                                        {{ $product->trial_product ? 'checked' : '' }}>
-                                <label class="custom-control-label" for="product-{{ $product->sku }}"></label>
-                            </div>
+                        <td class="align-middle text-right">
+                            <a href="#editProductModal" data-toggle="modal" class="btn btn-outline-secondary">
+                                <span>
+                                    <ion-icon name="pencil"></ion-icon>
+                                </span>
+                            </a>
                         </td>
                     </tr>
                 @endforeach
@@ -45,6 +44,8 @@
             </table>
         </div>
     </div>
+
+    @include('modal.edit-product')
 @endsection
 
 @section('scripts')

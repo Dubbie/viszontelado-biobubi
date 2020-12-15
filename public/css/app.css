@@ -1,11 +1,6 @@
-@import url(https://fonts.googleapis.com/css?family=Ubuntu:300,400,700&display=swap);@charset "UTF-8";
+@import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;
 
-/*!
- * Bootstrap v4.4.1 (https://getbootstrap.com/)
- * Copyright 2011-2019 The Bootstrap Authors
- * Copyright 2011-2019 Twitter, Inc.
- * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
- */
+400;500;600&display=swap);@charset "UTF-8";
 
 :root {
   --blue: #3490dc;
@@ -16,7 +11,7 @@
   --orange: #f6993f;
   --yellow: #ffed4a;
   --green: #38c172;
-  --teal: #00bdca;
+  --teal: #00aea5;
   --cyan: #6cb2eb;
   --white: #fff;
   --gray: #6c757d;
@@ -34,7 +29,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
-  --font-family-sans-serif: "Ubuntu", sans-serif;
+  --font-family-sans-serif: "Poppins", sans-serif;
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -66,7 +61,7 @@ section {
 
 body {
   margin: 0;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.6;
@@ -6376,7 +6371,7 @@ a.close.disabled {
   z-index: 1070;
   display: block;
   margin: 0;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -6501,7 +6496,7 @@ a.close.disabled {
   z-index: 1060;
   display: block;
   max-width: 276px;
-  font-family: "Ubuntu", sans-serif;
+  font-family: "Poppins", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -17811,7 +17806,7 @@ a.text-dark:focus {
 }
 
 .text-teal {
-  color: #00bdca !important;
+  color: #00aea5 !important;
 }
 
 .text-normal {
@@ -17862,6 +17857,14 @@ a.text-normal:hover {
   color: #bc8668 !important;
 }
 
+.font-weight-bold {
+  font-weight: 600 !important;
+}
+
+.font-weight-semibold {
+  font-weight: 500 !important;
+}
+
 body {
   color: #2b4149;
 }
@@ -17872,8 +17875,8 @@ body {
   left: 0;
   width: 250px;
   height: 100vh;
-  background-color: #fff;
-  border-right: 1px solid #e9ecef;
+  background-color: #f5f9fa;
+  border-right: 1px solid #dee2e6;
   z-index: 2;
 }
 
@@ -17891,17 +17894,17 @@ body {
 }
 
 .sidebar .navbar-brand {
-  padding: 1.5rem;
+  padding: 3rem 1.5rem 1.5rem 1.5rem;
   width: 100%;
   color: #212529;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .sidebar .nav-title {
   letter-spacing: 1px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #adb5bd;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   padding-left: 1.5rem;
   margin-top: 1rem;
@@ -17912,28 +17915,29 @@ body {
 }
 
 .sidebar .nav-link {
-  font-weight: 700;
+  font-weight: 500;
   position: relative;
   color: #adb5bd;
-  padding: 0.75rem 1.5rem;
+  padding: 0.25rem 1.5rem;
+  font-size: 14px;
 }
 
 .sidebar .nav-link:hover,
 .sidebar .nav-link.active {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .nav-link:hover .icon,
 .sidebar .nav-link.active .icon {
-  color: #3490dc;
+  color: #00aea5;
 }
 
 .sidebar .nav-link[data-toggle=collapse] {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .nav-link[data-toggle=collapse] .icon {
-  color: #3490dc;
+  color: #00aea5;
 }
 
 .sidebar .nav-link.collapsed[data-toggle=collapse] {
@@ -17962,13 +17966,13 @@ body {
   position: absolute;
   top: 50%;
   right: 1.5rem;
-  color: #3490dc;
-  transform: translateY(-50%) rotate(180deg);
+  color: #00aea5;
+  transform: translateY(-50%) rotate(0deg);
   transition: all 250ms ease-in-out;
 }
 
 .sidebar .nav-link.collapsed[data-toggle=collapse]:after {
-  transform: translateY(-50%) rotate(0deg);
+  transform: translateY(-50%) rotate(90deg);
   color: #adb5bd;
 }
 
@@ -17984,6 +17988,7 @@ body {
 
 .sidebar .nav-item .collapse .nav-link,
 .sidebar .nav-item .collapsing .nav-link {
+  padding-left: 2rem;
   color: #adb5bd;
 }
 
@@ -17991,7 +17996,7 @@ body {
 .sidebar .nav-item .collapse .nav-link.active,
 .sidebar .nav-item .collapsing .nav-link:hover,
 .sidebar .nav-item .collapsing .nav-link.active {
-  color: #495057;
+  color: #000;
 }
 
 .sidebar .sidebar-bottom-menu {
@@ -18172,25 +18177,25 @@ body {
 }
 
 .btn-teal {
-  background-color: #00bdca;
+  background-color: #00aea5;
   color: #ffffff;
 }
 
 .btn-teal:hover {
-  background-color: #22cbd7;
+  background-color: #1cddd3;
   color: #ffffff;
 }
 
 .btn-outline-teal {
   background-color: transparent;
-  border-color: #00bdca;
-  color: #00bdca;
+  border-color: #00aea5;
+  color: #00aea5;
 }
 
 .btn-outline-teal:hover {
   background-color: transparent;
-  border-color: #22cbd7;
-  color: #22cbd7;
+  border-color: #1cddd3;
+  color: #1cddd3;
 }
 
 .btn-toolbar .btn-sm,
@@ -18311,6 +18316,29 @@ body .select2-container--default .select2-selection--single .select2-selection__
 .btn-icon.disabled {
   opacity: 0.5;
   pointer-events: none;
+}
+
+.nav-tabs {
+  border: 0;
+  margin-left: 1rem;
+}
+
+.nav-tabs .nav-link {
+  border: 0;
+  color: #adb5bd;
+}
+
+.nav-tabs .nav-link:hover {
+  color: #495057;
+}
+
+.nav-tabs .nav-link.active {
+  border-bottom: 4px solid #00aea5;
+  font-weight: 600;
+}
+
+.nav-tabs .nav-link.active:hover {
+  color: #495057;
 }
 
 .toolbar {

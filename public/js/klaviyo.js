@@ -17,8 +17,6 @@ var KlaviyoIntegration = function() {
 
     function bindViewedProduct() {
         if (ShopRenter.product) {
-            var _learnq = _learnq || [];
-
             log('Termék megtekintve (SKU: ' + ShopRenter.product.sku + ')');
             $.ajax({
                 type: 'POST',
@@ -28,21 +26,25 @@ var KlaviyoIntegration = function() {
                 },
                 success: function(res) {
                     console.log(res);
-                    var item = ShopRenter.product;
+                    var item = res;
 
-                    _learnq.push(["track", "Viewed Product", item]);
+                    window._learnq.push(["track", "Viewed Product", item]);
 
-                    _learnq.push(["trackViewedItem", {
-                        "id": item.id,
-                        "sku": item.sku,
-                        "parent": {
-                            "id": item.parent.id,
-                            "sku": item.parent.sku
-                        },
+                    window._learnq.push(["trackViewedItem", {
+                        "Title": item.ProductName,
+                        "ItemId": item.ProductID,
+                        "Categories": item.Categories,
+                        "ImageUrl": item.ImageURL,
+                        "Url": item.URL,
+                        "Metadata": {
+                            "Brand": item.Brand,
+                            "Price": item.Price,
+                            "CompareAtPrice": item.CompareAtPrice
+                        }
                     }]);
                 },
                 error: function(request, status, error) {
-                    console.error(request.responseText);
+                    console.log(request);
                 }
             });
         }
@@ -84,7 +86,7 @@ var KlaviyoIntegration = function() {
                     console.log('Cart data to be sent to Klaviyo:');
                     console.log(cartData);
 
-                    _learnq.push(["track", "Added to Cart", cartData]);
+                    window._learnq.push(["track", "Added to Cart", cartData]);
                 },
                 error: function(request, status, error) {
                     console.error(request.responseText);
@@ -94,56 +96,60 @@ var KlaviyoIntegration = function() {
     }
 
     function bindStartedCheckout() {
-        $(document).on('click', '.navigation-button', e => {
-            var email = document.getElementById('email');
-            var firstname = document.getElementById('firstname');
-            var lastname = document.getElementById('lastname');
+        $(document).on('click', e => {
+            if (e.target.textContent === 'Tovább a szállítási módokhoz') {
+                var email = document.getElementById('email');
+                var firstname = document.getElementById('firstname');
+                var lastname = document.getElementById('lastname');
 
-            if (email && email.value.length > 0) {
-                var _learnq = _learnq || [];
-                _learnq.push(['identify', {
-                    '$email': email.value,
-                    '$first_name': firstname.value,
-                    '$last_name': lastname.value
-                }]);
+                console.log(email);
+                if (email && email.value.length > 0) {
+                    window._learnq.push(['identify', {
+                        '$email': email.value,
+                        '$first_name': firstname.value,
+                        '$last_name': lastname.value
+                    }]);
 
-                var cartData = {
-                    "$event_id": "",
-                    "Items": [],
-                    "ItemNames": [],
-                    "CheckoutURL": 'https://biobubi.hu/checkout',
-                };
+                    var cartData = {
+                        "$event_id": "",
+                        "Items": [],
+                        "ItemNames": [],
+                        "CheckoutURL": 'https://biobubi.hu/checkout',
+                    };
 
-                $.ajax({
-                    type: 'GET',
-                    url: '/cart.json',
-                    success: function(res) {
-                        for (const item of res.items) {
-                            cartData['Items'].push({
-                                "ProductID": item.id,
-                                "SKU": item.sku,
-                                "ProductName": item.name,
-                                "Quantity": item.quantity,
-                                "ItemPrice": item.price,
-                                "RowTotal": item.total,
-                                "ProductURL": item.href,
-                            });
+                    $.ajax({
+                        type: 'GET',
+                        url: '/cart.json',
+                        success: function(res) {
+                            for (const item of res.items) {
+                                cartData['Items'].push({
+                                    "ProductID": item.id,
+                                    "SKU": item.sku,
+                                    "ProductName": item.name,
+                                    "Quantity": item.quantity,
+                                    "ItemPrice": item.price,
+                                    "RowTotal": item.total,
+                                    "ProductURL": item.href,
+                                });
 
-                            cartData['ItemNames'].push(item.name);
+                                cartData['ItemNames'].push(item.name);
+                            }
+                            var unixTimestamp = Math.round(+new Date()/1000);
+                            var token = res.token ? res.token : unixTimestamp;
+                            cartData['$value'] = res.total;
+                            cartData['$event_id'] = token + '_' + unixTimestamp;
+                            console.log('Data from ShopRenter: ');
+                            console.log(res);
+                            console.log('Cart data to be sent to Klaviyo Checkout:');
+                            console.log(cartData);
+
+                            window._learnq.push(["track", "Started Checkout", cartData]);
+                        },
+                        error: function(request, status, error) {
+                            console.error(request.responseText);
                         }
-                        cartData['$value'] = res.total;
-                        cartData['$event_id'] = res.token + '_' + Math.round(+new Date()/1000);
-                        console.log('Data from ShopRenter: ');
-                        console.log(res);
-                        console.log('Cart data to be sent to Klaviyo Checkout:');
-                        console.log(cartData);
-
-                        _learnq.push(["track", "Started Checkout", cartData]);
-                    },
-                    error: function(request, status, error) {
-                        console.error(request.responseText);
-                    }
-                });
+                    });
+                }
             }
         });
     }
@@ -152,9 +158,11 @@ var KlaviyoIntegration = function() {
         log('Inicializálás...');
         console.log(ShopRenter);
 
-        var _learnq = _learnq || [];
+        if (!window._learnq) {
+            window._learnq = [];
+        }
 
-        _learnq.push(['identify', {
+        window._learnq.push(['identify', {
             // Change the line below to dynamically print the user's email.
             '$email' : ShopRenter.customer.email
         }]);

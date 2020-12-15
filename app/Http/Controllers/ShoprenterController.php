@@ -215,6 +215,10 @@ class ShoprenterController extends Controller
             $localOrder->draft_invoice_id = $invoice->getId();
             $localOrder->save();
             Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+            // Trackeljük Klaviyo-ba
+            $ks = resolve('App\Subesz\KlaviyoService');
+            $ks->trackOrder($order);
         }
 
         return ['success' => true];
@@ -240,6 +244,14 @@ class ShoprenterController extends Controller
      */
     public function testBillingo()
     {
+        $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '55826612-d7f0-11ea-9aab-0adb4fd9a356');
+
+        $docu = new DocumentApi(new Client(), $config);
+        try {
+            $docu->listDocument();
+        } catch (ApiException $e) {
+            dd($e->getMessage());
+        }
     }
 
     public function getProduct(Request $request)
@@ -248,13 +260,14 @@ class ShoprenterController extends Controller
         $klaviyoProduct = [
             "ProductName" => $product->productDescriptions[0]->name,
             "ProductID" => $product->innerId,
-//            "Categories" => ["Fiction", "Children"],
             "ImageURL" => $product->allImages->mainImage,
             "URL" => 'https://biobubi.hu/' . $product->urlAliases[0]->urlAlias,
-            "Brand" => $product->manufacturer->name,
+            "Brand" => $product->manufacturer->name ?? 'Semmiszemét',
             "Price" => $product->price * 1.27,
-//            "CompareAtPrice" => 14.99
+            "CompareAtPrice" => $product->price * 1.27,
         ];
+
+        header('Access-Control-Allow-Origin: https://biobubi.hu');
         return $klaviyoProduct;
     }
 }
