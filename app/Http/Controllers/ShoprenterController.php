@@ -241,15 +241,8 @@ class ShoprenterController extends Controller
 
     public function testShoprenter()
     {
-        $ss = resolve('App\Subesz\StockService');
-        $order = $this->shoprenterApi->getOrder('b3JkZXItb3JkZXJfaWQ9Mzk2OA==');
-
-        // Elmentjük a készlethez szükséges dolgokat
-        $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-        $booked = $ss->bookOrder($orderedProducts, '4233');
-        if ($booked) {
-            $this->orderService->saveOrderedProducts($orderedProducts, '4233');
-        }
+        $repService = resolve('App\Subesz\ReportService');
+        $repService->generateReportByDate(User::find('4'), Carbon::now());
     }
 
     /**

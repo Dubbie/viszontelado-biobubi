@@ -120,6 +120,8 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/teendok/{todoId}/kapcsolas', 'OrderTodoController@toggle');
     Route::delete('/teendok/{todoId}/torles', 'OrderTodoController@destroy');
 
+    Route::get('/riport/aktualis', 'ReportController@showQuick');
+
     Route::resource('keszletem', 'StockController', ['only' => [
         'index', 'store'
     ]]);

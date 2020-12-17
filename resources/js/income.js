@@ -1,5 +1,5 @@
 $(function () {
-    if (window.location.pathname !== '/penzugy') {
+    if (window.location.pathname !== '/riport/aktualis') {
         return;
     }
 
@@ -19,9 +19,7 @@ $(function () {
     const elExpenseContainer = document.getElementById('expense-container');
     let expenseSum = null;
 
-    const elProfit = document.getElementById('profit');
-
-    const elDeliveries = document.getElementById('deliveries-container');
+    const elDeliveries = document.getElementById('deliveries-count');
 
     function fetchExpenses() {
         // Szedjük ki az új adatokat
@@ -31,7 +29,6 @@ $(function () {
                 elExpenseSum.innerText = json.sum.toLocaleString() + ' Ft';
                 expenseSum = json.sum;
                 renderExpenseData(json.data);
-                updateProfit();
             });
     }
 
@@ -111,18 +108,6 @@ $(function () {
         $('.has-tooltip[data-toggle="tooltip"]').tooltip();
     }
 
-    function updateProfit() {
-        if (incomeSum != null && expenseSum != null) {
-            const profit = incomeSum - expenseSum;
-            elProfit.classList.remove('text-muted', 'text-danger', 'text-succes');
-            elProfit.innerText = profit.toLocaleString() + ' Ft';
-            elProfit.classList.add('text-success');
-            if (profit < 0) {
-                elProfit.classList.add('text-danger');
-            }
-        }
-    }
-
     function deleteExpense(expenseId) {
         const row = $('.row[data-expense-id="' + expenseId + '"]')[0];
 
@@ -157,6 +142,12 @@ $(function () {
         fetch('/api/bevetel?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
             .then(response => response.json())
             .then(json => {
+                let delivered = 0;
+                for (const data of json.count) {
+                    delivered += data.count;
+                }
+                elDeliveries.innerText = delivered + ' cím';
+
                 removeData(chart);
                 countMap = json.count;
                 elIncomeSum.innerText = json.sum.toLocaleString() + ' Ft';
@@ -164,53 +155,23 @@ $(function () {
                 for (const data of json.data) {
                     addData(chart, data.x, data);
                 }
-                updateProfit();
             });
     }
-    //
-    // function fetchDeliveries() {
-    //     $(elDeliveries).html('<span class="text-white-50">Betöltés alatt...</span>');
-    //     // Szedjük ki az új adatokat
-    //     fetch('/benji-penz?start-date=' + moment(startDate).format('YYYY/MM/DD') + '&end-date=' + moment(endDate).format('YYYY/MM/DD'))
-    //         .then(response => response.text())
-    //         .then(html => {
-    //             $(elDeliveries).html(html);
-    //         });
-    // }
-    //
-    // $(document).on('submit', '#form-benji-money', (e) => {
-    //     e.preventDefault();
-    //     const formBenjiMoney = e.currentTarget;
-    //     $(formBenjiMoney).find('button[type="submit"]')[0].disabled = true;
-    //     $.ajax('/benji-penz/mentes', {
-    //         method: 'POST',
-    //         data: $(formBenjiMoney).serialize()
-    //     }).done(response => {
-    //         if (response.success === true) {
-    //             fetchDeliveries();
-    //         }
-    //     }).fail(response => {
-    //         console.log(response);
-    //     }).always(() => {
-    //         if (formBenjiMoney) {
-    //             $(formBenjiMoney).find('button[type="submit"]')[0].disabled = false;
-    //         }
-    //     });
-    // });
 
     // Chart.JS
     const ctx = document.getElementById('income-chart');
     const chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: [],
             datasets: [{
                 label: 'Megrendelés',
-                borderColor: "#80b6f4",
-                pointBorderColor: "#80b6f4",
-                pointBackgroundColor: "#80b6f4",
-                pointHoverBackgroundColor: "#80b6f4",
-                pointHoverBorderColor: "#80b6f4",
+                backgroundColor: '#52de70',
+                borderColor: "#52de70",
+                pointBorderColor: "#52de70",
+                pointBackgroundColor: "#52de70",
+                pointHoverBackgroundColor: "#52de70",
+                pointHoverBorderColor: "#52de70",
                 pointBorderWidth: 7,
                 pointHoverRadius: 7,
                 pointHoverBorderWidth: 1,
@@ -226,25 +187,29 @@ $(function () {
             },
             scales: {
                 yAxes: [{
+                    gridLines: {
+                        // zeroLineColor: "transparent"
+                    },
                     ticks: {
-                        fontColor: "rgba(0,0,0,0.5)",
+                        fontColor: "rgba(0,0,0,0.33)",
                         fontStyle: "bold",
                         beginAtZero: true,
                         maxTicksLimit: 5,
                         padding: 20,
                         // Include a dollar sign in the ticks
                         callback: function(value, index, values) {
-                            return value.toLocaleString() + ' Ft';
+                            return intToString(value) + ' Ft';
                         }
                     },
                 }],
                 xAxes: [{
                     gridLines: {
+                        display: false,
                         zeroLineColor: "transparent"
                     },
                     ticks: {
                         padding: 20,
-                        fontColor: "rgba(0,0,0,0.5)",
+                        fontColor: "rgba(0,0,0,0.33)",
                         fontStyle: "bold",
                         maxTicksLimit: 10,
                     }
