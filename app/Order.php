@@ -8,6 +8,7 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -29,6 +30,7 @@ class Order extends Model
         'firstname',
         'lastname',
         'email',
+        'phone',
         'status_text',
         'status_color',
         'shipping_method_name',
@@ -43,7 +45,8 @@ class Order extends Model
     /**
      * @return string
      */
-    public function getFormattedAddress() {
+    public function getFormattedAddress()
+    {
         $out = '';
 
         if ($this->shipping_postcode && $this->shipping_city && $this->shipping_address) {
@@ -56,14 +59,16 @@ class Order extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function reseller() {
+    public function reseller()
+    {
         return $this->hasOne(User::class, 'id', 'reseller_id');
     }
 
     /**
      * @return array
      */
-    public function getReseller() {
+    public function getReseller()
+    {
         return [
             'resellers' => $this->reseller,
             'correct' => $this->reseller,
@@ -101,15 +106,17 @@ class Order extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function comments() {
+    public function comments()
+    {
         return $this->hasMany(OrderComment::class, 'order_id', 'id');
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function todos() {
-        return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function(Builder $query) {
+    public function todos()
+    {
+        return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function (Builder $query) {
             $query->where('user_id', \Auth::id());
         });
     }
@@ -117,14 +124,16 @@ class Order extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function products() {
+    public function products()
+    {
         return $this->hasMany(OrderProducts::class, 'order_id', 'id');
     }
 
     /**
      * @return array
      */
-    public function getShoprenterOrder() {
+    public function getShoprenterOrder()
+    {
         /** @var ShoprenterService $ss */
         $ss = resolve('App\Subesz\ShoprenterService');
         return $ss->getOrder($this->inner_resource_id);
@@ -133,7 +142,8 @@ class Order extends Model
     /**
      * @return Collection
      */
-    public function getBaseProducts() {
+    public function getBaseProducts()
+    {
         $orderBaseProducts = new Collection();
         if (count($this->products) > 0) {
             /** @var OrderProducts $orderProduct */
@@ -153,14 +163,16 @@ class Order extends Model
     /**
      * @return bool
      */
-    public function isInvoiceSaved() {
+    public function isInvoiceSaved()
+    {
         return $this->invoice_path !== null;
     }
 
     /**
      * @return bool
      */
-    public function hasTrial() {
+    public function hasTrial()
+    {
         $order = $this->getShoprenterOrder();
         $trial = false;
 
@@ -177,7 +189,8 @@ class Order extends Model
     /**
      * @return null|\Swagger\Client\Model\Document
      */
-    public function getDraftInvoice() {
+    public function getDraftInvoice()
+    {
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
@@ -188,7 +201,8 @@ class Order extends Model
     /**
      * @return null|\Swagger\Client\Model\Document
      */
-    public function createRealInvoice() {
+    public function createRealInvoice()
+    {
         if (!$this->draft_invoice_id) {
             Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
             return null;
@@ -204,7 +218,8 @@ class Order extends Model
     /**
      * @return bool
      */
-    public function sendInvoice() {
+    public function sendInvoice()
+    {
         if (!$this->isInvoiceSaved()) {
             Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
             return false;
@@ -218,6 +233,49 @@ class Order extends Model
         }
 
         return true;
+    }
+
+    public function isCompleted() {
+        return $this->status_text == 'Teljesítve';
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function getDeadline()
+    {
+        /** @var Carbon $deadline */
+        /** @var Carbon $ordered_at */
+        $ordered_at = $this->created_at;
+        $deadline = $ordered_at->clone()->nextWeekday();
+        return $deadline;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isOverdue()
+    {
+        return !$this->isCompleted() && (Carbon::now() > $this->getDeadline());
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getProgress()
+    {
+        $start = $this->created_at->getTimestamp();
+        $end = $this->getDeadline()->getTimestamp() - $start;
+        $now = time();
+        $elapsed = $now - $start;
+
+        if ($elapsed > $end) {
+            return 1;
+        }
+        if ($now < $start) {
+            return 0;
+        }
+        return ($elapsed / $end) * 100;
     }
 
     protected static function booted()

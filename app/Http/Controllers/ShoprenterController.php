@@ -166,6 +166,7 @@ class ShoprenterController extends Controller
             $localOrder->firstname = $_order['firstname'];
             $localOrder->lastname = $_order['lastname'];
             $localOrder->email = $_order['email'];
+            $localOrder->phone = $_order['phone'];
             $localOrder->shipping_method_name = $_order['shippingMethodName'];
             $localOrder->payment_method_name = $_order['paymentMethodName'];
             $localOrder->status_text = $_order['orderHistory']['statusText'];

@@ -9,10 +9,10 @@
             <div class="col text-right">
                 @if(Auth::user()->admin)
                     <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                    data-toggle="tooltip"
-                    title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                    data-placement="left"
-                    class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
+                       data-toggle="tooltip"
+                       title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+                       data-placement="left"
+                       class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
                 @endif
                 <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelése leadása</a>
             </div>
@@ -74,81 +74,11 @@
                 </div>
             </form>
         </div>
+        @foreach($orders as $order)
+            <x-order :order="$order"></x-order>
+        @endforeach
 
-        <div class="card card-body">
-            <table class="table table-responsive-xl table-sm table-borderless mb-0">
-                <thead>
-                <tr>
-                    <th>
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input ch-order-select"
-                                   name="ch-order-select-all"
-                                   id="ch-order-select-all">
-                            <label class="custom-control-label"
-                                   for="ch-order-select-all"></label>
-                        </div>
-                    </th>
-                    <th scope="col">
-                        <small class="font-weight-bold">Ügyfél</small>
-                    </th>
-                    <th scope="col">
-                        <small class="font-weight-bold">Állapot</small>
-                    </th>
-                    <th scope="col">
-                        <small class="font-weight-bold">Város</small>
-                    </th>
-                    <th scope="col">
-                        <small class="font-weight-bold">Kezdő dátum</small>
-                    </th>
-                    <th scope="col" class="text-right">
-                        <small class="font-weight-bold">Összesen</small>
-                    </th>
-                    <td></td>
-                </tr>
-                </thead>
-                <tbody>
-                @foreach($orders as $order)
-                    <tr>
-                        <td class="align-middle">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input ch-order-select"
-                                       name="ch-order-select[]"
-                                       id="ch-order-select-{{ $order->inner_id }}"
-                                       data-order-id="{{ $order->inner_resource_id }}">
-                                <label class="custom-control-label"
-                                       for="ch-order-select-{{ $order->inner_id }}"></label>
-                            </div>
-                        </td>
-                        <td>
-                            <p class="mb-0">{{ $order->firstname }} {{ $order->lastname }}
-                                <small class="d-block text-muted">{{ $order->email }}</small>
-                            </p>
-                        </td>
-                        <td class="align-middle">
-                            <p class="mb-0" style="color: {{ $order->status_color }}">{{ $order->status_text }}</p>
-                        </td>
-                        <td class="align-middle"><p class="mb-0">{{ $order->getFormattedAddress() }}</p></td>
-                        <td class="align-middle"><p
-                                    class="mb-0 text-nowrap">{{ $order->created_at->format('Y. m. d. H:i') }}</p>
-                        </td>
-                        <td class="text-right align-middle">
-                            <p class="mb-0 text-nowrap">{{ number_format($order->total_gross, 0, '.', ' ') }} Ft</p>
-                        </td>
-                        <td class="align-middle text-right">
-                            <a href="{{ action('OrderController@show', ['orderId' => $order->inner_resource_id]) }}"
-                               class="btn-icon">
-                                <span class="icon">
-                                    <i class="fas fa-expand"></i>
-                                </span>
-                            </a>
-                        </td>
-                    </tr>
-                @endforeach
-                </tbody>
-            </table>
-
-            <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
-        </div>
+        <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
     </div>
 
     @include('inc.orders-toolbar')
@@ -173,7 +103,6 @@
     {{-- Tömeges státusz változtató --}}
     <script>
         $(() => {
-            const chAllOrders = document.getElementById('ch-order-select-all');
             const chOrders = $('.ch-order-select');
             const ordersCount = document.getElementById('toolbar-order-counter');
             const toolbar = document.getElementById('toolbar-orders');
@@ -183,7 +112,6 @@
              * Visszaállítja a checkboxokat.
              */
             function resetOrderCheckboxes() {
-                chAllOrders.checked = false;
                 chOrders.each((i, el) => {
                     el.checked = false;
                 });
@@ -208,7 +136,6 @@
              */
             function updateOrdersToolbar() {
                 const selectedOrders = getSelectedOrders();
-                chAllOrders.checked = chOrders.length === selectedOrders.length;
                 if (selectedOrders.length > 0) {
                     toolbar.classList.add('show');
                 } else {
@@ -219,17 +146,6 @@
                     el.value = JSON.stringify(selectedOrders);
                 }
             }
-
-            /**
-             * Összes jármű kiválasztó gomb
-             */
-            $(chAllOrders).on('change', () => {
-                let check = chAllOrders.checked;
-                chOrders.each((i, el) => {
-                    el.checked = check;
-                });
-                updateOrdersToolbar();
-            });
 
             /**
              * Toolbar frissítő bigyó

@@ -179,6 +179,7 @@ class OrderService
             'firstname' => $order->firstname,
             'lastname' => $order->lastname,
             'email' => $order->email,
+            'phone' => $order->phone,
             'status_text' => $this->statusMap[$orderStatusId]['name'],
             'status_color' => $this->statusMap[$orderStatusId]['color'],
             'shipping_method_name' => $order->shippingMethodName,
