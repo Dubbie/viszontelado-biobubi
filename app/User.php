@@ -5,6 +5,10 @@ namespace App;
 use App\Subesz\OrderService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -45,30 +49,32 @@ class User extends Authenticatable
     ];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function zips() {
+    public function zips(): HasMany {
         return $this->hasMany(UserZip::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function stock() {
+    public function stock(): HasMany
+    {
         return $this->hasMany(Stock::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function orders() {
+    public function orders(): HasMany
+    {
         return $this->hasMany(Order::class, 'reseller_id', 'id');
     }
 
     /**
      * Visszaadja a felhasználóhoz tartozó megrendeléseket
      *
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @return Builder[]|Collection
      */
     public function getOrders() {
         /** @var OrderService $orderService */
@@ -78,7 +84,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @return Builder[]|Collection
      */
     public function getOrdersWithProducts() {
         /** @var OrderService $orderService */
@@ -91,38 +97,51 @@ class User extends Authenticatable
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function deliveries() {
+    public function deliveries(): HasMany
+    {
         return $this->hasMany(Delivery::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function expenses() {
+    public function expenses(): HasMany
+    {
         return $this->hasMany(Expense::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function todos() {
+    public function todos(): HasMany
+    {
         return $this->hasMany(OrderTodo::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
-    public function details() {
+    public function details(): HasOne
+    {
         return $this->hasOne(UserDetails::class, 'user_id', 'id');
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
-    public function incomes() {
+    public function incomes(): HasMany
+    {
         return $this->hasMany(Income::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function reports(): HasMany
+    {
+        return $this->hasMany(Report::class, 'user_id', 'id');
     }
 
     /**
@@ -130,14 +149,16 @@ class User extends Authenticatable
      *
      * @return bool
      */
-    public function isAAM() {
+    public function isAAM(): bool
+    {
         return $this->vat_id == env('AAM_VAT_ID');
     }
 
     /**
      * @return int
      */
-    public function getDeliveryCountThisMonth() {
+    public function getDeliveryCountThisMonth(): int
+    {
         $start = Carbon::now()->firstOfMonth();
         $end = Carbon::now()->endOfDay();
         return $this->deliveries()->whereBetween('delivered_at', [$start, $end])->count();

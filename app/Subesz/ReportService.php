@@ -8,7 +8,13 @@ use App\Report;
 use App\ReportProducts;
 use App\User;
 use Carbon\Carbon;
+use DB;
+use Log;
 
+/**
+ * Class ReportService
+ * @package App\Subesz
+ */
 class ReportService
 {
     /**
@@ -32,18 +38,21 @@ class ReportService
         $expenses = $reseller->expenses()->where([
             ['created_at', '>=', $startDate],
             ['created_at', '<=', $endDate],
-        ])->get([\DB::raw('SUM(gross_value) as gross_expense')]);
+        ])->get([DB::raw('SUM(gross_value) as gross_expense')]);
 
         // Termékekdarabra
-        $products = OrderProducts::select(['product_sku', \DB::raw('SUM(product_qty) as count')])->where([
-            ['order_id', '=', '4233']
-        ])->groupBy('product_sku')->get();
+        $products = OrderProducts::select(['product_sku', DB::raw('SUM(product_qty) as count')])
+            ->whereIn('order_id', $orders->pluck('id')->toArray())
+            ->groupBy('product_sku')
+            ->get();
 
+        // Létrehozzuk magát a riportot
         $report = new Report();
         $report->user_id = $reseller->id;
         $report->gross_expense = $expenses[0]->gross_expense ?? 0;
         $report->gross_income = $orders->sum('total_gross');
         $report->delivered_orders = $orders->count();
+        $report->created_at = $endDate;
         $report->save();
         foreach ($products as $product) {
             $rp = new ReportProducts();
@@ -54,6 +63,6 @@ class ReportService
         }
 
         $perfEnd = microtime(true);
-        dd(sprintf('Havi riport legenerálva: %ss alatt', round($perfEnd - $perfStart, 2)));
+        Log::info(sprintf('Havi riport legenerálva: %ss alatt', round($perfEnd - $perfStart, 2)));
     }
 }

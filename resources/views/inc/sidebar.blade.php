@@ -48,7 +48,7 @@
                         <span>Aktuális riport</span>
                     </a>
                     <a class="nav-link @if(Request::is('riport/havi')) active @endif"
-                       href="#!">
+                       href="{{ action('ReportController@showMonthly') }}">
                         <span>Havi riportok</span>
                     </a>
                 </div>

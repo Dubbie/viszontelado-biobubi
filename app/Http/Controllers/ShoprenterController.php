@@ -11,6 +11,7 @@ use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
 use App\User;
+use Auth;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -243,7 +244,13 @@ class ShoprenterController extends Controller
     public function testShoprenter()
     {
         $repService = resolve('App\Subesz\ReportService');
-        $repService->generateReportByDate(User::find('4'), Carbon::now());
+
+        $past = Carbon::createFromFormat('Y/m/d H:i:s', '2019/09/01 00:00:00');
+        $tgt = Carbon::now()->firstOfMonth()->subMonth();
+        while($past < $tgt) {
+            $repService->generateReportByDate(Auth::user(), $past);
+            $past->addMonth();
+        }
     }
 
     /**
@@ -251,7 +258,7 @@ class ShoprenterController extends Controller
      *
      * @return bool
      */
-    public function testBillingo()
+    public function testBillingo(): bool
     {
         $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '55826612-d7f0-11ea-9aab-0adb4fd9a356');
 
@@ -263,7 +270,11 @@ class ShoprenterController extends Controller
         }
     }
 
-    public function getProduct(Request $request)
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function getProduct(Request $request): array
     {
         $product = $this->shoprenterApi->getProduct($request->input('sku'));
         $klaviyoProduct = [
