@@ -70,6 +70,9 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('kozpont/penzugy', 'RevenueController@hqFinance');
         Route::get('api/kozpont/penzugy', 'RevenueController@getHqFinance');
         Route::post('kozpont/penzugy/bevetel/mentes', 'RevenueController@storeIncome');
+
+        Route::get('kozpont/marketing', 'MarketingResultController@show');
+        Route::post('kozpont/marketing/mentes', 'MarketingResultController@store');
     });
 
     Route::get('/', 'UserController@home');
