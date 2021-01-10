@@ -12,15 +12,26 @@
             <div class="row">
                 <div class="col-xl-10">
                     <div class="card card-body mb-4">
-                       @php
-                           /** @var  \App\Report  $report **/
+                        <form action="{{ action('ReportController@showMonthly') }}">
+                            <div class="form-group row no-gutters">
+                                <label for="report-id" class="font-weight-bold col-4 col-md-6 col-xl-9">Havi riport</label>
+                                <select name="report-id" id="report-id" class="custom-select col-8 col-md-6 col-xl-3">
+                                    @foreach(Auth::user()->reports()->orderByDesc('created_at')->get() as $report)
+                                        <option value="{{ $report->id }}" @if($selectedReport && $selectedReport->id == $report->id) selected @endif>{{ \Illuminate\Support\Str::title($report->created_at->translatedFormat('Y F')) }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </form>
+
+                        @php
+                            /** @var  \App\Report  $report **/
                             /** @var  \App\ReportProducts  $rp */
-                           $report = Auth::user()->reports[11]
-                       @endphp
+                            $report = $selectedReport ?? Auth::user()->reports()->orderByDesc('created_at')->first();
+                        @endphp
 
                         <h2 class="font-weight-bold mb-4">{{ \Illuminate\Support\Str::title($report->created_at->translatedFormat('Y F')) }}</h2>
                         <div class="row">
-                            <div class="col-12 col-lg-4 mb-4">
+                            <div class="col-12 col-lg-4 mb-4 mb-md-0">
                                 <div class="card card-body border shadow-none">
                                     <div class="row align-items-center">
                                         <div class="col-4">
@@ -43,7 +54,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12 col-lg-4 mb-4">
+                            <div class="col-12 col-lg-4 mb-4 mb-md-0">
                                 <div class="card card-body border shadow-none">
                                     <div class="row align-items-center">
                                         <div class="col-4">
@@ -110,4 +121,14 @@
             <p class="lead">Nincsenek még generálva elmentett riportok.</p>
         @endif
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $(() => {
+            $('#report-id').on('change', e => {
+                $(e.currentTarget).closest('form').submit();
+            });
+        });
+    </script>
 @endsection

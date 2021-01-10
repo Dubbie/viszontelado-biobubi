@@ -21,12 +21,21 @@ class ReportController extends Controller
     }
 
     /**
+     * @param  Request  $request
      * @return Application|Factory|View
      */
-    public function showMonthly()
+    public function showMonthly(Request $request)
     {
-        return view('report.monthly')->with([
+        $reportId = $request->input('report-id') ?? null;
+        if ($reportId && !Auth::user()->reports()->find($reportId)) {
+            return redirect(action('ReportController@showMonthly'))->with([
+                'error' => 'Nem tartozik ilyen azonosítójú riport a felhasználóhoz',
+            ]);
+        }
 
+        $selectedReport = $reportId ? Auth::user()->reports()->find($reportId) : null;
+        return view('report.monthly')->with([
+            'selectedReport' => $selectedReport
         ]);
     }
 }

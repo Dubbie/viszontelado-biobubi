@@ -72,7 +72,7 @@ class Report extends Model
 
             $perc = round(($diff / $prev->gross_income) * 100);
             if ($perc > 0) {
-                $perc .= '+';
+                $perc = '+' . $perc;
             }
             return $perc . '%';
         }
@@ -109,7 +109,7 @@ class Report extends Model
 
             $perc = round(($diff / $prev->gross_expense) * 100);
             if ($perc > 0) {
-                $perc .= '+';
+                $perc = '+' . $perc;
             }
             return $perc . '%';
         }
@@ -146,7 +146,7 @@ class Report extends Model
 
             $perc = round(($diff / $prev->delivered_orders) * 100);
             if ($perc > 0) {
-                $perc .= '+';
+                $perc = '+' . $perc;
             }
             return $perc . '%';
         }
