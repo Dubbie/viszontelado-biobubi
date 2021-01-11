@@ -154,6 +154,12 @@
                 updateOrdersToolbar();
             });
 
+            $('.form-complete-order').on('submit', e => {
+                if (!confirm('Biztosan teljesíted a megrendelést?')) {
+                    e.preventDefault();
+                }
+            });
+
             resetOrderCheckboxes();
             $('#mur-reseller-id').select2({
                 width: '100%',

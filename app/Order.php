@@ -235,14 +235,26 @@ class Order extends Model
         return true;
     }
 
-    public function isCompleted() {
+    /**
+     * @return bool
+     */
+    public function isCompleted(): bool
+    {
         return $this->status_text == 'Teljesítve';
+    }
+
+    /**
+     * @return bool
+     */
+    public function isPending(): bool
+    {
+        return $this->status_text == 'Függőben lévő';
     }
 
     /**
      * @return Carbon
      */
-    public function getDeadline()
+    public function getDeadline(): Carbon
     {
         /** @var Carbon $deadline */
         /** @var Carbon $ordered_at */
@@ -254,7 +266,7 @@ class Order extends Model
     /**
      * @return bool
      */
-    public function isOverdue()
+    public function isOverdue(): bool
     {
         return !$this->isCompleted() && (Carbon::now() > $this->getDeadline());
     }

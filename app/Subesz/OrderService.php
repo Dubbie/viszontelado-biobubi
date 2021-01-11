@@ -7,11 +7,15 @@ use App\Order;
 use App\OrderProducts;
 use App\User;
 use App\UserZip;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use stdClass;
 
 class OrderService
 {
@@ -49,7 +53,7 @@ class OrderService
 
     /**
      * @param $filter
-     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     * @return LengthAwarePaginator|Builder[]|Collection
      */
     public function getOrdersFiltered($filter = [])
     {
@@ -82,12 +86,12 @@ class OrderService
             $orders = $orders->where('status_text', '=', $filter['status']);
         }
 
-        return $orders->orderBy('created_at', 'desc')->paginate(50);
+        return $orders->orderBy('created_at', 'desc')->paginate(50)->onEachSide(1);
     }
 
     /**
      * @param $userId
-     * @return \Illuminate\Database\Eloquent\Builder
+     * @return Builder
      */
     public function getOrdersQueryByUserId($userId)
     {
@@ -140,7 +144,7 @@ class OrderService
     }
 
     /**
-     * @param \stdClass $order
+     * @param stdClass $order
      * @param bool $muted
      * @return bool
      */
@@ -203,7 +207,7 @@ class OrderService
 
     /**
      * @param int $limit
-     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|null|object
+     * @return Builder|Model|null|object
      */
     public function getLatestOrder($limit = 1)
     {
@@ -283,7 +287,7 @@ class OrderService
 
     /**
      * @param string $string
-     * @return User|Builder|\Illuminate\Database\Eloquent\Model|mixed|null|object
+     * @return User|Builder|Model|mixed|null|object
      */
     public function getResellerByZip(string $string)
     {

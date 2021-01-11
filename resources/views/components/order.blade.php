@@ -36,7 +36,7 @@
                     </div>
                 </div>
             </div>
-            @if(!$order->isCompleted())
+            @if($order->isPending())
                 @if(!$order->isOverdue())
                     <div class="col-12">
                         <div style="height: 5px;" class="progress mt-2">
@@ -79,7 +79,7 @@
         <div class="row no-gutters">
             <div class="col offset-md-8">
                 @if(!$order->isCompleted())
-                    <form action="{{ action('OrderController@completeOrder') }}" method="POST">
+                    <form action="{{ action('OrderController@completeOrder') }}" class="form-complete-order" method="POST">
                         @csrf
                         {{-- Rejtett mező a megrendelésnek --}}
                         <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">

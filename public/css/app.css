@@ -18353,6 +18353,10 @@ body {
   .page-content .container {
     padding: 2rem;
   }
+
+  .paginate {
+    margin-bottom: 3rem;
+  }
 }
 
 .auth {
@@ -18620,9 +18624,17 @@ body .select2-container--default .select2-selection--single .select2-selection__
   border-top: 1px solid #e9ecef;
   transform: translateY(100%);
   transition: all 400ms ease-in-out;
+  z-index: 3;
 }
 
 .toolbar.show {
   transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    padding: 1rem 0;
+    left: 0;
+  }
 }
 
