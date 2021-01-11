@@ -1,10 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
+    <div id="hq-finance-page" class="container">
         <div class="row">
-            <div class="col">
+            <div class="col-12 col-md">
                 <h1 class="font-weight-bold mb-4">Központi pénzügyek</h1>
+            </div>
+            <div class="col-12 col-md-auto text-md-right">
+                <a href="#newMarketingResult" data-toggle="modal" class="btn btn-outline-primary">Új marketinges riport</a>
             </div>
         </div>
 
@@ -135,4 +138,5 @@
 
     @include('modal.new-hq-expense')
     @include('modal.new-hq-income')
+    @include('modal.new-marketing-result')
 @endsection

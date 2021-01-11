@@ -145,6 +145,14 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany
+     */
+    public function marketingResults(): HasMany
+    {
+        return $this->hasMany(MarketingResult::class, 'user_id', 'id');
+    }
+
+    /**
      * Visszaadja, hogy a felhasználó AAM-es-e.
      *
      * @return bool

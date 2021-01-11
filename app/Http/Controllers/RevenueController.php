@@ -8,8 +8,14 @@ use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
 use Carbon\Carbon;
+use Exception;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+use Log;
 
 class RevenueController extends Controller
 {
@@ -31,7 +37,7 @@ class RevenueController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function income()
     {
@@ -86,7 +92,7 @@ class RevenueController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function expense()
     {
@@ -95,7 +101,7 @@ class RevenueController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function storeExpense(Request $request)
     {
@@ -150,9 +156,9 @@ class RevenueController extends Controller
         if ($expense) {
             try {
                 $expense->delete();
-            } catch (\Exception $e) {
-                \Log::error('Hiba történt a kiadás törlésekor...');
-                \Log::error($e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Hiba történt a kiadás törlésekor...');
+                Log::error($e->getMessage());
             }
             $success = true;
         }
@@ -163,7 +169,7 @@ class RevenueController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function hqFinance() {
         return view('hq.finance')->with([
@@ -199,7 +205,7 @@ class RevenueController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function storeIncome(Request $request)
     {

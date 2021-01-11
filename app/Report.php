@@ -3,8 +3,10 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Report
@@ -26,10 +28,10 @@ class Report extends Model
      */
     public function getPreviousReport()
     {
-      return Report::where([
-          ['user_id', '=', $this->user_id],
-          ['created_at', '=', $this->created_at->subMonth()]
-      ])->first();
+        return Report::where([
+            ['user_id', '=', $this->user_id],
+            ['created_at', '=', $this->created_at->subMonth()]
+        ])->first();
     }
 
     /**
@@ -38,9 +40,9 @@ class Report extends Model
     public function hasPrevious(): bool
     {
         return Report::where([
-            ['user_id', '=', $this->user_id],
-            ['created_at', '=', $this->created_at->subMonth()]
-        ])->count() > 0;
+                ['user_id', '=', $this->user_id],
+                ['created_at', '=', $this->created_at->subMonth()]
+            ])->count() > 0;
     }
 
     /**
@@ -67,14 +69,14 @@ class Report extends Model
 
         if ($prev) {
             if ($prev->gross_income == 0) {
-                return '+100%';
+                return '';
             }
 
             $perc = round(($diff / $prev->gross_income) * 100);
             if ($perc > 0) {
-                $perc = '+' . $perc;
+                $perc = '+'.$perc;
             }
-            return $perc . '%';
+            return $perc.'%';
         }
 
         return '0%';
@@ -104,14 +106,14 @@ class Report extends Model
 
         if ($prev) {
             if ($prev->gross_expense == 0) {
-                return '+100%';
+                return '';
             }
 
             $perc = round(($diff / $prev->gross_expense) * 100);
             if ($perc > 0) {
-                $perc = '+' . $perc;
+                $perc = '+'.$perc;
             }
-            return $perc . '%';
+            return $perc.'%';
         }
 
         return '0%';
@@ -141,16 +143,64 @@ class Report extends Model
 
         if ($prev) {
             if ($prev->delivered_orders == 0) {
-                return '+100%';
+                return '';
             }
 
             $perc = round(($diff / $prev->delivered_orders) * 100);
             if ($perc > 0) {
-                $perc = '+' . $perc;
+                $perc = '+'.$perc;
             }
-            return $perc . '%';
+            return $perc.'%';
         }
 
         return '0%';
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getAvgIncomeByDeliveries()
+    {
+        if ($this->delivered_orders == 0) {
+            return 0;
+        }
+        return $this->gross_income / $this->delivered_orders;
+    }
+
+    /**
+     * @return float|int
+     */
+    public function getAvgExpensePerDelivery()
+    {
+        if ($this->delivered_orders == 0) {
+            return 0;
+        }
+
+        return $this->gross_expense / $this->delivered_orders;
+    }
+
+    /**
+     * @return float|int|mixed
+     */
+    public function getDeliveryExpenseByAddress()
+    {
+        if ($this->delivered_orders == 0) {
+            return 0;
+        }
+
+        $reseller = User::find($this->user_id);
+        $start = $this->created_at;
+        $end = $this->created_at->lastOfMonth();
+        $sum = 0;
+        $expenses = $reseller->expenses()->where([
+            ['name', '=', 'Benzin'],
+            ['date', '>=', $start],
+            ['date', '<=', $end],
+        ])->get();
+        /** @var Expense $expense */
+        foreach ($expenses as $expense) {
+            $sum += $expense->gross_value;
+        }
+        return $sum / $this->delivered_orders;
     }
 }

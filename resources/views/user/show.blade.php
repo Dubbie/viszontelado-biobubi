@@ -27,7 +27,7 @@
             <div class="col-md">
                 <ul class="nav nav-tabs">
                     <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#user-details">Adatok</a>
+                        <a class="nav-link" data-toggle="tab" href="#user-details">Adatok</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="tab" href="#user-finance">Pénzügy</a>
@@ -35,9 +35,12 @@
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="tab" href="#user-stock">Készlet</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#user-monthly-reports">Havi riportok</a>
+                    </li>
                 </ul>
                 <div class="card card-body tab-content">
-                    <div class="tab-pane fade show active" id="user-details">
+                    <div class="tab-pane fade" id="user-details">
                         @include('inc.user-details-content')
                     </div>
                     <div id="user-finance" class="tab-pane fade" data-user-id="{{ $user->id }}">
@@ -45,6 +48,9 @@
                     </div>
                     <div id="user-stock" class="tab-pane fade">
                         @include('inc.reseller-stock')
+                    </div>
+                    <div id="user-monthly-reports" class="tab-pane fade">
+                        @include('inc.reseller-monthly-reports')
                     </div>
                 </div>
             </div>
@@ -64,12 +70,20 @@
             const csNewForm = document.getElementById('cs-new-form');
             const csList = document.getElementById('cs-list');
             const csNewModal = document.getElementById('newCentralStock');
+            let activeTab = '{{ $activeTab }}';
+
+            console.log(activeTab);
 
             function bindAllElements() {
                 // Betöltjük a részleteit a viszonteladónak
                 $('.btn-toggle-rs-add-modal').on('click', e => {
                     $(rsAddForm).find('input[name="rs-add-reseller-id"]')[0].value = e.currentTarget.dataset.resellerId;
                     updateRsAddDynamicElements();
+                });
+
+                // Riport választó
+                $('#date').on('change', e => {
+                    $(e.currentTarget).closest('form').submit();
                 });
 
                 $(document).on('click', '.btn-remove-cs-row', e => {
@@ -200,9 +214,16 @@
                 }
             }
 
+            function updateActiveTab() {
+                const tgt = document.getElementById(activeTab);
+                $('.nav-link[data-toggle="tab"][href="#' + activeTab + '"')[0].classList.add('active');
+                tgt.classList.add('active', 'show');
+            }
+
             function init() {
                 bindAllElements();
                 updateNewPrices();
+                updateActiveTab();
             }
 
             init();

@@ -11,7 +11,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div id="hq-incomr-reseller">
+                    <div id="hq-income-reseller">
                         <div class="form-group">
                             <label for="mr-reseller-id">Viszonteladó:</label>
                             <select name="mr-reseller-id" id="mr-reseller-id" class="custom-select">
@@ -75,9 +75,29 @@
                             </div>
                         </div>
                     </div>
+
+                    <p class="mb-1">Lezárandó hónap</p>
+                    <div class="form-row">
+                        <div class="col-3">
+                            <div class="form-group">
+                                <label for="mr-date-year" class="sr-only">Lezárandó hónap (év)</label>
+                                <input type="text" id="mr-date-year" name="mr-date-year" class="form-control" value="{{ \Carbon\Carbon::now()->subMonth()->format('Y') }}" required>
+                            </div>
+                        </div>
+                        <div class="col-9">
+                            <div class="form-group">
+                                <label for="mr-date-month" class="sr-only">Lezárandó hónap (hónap)</label>
+                                <select name="mr-date-month" id="mr-date-month" class="custom-select">
+                                    @for($m = 1; $m<=12; ++$m)
+                                        <option value="{{ $m }}" @if(\Carbon\Carbon::now()->subMonth()->month == $m) selected @endif>{{ \Illuminate\Support\Str::title(\Carbon\Carbon::now()->setMonth($m)->translatedFormat('F')) }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="mr-comment">Megjegyzés</label>
-                        <textarea name="mr-comment" id="mr-comment" rows="2" class="form-control" placeholder="Ide tudsz hozzáfűzni dolgokat..."></textarea>
+                        <textarea name="mr-comment" id="mr-comment" rows="2" class="form-control" placeholder="Ide tudsz hozzáfűzni dolgokat..." required></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

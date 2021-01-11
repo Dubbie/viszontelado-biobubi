@@ -12,11 +12,17 @@ use App\User;
 use App\UserDetails;
 use App\UserZip;
 use Billingo\API\Connector\HTTP\Route;
+use Exception;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
+use Psr\Http\Message\ResponseInterface;
 
 class UserController extends Controller
 {
@@ -30,7 +36,7 @@ class UserController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function home()
     {
@@ -77,7 +83,7 @@ class UserController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function index()
     {
@@ -89,7 +95,7 @@ class UserController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function create()
     {
@@ -98,19 +104,39 @@ class UserController extends Controller
 
     /**
      * @param $userId
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param  Request  $request
+     * @return Factory|View
      */
-    public function show($userId)
+    public function show($userId, Request $request)
     {
+        /** @var User $user */
         $user = User::where('id', $userId)->withCount('deliveries')->first();
+        $date = $request->input('date') ?? null;
+        $selectedReport = null;
+        $selectedMarketing = null;
+        $active = 'user-details';
+
+        if ($date) {
+            $carbonDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date . '-01 00:00:01');
+            $selectedReport = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
+            $active = 'user-monthly-reports';
+        } else {
+            $selectedReport = $user->reports->last();
+            $selectedMarketing = $user->marketingResults->last();
+        }
+
         return view('user.show')->with([
             'user' => $user,
+            'selectedReport' => $selectedReport,
+            'selectedMarketing' => $selectedMarketing,
+            'activeTab' => $active,
         ]);
     }
 
     /**
      * @param $userId
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function edit($userId)
     {
@@ -131,7 +157,7 @@ class UserController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function store(Request $request)
     {
@@ -187,7 +213,7 @@ class UserController extends Controller
     /**
      * @param $userId
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function update($userId, Request $request)
     {
@@ -277,7 +303,7 @@ class UserController extends Controller
         } else if (!$shouldHaveDetails && $user->details) {
             try {
                 $user->details->delete();
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 Log::error('Hiba történt a felhasználó részleteinek törlésekor');
                 Log::error($e->getMessage());
             }
@@ -313,7 +339,7 @@ class UserController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function profile()
     {
@@ -328,7 +354,7 @@ class UserController extends Controller
 
     /**
      * @param Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return RedirectResponse|Redirector
      */
     public function updatePassword(Request $request)
     {
@@ -360,7 +386,7 @@ class UserController extends Controller
 
     /**
      * @param BillingoApiTestRequest $request
-     * @return mixed|\Psr\Http\Message\ResponseInterface
+     * @return mixed|ResponseInterface
      */
     public function testBillingo(BillingoApiTestRequest $request)
     {

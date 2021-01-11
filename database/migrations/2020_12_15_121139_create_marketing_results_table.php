@@ -22,6 +22,7 @@ class CreateMarketingResultsTable extends Migration
             $table->float('spent')->comment('Az összeg amennyit elköltöttek marketingre');
             $table->bigInteger('reached')->comment('Ennyi embert értek el a hírdetéssel');
             $table->text('comment')->nullable();
+            $table->date('date')->comment('Ez a dátum mutatja, hogy melyik hónapra vonatkozik a riport');
             $table->timestamps();
         });
     }

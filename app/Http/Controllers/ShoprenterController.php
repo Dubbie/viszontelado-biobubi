@@ -243,14 +243,7 @@ class ShoprenterController extends Controller
 
     public function testShoprenter()
     {
-        $repService = resolve('App\Subesz\ReportService');
 
-        $past = Carbon::createFromFormat('Y/m/d H:i:s', '2019/09/01 00:00:00');
-        $tgt = Carbon::now()->firstOfMonth()->subMonth();
-        while($past < $tgt) {
-            $repService->generateReportByDate(Auth::user(), $past);
-            $past->addMonth();
-        }
     }
 
     /**

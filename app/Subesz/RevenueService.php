@@ -7,8 +7,10 @@ use App\Income;
 use App\User;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
+use Exception;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Log;
 
 class RevenueService
 {
@@ -133,16 +135,16 @@ class RevenueService
         $inc->date = $date ? $date : date('Y-m-d');
         $inc->comment = $comment;
         $inc->save();
-        \Log::info(sprintf('Központ bevétele elmentve. (%s Ft, %s)', $amount, $name));
+        Log::info(sprintf('Központ bevétele elmentve. (%s Ft, %s)', $amount, $name));
 
         if ($resellerId) {
             if (!$reseller) {
-                \Log::error('Nem található ilyen viszonteladó, ezért törlésre kerül a megadott bevétel.');
+                Log::error('Nem található ilyen viszonteladó, ezért törlésre kerül a megadott bevétel.');
 
                 try {
                     $inc->delete();
-                } catch (\Exception $e) {
-                    \Log::error('Hiba történt a bevétel törlésekor.');
+                } catch (Exception $e) {
+                    Log::error('Hiba történt a bevétel törlésekor.');
                 }
 
                 return false;
@@ -163,7 +165,7 @@ class RevenueService
      * @param $comment
      * @return bool
      */
-    public function storeResellerExpense($name, $amount, $reseller, $date, $comment)
+    public function storeResellerExpense($name, $amount, User $reseller, $date, $comment): bool
     {
         $expense = new Expense();
         $expense->gross_value = $amount;
@@ -177,9 +179,9 @@ class RevenueService
         $expense->save();
 
         if ($reseller) {
-            \Log::info(sprintf('Viszonteladó kiadása elmentve. (%s, %s Ft, %s)', $reseller->name, $amount, $name));
+            Log::info(sprintf('Viszonteladó kiadása elmentve. (%s, %s Ft, %s)', $reseller->name, $amount, $name));
         } else {
-            \Log::info(sprintf('Központ kiadása elmentve. (%s Ft, %s)', $amount, $name));
+            Log::info(sprintf('Központ kiadása elmentve. (%s Ft, %s)', $amount, $name));
         }
 
         return true;
@@ -240,5 +242,19 @@ class RevenueService
     public function getHqFinanceMonthly($start, $end)
     {
         return [];
+    }
+
+    /**
+     * @param $amount
+     * @param  User  $reseller
+     * @return bool
+     */
+    public function addBalance($amount, User $reseller): bool
+    {
+        $reseller->balance += $amount;
+        $saved = $reseller->save();
+        Log::info(sprintf('Viszonteladó egyenlege feltöltve: %s Ft', $amount > 0 ? '+' . $amount : $amount));
+
+        return $saved;
     }
 }

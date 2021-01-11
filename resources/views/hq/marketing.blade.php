@@ -11,10 +11,10 @@
         <div class="card card-body">
             <p>Henló</p>
             <p class="mb-0">
-                <a href="#newMarketingResult" data-toggle="modal" class="btn btn-outline-primary">Új jelentés</a>
+
             </p>
         </div>
     </div>
 
-    @include('modal.new-marketing-result')
+
 @endsection

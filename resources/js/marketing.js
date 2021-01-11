@@ -1,5 +1,5 @@
 $(() => {
-    if (!document.getElementById('marketing-page')) {
+    if (!document.getElementById('hq-finance-page')) {
         return false;
     }
 

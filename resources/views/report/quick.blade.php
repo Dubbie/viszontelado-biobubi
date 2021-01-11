@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col">
-                <h1 class="font-weight-bold mb-4">Pénzügy</h1>
+                <h1 class="font-weight-bold mb-4">Aktuális riport</h1>
             </div>
         </div>
 

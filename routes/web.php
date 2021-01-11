@@ -133,6 +133,7 @@ Route::group(['middleware' => 'auth'], function() {
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
+Route::get('/api/havi-riportok/generalas/{privateKey}', 'ReportController@generateMonthlyReports');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
 Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProducts');
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');

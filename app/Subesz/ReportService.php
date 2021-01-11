@@ -63,6 +63,6 @@ class ReportService
         }
 
         $perfEnd = microtime(true);
-        Log::info(sprintf('Havi riport legenerálva: %ss alatt', round($perfEnd - $perfStart, 2)));
+        Log::info(sprintf('%s viszonteladó havi riportja legenerálva: %ss alatt', $reseller->name, round($perfEnd - $perfStart, 2)));
     }
 }
