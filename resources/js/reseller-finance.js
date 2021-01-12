@@ -167,16 +167,17 @@ $(() => {
     // Chart.JS
     const ctx = document.getElementById('income-chart');
     const chart = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: [],
             datasets: [{
                 label: 'Megrendelés',
-                borderColor: "#80b6f4",
-                pointBorderColor: "#80b6f4",
-                pointBackgroundColor: "#80b6f4",
-                pointHoverBackgroundColor: "#80b6f4",
-                pointHoverBorderColor: "#80b6f4",
+                backgroundColor: '#52de70',
+                borderColor: "#52de70",
+                pointBorderColor: "#52de70",
+                pointBackgroundColor: "#52de70",
+                pointHoverBackgroundColor: "#52de70",
+                pointHoverBorderColor: "#52de70",
                 pointBorderWidth: 7,
                 pointHoverRadius: 7,
                 pointHoverBorderWidth: 1,
@@ -192,25 +193,29 @@ $(() => {
             },
             scales: {
                 yAxes: [{
+                    gridLines: {
+                        // zeroLineColor: "transparent"
+                    },
                     ticks: {
-                        fontColor: "rgba(0,0,0,0.5)",
+                        fontColor: "rgba(0,0,0,0.33)",
                         fontStyle: "bold",
                         beginAtZero: true,
                         maxTicksLimit: 5,
                         padding: 20,
                         // Include a dollar sign in the ticks
                         callback: function(value, index, values) {
-                            return value.toLocaleString() + ' Ft';
+                            return intToString(value) + ' Ft';
                         }
                     },
                 }],
                 xAxes: [{
                     gridLines: {
+                        display: false,
                         zeroLineColor: "transparent"
                     },
                     ticks: {
                         padding: 20,
-                        fontColor: "rgba(0,0,0,0.5)",
+                        fontColor: "rgba(0,0,0,0.33)",
                         fontStyle: "bold",
                         maxTicksLimit: 10,
                     }
