@@ -106,7 +106,7 @@ class StockService
 
         // 4. Hozzáadjuk a központnak, mint bevétel
         $amount = $count * $product->wholesale_price;
-        $revenueService->storeCentralIncome('Készletértékesítés', $amount, null, sprintf('Készlet átadva %s viszonteladónak.', $recipient->name));
+        $revenueService->storeCentralIncome('Készletértékesítés', null, $amount, null, sprintf('Készlet átadva %s viszonteladónak.', $recipient->name));
 
         // 5. Hozzáadjuk a viszonteladónak, mint kiadás
         $revenueService->storeResellerExpense('Készletvásárlás', $amount, $recipient, null, sprintf('%s db %s', $count, $product->name));
