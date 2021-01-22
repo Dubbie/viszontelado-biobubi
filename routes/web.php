@@ -139,6 +139,7 @@ Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProdu
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');
 Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');
 Route::post('/sr/termek-lekerdezes', 'ShoprenterController@getProduct');
+Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
 
 /**
  * Runs database migrations

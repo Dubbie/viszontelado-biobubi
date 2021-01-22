@@ -11,6 +11,7 @@ use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
 use App\User;
+use App\UserZip;
 use Auth;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
@@ -282,5 +283,33 @@ class ShoprenterController extends Controller
 
         header('Access-Control-Allow-Origin: https://biobubi.hu');
         return $klaviyoProduct;
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkZip(Request $request)
+    {
+        Log::info('Irányítószám ellenőrzése...');
+        $uzip = UserZip::whereZip($request->get('zip'))->first();
+        $reseller = $uzip ? $uzip->user : null;
+
+        if ($reseller) {
+            Log::info('Az irányítószám megtalálva, viszonteladó: ' . $reseller->name);
+
+            return response()->json([
+               'success' => true,
+               'found' => true,
+               'message' => 'Irányítószám megtalálva.',
+            ]);
+        } else {
+            Log::info('Az irányítószám nincs a rendszerben.');
+            return response()->json([
+                'success' => true,
+                'found' => false,
+                'message' => 'Irányítószám nincs megtalálva.',
+            ]);
+        }
     }
 }
