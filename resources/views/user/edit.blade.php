@@ -175,7 +175,7 @@
                                     </small>
                                 </div>
 
-                                <div id="billingo-test-results" class="alert" style="display: none;">
+                                <div id="billingo-test-results" class="mb-5" style="display: none;">
 
                                 </div>
                             </div>

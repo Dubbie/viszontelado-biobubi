@@ -98,7 +98,7 @@ $(() => {
         }).then(response => response.json()).then(json => {
             const p = document.createElement('p');
             p.classList.add('alert', 'alert-info', 'mb-0');
-            p.innerText = json.success ? 'Csatlakozás sikeres' : 'Csatlakozás sikertelen';
+            p.innerText = json.message;
 
             billingoResults.appendChild(p);
 

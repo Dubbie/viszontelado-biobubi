@@ -7,6 +7,8 @@ use App\Order;
 use App\User;
 use GuzzleHttp\Client;
 use Illuminate\Support\Carbon;
+use Log;
+use Storage;
 use Swagger\Client\Api\DocumentApi;
 use Swagger\Client\Api\DocumentBlockApi;
 use Swagger\Client\Api\PartnerApi;
@@ -38,40 +40,36 @@ class BillingoNewService
      * @param User $user
      * @return Configuration
      */
-    public function getBillingoConfig(User $user)
+    public function getBillingoConfig(User $user): Configuration
     {
-        $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $user->billingo_api_key);
-        return $config;
+        return Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $user->billingo_api_key);
     }
 
     /**
      * @param User $user
      * @return PartnerApi
      */
-    public function getPartnerApi(User $user)
+    public function getPartnerApi(User $user): PartnerApi
     {
-        $apiInstance = new PartnerApi(new Client(), $this->getBillingoConfig($user));
-        return $apiInstance;
+        return new PartnerApi(new Client(), $this->getBillingoConfig($user));
     }
 
     /**
      * @param User $user
      * @return DocumentApi
      */
-    public function getDocumentApi(User $user)
+    public function getDocumentApi(User $user): DocumentApi
     {
-        $apiInstance = new DocumentApi(new Client(), $this->getBillingoConfig($user));
-        return $apiInstance;
+        return new DocumentApi(new Client(), $this->getBillingoConfig($user));
     }
 
     /**
      * @param User $user
      * @return DocumentBlockApi
      */
-    public function getDocumentBlockApi(User $user)
+    public function getDocumentBlockApi(User $user): DocumentBlockApi
     {
-        $apiInstance = new DocumentBlockApi(new Client(), $this->getBillingoConfig($user));
-        return $apiInstance;
+        return new DocumentBlockApi(new Client(), $this->getBillingoConfig($user));
     }
 
     /**
@@ -82,7 +80,7 @@ class BillingoNewService
     public function createPartner($order, $user)
     {
         if ($order['order']->paymentCountryName != 'Magyarország') {
-            \Log::error('A megrendelés nem magyarországról jött, nincs támogatva!');
+            Log::error('A megrendelés nem magyarországról jött, nincs támogatva!');
             return false;
         }
 
@@ -95,7 +93,7 @@ class BillingoNewService
         try {
             $partner = $partnerApi->createPartner($partnerUpsert);
         } catch (ApiException $e) {
-            \Log::error(sprintf('Hiba történt a PartnerApi->createPartner meghívásakor: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Hiba történt a PartnerApi->createPartner meghívásakor: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return $partner;
@@ -105,7 +103,7 @@ class BillingoNewService
      * @param $order
      * @return PartnerUpsert|null
      */
-    public function getPartnerUpsertFromOrder($order)
+    public function getPartnerUpsertFromOrder($order): ?PartnerUpsert
     {
         // Céget kezelünk
         $taxType = PartnerTaxType::NO_TAX_NUMBER;
@@ -139,7 +137,7 @@ class BillingoNewService
      * @param User $user
      * @return null|Document
      */
-    public function getInvoice($invoiceId, User $user)
+    public function getInvoice($invoiceId, User $user): ?Document
     {
         $documentApi = $this->getDocumentApi($user);
         $invoice = null;
@@ -147,7 +145,7 @@ class BillingoNewService
         try {
             $invoice = $documentApi->getDocument(intval($invoiceId));
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when calling DocumentApi->getDocument: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when calling DocumentApi->getDocument: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return $invoice;
@@ -157,9 +155,9 @@ class BillingoNewService
      * @param array $order
      * @param Partner $partner
      * @param User $user
-     * @return null|\Swagger\Client\Model\Document
+     * @return null|Document
      */
-    public function createDraftInvoice(array $order, Partner $partner, User $user)
+    public function createDraftInvoice(array $order, Partner $partner, User $user): ?Document
     {
         $documentApi = $this->getDocumentApi($user);
 
@@ -191,7 +189,7 @@ class BillingoNewService
         try {
             $invoice = $documentApi->createDocument($documentInsert);
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when calling DocumentApi->createDocument: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when calling DocumentApi->createDocument: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return $invoice;
@@ -202,7 +200,7 @@ class BillingoNewService
      * @param $user
      * @return array
      */
-    public function getOrderItems(array $order, $user)
+    public function getOrderItems(array $order, $user): array
     {
         $items = [];
         $vat = $user->vat_id == 992 ? Vat::AAM : Vat::_27;
@@ -252,14 +250,14 @@ class BillingoNewService
      * @param array $order
      * @return bool
      */
-    public function saveDraftInvoice(Document $invoice, array $order)
+    public function saveDraftInvoice(Document $invoice, array $order): bool
     {
         /** @var OrderService $os */
         $os = resolve('App\Subesz\OrderService');
         $localOrder = $os->getLocalOrderByResourceId($order['order']->id);
         $localOrder->draft_invoice_id = $invoice->getId();
         if (!$localOrder->save()) {
-            \Log::error(sprintf('Hiba történt a piszkozat számla rögzítésekor! (Helyi megrendelés azonosító: %s)', $localOrder->id));
+            Log::error(sprintf('Hiba történt a piszkozat számla rögzítésekor! (Helyi megrendelés azonosító: %s)', $localOrder->id));
             return false;
         }
 
@@ -271,7 +269,7 @@ class BillingoNewService
      * @param User $user
      * @return null|Document
      */
-    public function getRealInvoiceFromDraft(int $invoiceId, User $user)
+    public function getRealInvoiceFromDraft(int $invoiceId, User $user): ?Document
     {
         $api = $this->getDocumentApi($user);
         $realInvoice = null;
@@ -298,7 +296,7 @@ class BillingoNewService
             $documentInsert = new DocumentInsert($documentInsertData);
             $realInvoice = $api->createDocument($documentInsert);
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when converting invoice: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when converting invoice: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return $realInvoice;
@@ -319,15 +317,15 @@ class BillingoNewService
             $path = sprintf('invoices/%s/%s', $orderId, $fname);
             $data = $api->downloadDocument($invoiceId);
 
-            if (\Storage::put($path, $data)) {
-                \Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
+            if (Storage::put($path, $data)) {
+                Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
                 return $path;
             } else {
-                \Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
+                Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
                 return false;
             }
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when calling DocumentApi->downloadDocument: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when calling DocumentApi->downloadDocument: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return false;
@@ -351,16 +349,16 @@ class BillingoNewService
 
             while ($result == "{\"error\":{\"message\":\"Document PDF has not generated yet.\"}}" && $tries <= 10) {
                 $tries++;
-                \Log::error("Nem sikerült letölteni a dokumentumot, még nem jött létre... Újrapróbálkozás 5 másodperc múlva...");
+                Log::error("Nem sikerült letölteni a dokumentumot, még nem jött létre... Újrapróbálkozás 5 másodperc múlva...");
                 usleep(5000000);
                 $result = $api->downloadDocument($invoiceId);
             }
 
-            \Log::error(sprintf('Összes próbálkozások száma: %s', $tries));
+            Log::error(sprintf('Összes próbálkozások száma: %s', $tries));
             if ($tries == 10) {
-                \Log::error('-------------- GIGABAJVAN NINCS SZÁMLA LETÖLTVE! -----------------');
-                \Log::error('-- Számla azonosító: ' . $invoiceId);
-                \Log::error('-- Megrendelés azonosító: ' . $order->id);
+                Log::error('-------------- GIGABAJVAN NINCS SZÁMLA LETÖLTVE! -----------------');
+                Log::error('-- Számla azonosító: ' . $invoiceId);
+                Log::error('-- Megrendelés azonosító: ' . $order->id);
                 return false;
             }
 
@@ -368,15 +366,15 @@ class BillingoNewService
             $fname = 'ssz-szamla-' . date('Ymd_His') . '.pdf';
             $path = sprintf('invoices/%s/%s', $order->id, $fname);
 
-            if (\Storage::put($path, $result)) {
-                \Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
+            if (Storage::put($path, $result)) {
+                Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
                 return $path;
             } else {
-                \Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
+                Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
                 return false;
             }
         } catch (ApiException $e) {
-            \Log::error('Hiba történt a számla létrehozásakor!');
+            Log::error('Hiba történt a számla létrehozásakor!');
         }
 
         return false;
@@ -386,13 +384,13 @@ class BillingoNewService
      * @param User $user
      * @return bool
      */
-    public function isBillingoConnected(User $user)
+    public function isBillingoConnected(User $user): bool
     {
         $api = $this->getDocumentBlockApi($user);
         $found = false;
 
         if (!$user->billingo_api_key || !$user->block_uid) {
-            \Log::info('A felhasználónak nincs beállítva billingo összekötés');
+            Log::info('A felhasználónak nincs beállítva billingo összekötés');
             return $found;
         }
 
@@ -406,7 +404,7 @@ class BillingoNewService
                 }
             }
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when calling DocumentBlockApi->listDocumentBlock: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when calling DocumentBlockApi->listDocumentBlock: %s %s', $e->getMessage(), PHP_EOL));
         }
 
         return $found;
@@ -417,25 +415,54 @@ class BillingoNewService
      * @param $blockId
      * @return array
      */
-    public function isBillingoWorking($apiKey, $blockId)
+    public function isBillingoWorking($apiKey, $blockId): array
     {
         $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $apiKey);
         $api = new DocumentBlockApi(new Client(), $config);
         $response = [
             'success' => false,
+            'message' => 'A lekérés elakadt a legelején.',
         ];
 
         try {
             $list = $api->listDocumentBlock(0, 100);
-
+            $foundBlockId = false;
             foreach ($list->getData() as $block) {
                 if ($blockId == $block->getId()) {
                     $response['success'] = true;
+                    $response['message'] = 'A csatlakozás hibátlan (Számlatömb azonosító megtalálva)';
+                    $foundBlockId = true;
                     break;
                 }
             }
+
+            // Nem találta meg a számlatömböt
+            if (!$foundBlockId) {
+                $response['message'] = 'A csatlakozás sikeres, de a számlatömb nem található';
+            }
         } catch (ApiException $e) {
-            \Log::error(sprintf('Exception when calling DocumentBlockApi->listDocumentBlock: %s %s', $e->getMessage(), PHP_EOL));
+            Log::error(sprintf('Exception when calling DocumentBlockApi->listDocumentBlock: %s %s', $e->getMessage(), PHP_EOL));
+
+            switch ($e->getCode()) {
+                case '400':
+                    $response['message'] = 'Hibás request';
+                    break;
+                case '401':
+                    $response['message'] = 'Authentikációs probléma lépett fel (hiányzó vagy hibás adatok)';
+                    break;
+                case '402':
+                    $response['message'] = 'A felhasználónak nincs megfelelő feliratkozása (Nem fizette be)';
+                    break;
+                case '422':
+                    $response['message'] = 'A megadott adatokat a Billingo nem képes feldolgozni (Uprocessable Entity)';
+                    break;
+                case '429':
+                    $response['message'] = 'Túl sok lekérdezés (A Billingo API-t túlterheltük, kérlek várj pár percet)';
+                    break;
+                case '500':
+                    $response['message'] = 'A Billingo szerver hibát küldött vissza, kérlek várd meg amíg megjavítják a problémájukat';
+                    break;
+            }
         }
 
         return $response;
@@ -448,7 +475,8 @@ class BillingoNewService
      * @param $reseller
      * @return array
      */
-    public function convertInvoiceItemsToInserts($invoiceId, $reseller) {
+    public function convertInvoiceItemsToInserts($invoiceId, $reseller): array
+    {
         $invoice = $this->getInvoice($invoiceId, $reseller);
         $insertItems = [];
 
