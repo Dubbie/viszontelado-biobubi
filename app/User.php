@@ -147,6 +147,13 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
+    public function worksheet(): HasMany {
+        return $this->hasMany(Worksheet::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
     public function marketingResults(): HasMany
     {
         return $this->hasMany(MarketingResult::class, 'user_id', 'id');

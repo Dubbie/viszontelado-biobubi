@@ -12,17 +12,20 @@ use App\Subesz\KlaviyoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
+use App\Subesz\WorksheetService;
 use App\User;
 use Billingo\API\Connector\Exceptions\JSONParseException;
 use Billingo\API\Connector\Exceptions\RequestErrorException;
 use Carbon\Carbon;
 use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class OrderController extends Controller
 {
@@ -35,22 +38,27 @@ class OrderController extends Controller
     /** @var StockService */
     private $stockService;
 
+    /** @var WorksheetService */
+    private $worksheetService;
+
     /**
      * OrderController constructor.
-     * @param ShoprenterService $shoprenterService
-     * @param OrderService $orderService
-     * @param StockService $stockService
+     * @param  ShoprenterService  $shoprenterService
+     * @param  OrderService  $orderService
+     * @param  StockService  $stockService
+     * @param  WorksheetService  $worksheetService
      */
-    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService, StockService $stockService)
+    public function __construct(ShoprenterService $shoprenterService, OrderService $orderService, StockService $stockService, WorksheetService $worksheetService)
     {
         $this->shoprenterApi = $shoprenterService;
         $this->orderService = $orderService;
         $this->stockService = $stockService;
+        $this->worksheetService = $worksheetService;
     }
 
     /**
      * @param Request $request
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function index(Request $request)
     {
@@ -93,7 +101,7 @@ class OrderController extends Controller
 
     /**
      * @param $orderId
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function show($orderId)
     {
@@ -112,7 +120,7 @@ class OrderController extends Controller
 
     /**
      * @param $orderId
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @return Factory|View
      */
     public function showStatus($orderId)
     {
@@ -164,6 +172,9 @@ class OrderController extends Controller
                 $localOrder = Order::find($orderId);
                 $order = $localOrder->getShoprenterOrder();
                 $ks->fulfillOrder($order);
+
+                // Töröljük a munkalapról
+                $this->worksheetService->remove($localOrder->id, Auth::id());
 
                 Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
 
@@ -273,6 +284,9 @@ class OrderController extends Controller
                     $order = $localOrder->getShoprenterOrder();
                     $ks->fulfillOrder($order);
 
+                    // Töröljük a munkalapról
+                    $this->worksheetService->remove($localOrder->id, Auth::id());
+
                     // A készletet lerendezzük
                     $this->stockService->subtractStockFromOrder($localOrder->id);
 
@@ -366,6 +380,9 @@ class OrderController extends Controller
             $localOrder = Order::find($orderId);
             $order = $localOrder->getShoprenterOrder();
             $ks->fulfillOrder($order);
+
+            // Töröljük a munkalapról
+            $this->worksheetService->remove($localOrder->id, Auth::id());
 
             Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
 

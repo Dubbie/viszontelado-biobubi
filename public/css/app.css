@@ -1,6 +1,173 @@
-@import url(https://fonts.googleapis.com/css2?family=Poppins:wght@300;
+@charset "UTF-8";
 
-400;500;600&display=swap);@charset "UTF-8";
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/Inter-Thin.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Thin.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/Inter-ThinItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-ThinItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("/fonts/Inter-ExtraLight.woff2?v=3.15") format("woff2"), url("/fonts/Inter-ExtraLight.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url("/fonts/Inter-ExtraLightItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-ExtraLightItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/Inter-Light.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Light.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/Inter-LightItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-LightItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Inter-Regular.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Regular.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Inter-Italic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Italic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/Inter-Medium.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Medium.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/Inter-MediumItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-MediumItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Inter-SemiBold.woff2?v=3.15") format("woff2"), url("/fonts/Inter-SemiBold.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Inter-SemiBoldItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-SemiBoldItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Inter-Bold.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Bold.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Inter-BoldItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-BoldItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/Inter-ExtraBold.woff2?v=3.15") format("woff2"), url("/fonts/Inter-ExtraBold.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/Inter-ExtraBoldItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-ExtraBoldItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/fonts/Inter-Black.woff2?v=3.15") format("woff2"), url("/fonts/Inter-Black.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("/fonts/Inter-BlackItalic.woff2?v=3.15") format("woff2"), url("/fonts/Inter-BlackItalic.woff?v=3.15") format("woff");
+}
+
+@font-face {
+  font-family: "Inter var";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+  font-named-instance: "Regular";
+  src: url("/fonts/Inter-roman.var.woff2?v=3.15") format("woff2");
+}
+
+@font-face {
+  font-family: "Inter var";
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: italic;
+  font-named-instance: "Italic";
+  src: url("/fonts/Inter-italic.var.woff2?v=3.15") format("woff2");
+}
+
+/*!
+ * Bootstrap v4.5.3 (https://getbootstrap.com/)
+ * Copyright 2011-2020 The Bootstrap Authors
+ * Copyright 2011-2020 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE)
+ */
 
 :root {
   --blue: #3490dc;
@@ -29,7 +196,7 @@
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;
   --breakpoint-xl: 1200px;
-  --font-family-sans-serif: "Poppins", sans-serif;
+  --font-family-sans-serif: "Inter", sans-serif;
   --font-family-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
@@ -61,7 +228,7 @@ section {
 
 body {
   margin: 0;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 0.9rem;
   font-weight: 400;
   line-height: 1.6;
@@ -6369,7 +6536,7 @@ a.close.disabled {
   z-index: 1070;
   display: block;
   margin: 0;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -6494,7 +6661,7 @@ a.close.disabled {
   z-index: 1060;
   display: block;
   max-width: 276px;
-  font-family: "Poppins", sans-serif;
+  font-family: "Inter", sans-serif;
   font-style: normal;
   font-weight: 400;
   line-height: 1.6;
@@ -18064,6 +18231,16 @@ a.text-dark:focus {
   }
 }
 
+html {
+  font-family: "Inter", sans-serif, sans-serif;
+}
+
+@supports (font-variation-settings: normal) {
+  html {
+    font-family: "Inter var", sans-serif, sans-serif;
+  }
+}
+
 .body-fullscreen {
   min-height: 100vh;
   background: url("/storage/bg_office.jpg") #29004e no-repeat fixed;
@@ -18296,7 +18473,11 @@ body {
 
 .page-content .container {
   flex: 1;
-  padding: 4rem 2rem;
+  padding: 4rem 2rem 0 2rem;
+}
+
+.page-content .container:last-of-type {
+  padding-bottom: 4rem;
 }
 
 #footer {

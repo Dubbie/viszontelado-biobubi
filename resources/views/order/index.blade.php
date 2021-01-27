@@ -7,21 +7,23 @@
                 <h1 class="font-weight-bold mb-4">Megrendelések</h1>
             </div>
             <div class="col text-right">
-                @if(Auth::user()->admin)
-                    <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                       data-toggle="tooltip"
-                       title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                       data-placement="left"
-                       class="btn btn-sm btn-outline-secondary has-tooltip">Megrendelések frissítése</a>
-                @endif
-                <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelése leadása</a>
+                <div class="d-flex justify-content-between justify-content-md-end mb-3">
+                    @if(Auth::user()->admin)
+                        <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
+                           data-toggle="tooltip"
+                           title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+                           data-placement="left"
+                           class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>
+                    @endif
+                    <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés leadása</a>
+                </div>
             </div>
         </div>
 
         @if(Auth::user()->admin && count(Auth::user()->zips) == 0)
             <div class="alert alert-info">
-                <p class="mb-0">Ez a fiók adminisztrátori jogkörrel rendelkezik és nincs hozzárendelve irányítószám,
-                    ezért csak azokat a megrendeléseket látod, amikhez nincs hozzárendelve egy viszonteladó sem.</p>
+                <p class="mb-0">A fiókodhoz nincs hozzárendelve irányítószám,
+                    ezért nem kapsz megrendeléseket.</p>
             </div>
         @endif
 
@@ -74,9 +76,23 @@
                 </div>
             </form>
         </div>
-        @foreach($orders as $order)
-            <x-order :order="$order"></x-order>
-        @endforeach
+        @if(count($orders) > 0)
+            @foreach($orders as $order)
+                <x-order :order="$order" type="regular" :worksheet="null"></x-order>
+            @endforeach
+        @else
+            <div class="card card-body">
+                <div class="row align-items-center">
+                    <div class="col-12 col-md-3">
+                        <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
+                    </div>
+                    <div class="col">
+                        <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint érkezik egy itt fogod látni!</p>
+                        <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés leadása</a>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
     </div>

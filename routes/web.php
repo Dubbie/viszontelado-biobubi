@@ -75,18 +75,19 @@ Route::group(['middleware' => 'auth'], function() {
         Route::post('kozpont/marketing/mentes', 'MarketingResultController@store');
     });
 
+    // Index
     Route::get('/', 'UserController@home');
 
+    // Fiók
     Route::get('/fiok', 'UserController@profile');
     Route::post('/fiok/jelszovaltas', 'UserController@updatePassword');
 
+    // Pénzügyi rész
     Route::get('/api/bevetel', 'RevenueController@fetchIncome');
     Route::get('/api/kiadas/{expenseId}/torles', 'RevenueController@destroyExpense');
     Route::get('/api/kiadas', 'RevenueController@fetchExpense');
-
     Route::get('/benji-penz', 'BenjiMoneyController@getData')->middleware('admin');
     Route::post('/benji-penz/mentes', 'BenjiMoneyController@store')->middleware('admin');
-
     Route::get('/penzugy', 'RevenueController@income');
     Route::post('/kiadas/mentes', 'RevenueController@storeExpense');
     Route::get('/kiadas', 'RevenueController@expense');
@@ -99,6 +100,7 @@ Route::group(['middleware' => 'auth'], function() {
         return redirect(action('RevenueController@income'));
     });
 
+    // Megrendelések
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
     Route::post('/megrendelesek/tomeges/allapot/frissites', 'OrderController@massUpdateStatus');
@@ -106,16 +108,24 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
     Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
 
+    // Munkalapos dolgok
+    Route::post('/munkalap/hozzaadas', 'WorksheetController@add');
+    Route::post('/munkalap/torles', 'WorksheetController@remove');
+
+    // Szállítólevél
     Route::post('/szallitolevel/letoltes', 'DocumentController@download');
 
+    // Dokumentumok
     Route::get('/dokumentumok', 'DocumentController@index');
     Route::get('/dokumentumok/{id}/letoltes', 'DocumentController@getDocument');
 
+    // Megjegyzések
     Route::post('/megrendelesek/megjegyzesek/mentes', 'OrderCommentController@store');
     Route::get('/megjegyzesek/{commentId}/szerkesztes', 'OrderCommentController@edit');
     Route::post('/megjegyzesek/frissites', 'OrderCommentController@update');
     Route::delete('/megjegyzesek/{commentId}/torles', 'OrderCommentController@destroy');
 
+    // Teendők
     Route::get('/teendok', 'OrderTodoController@index');
     Route::get('/teendok/uj', 'OrderTodoController@create');
     Route::post('/teendok/mentes', 'OrderTodoController@store');
@@ -124,9 +134,11 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/teendok/{todoId}/kapcsolas', 'OrderTodoController@toggle');
     Route::delete('/teendok/{todoId}/torles', 'OrderTodoController@destroy');
 
+    // Riportok
     Route::get('/riport/aktualis', 'ReportController@showQuick');
     Route::get('/riport/havi', 'ReportController@showMonthly');
 
+    // Készlet
     Route::resource('keszletem', 'StockController', ['only' => [
         'index', 'store'
     ]]);

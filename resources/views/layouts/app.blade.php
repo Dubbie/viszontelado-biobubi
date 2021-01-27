@@ -50,11 +50,13 @@
                    <small>
                        <span class="ml-4">&copy;{{ date('Y') }} SemmiSzemét Viszonteladó Portál</span>
                        <span class="px-2 text-muted">•</span>
-                       <span><a href="https://dubbie.github.io">@dubbie</a></span>
+                       <span><a href="https://dubbie.github.io">@mihodaniel</a></span>
                    </small>
                </p>
            </div>
         </footer>
+
+        @include('modal.worksheet')
     </div>
 </div>
 

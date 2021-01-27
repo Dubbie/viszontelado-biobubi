@@ -2,22 +2,37 @@
 
 namespace App\View\Components;
 
+use App\Worksheet;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
+/**
+ * Class Order
+ * @package App\View\Components
+ */
 class Order extends Component
 {
     /** @var \App\Order */
     public $order;
 
+    /** @var string */
+    public $type;
+
+    /** @var Worksheet|null */
+    public $worksheet;
+
     /**
      * Create a new component instance.
      *
-     * @param \App\Order $order
+     * @param  \App\Order  $order
+     * @param $type
+     * @param $worksheet
      */
-    public function __construct(\App\Order $order)
+    public function __construct(\App\Order $order, $type, $worksheet)
     {
         $this->order = $order;
+        $this->type = $type;
+        $this->worksheet = $worksheet;
     }
 
     /**
@@ -27,6 +42,12 @@ class Order extends Component
      */
     public function render()
     {
-        return view('components.order');
+        switch ($this->type) {
+            case 'worksheet':
+                return view('components.worksheet-order');
+            case 'regular':
+            default:
+                return view('components.order');
+        }
     }
 }
