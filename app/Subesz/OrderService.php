@@ -305,14 +305,12 @@ class OrderService
         foreach ($skuList as $orderedProduct) {
             \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
             $lp = $ss->getLocalProductBySku($orderedProduct['sku']);
-            foreach ($lp->getSubProducts() as $subProduct) {
-                $subProduct['product'];
-                $subProduct['count'];
 
+            foreach ($lp->getSubProducts() as $subProduct) {
                 $op              = new OrderProducts();
                 $op->order_id    = $orderId;
                 $op->product_sku = $subProduct['product']->sku;
-                $op->product_qty = $subProduct['count'];
+                $op->product_qty = $subProduct['count'] * $orderedProduct['count'];
                 $op->save();
             }
             \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');

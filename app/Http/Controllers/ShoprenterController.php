@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Mail\NewOrder;
 use App\Order;
+use App\OrderProducts;
 use App\Product;
 use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
@@ -17,6 +18,7 @@ use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Mail;
 use Swagger\Client\Api\BankAccountApi;
 use Swagger\Client\Api\DocumentApi;
 use Swagger\Client\ApiException;
@@ -197,13 +199,12 @@ class ShoprenterController extends Controller
             }
 
             // Mentsük el a számlát
-            /** @var Order $localOrder */
             $reseller = $localOrder->getReseller()['correct'];
             Log::info('Hozzátartozó számlázó fiók neve: '.$reseller->name);
 
             // Elküldjük róla a levelet is
             if ($reseller->email != 'hello@semmiszemet.hu') {
-                \Mail::to($reseller)->send(new NewOrder($order, $reseller));
+                Mail::to($reseller)->send(new NewOrder($order, $reseller));
                 Log::info('Levél elküldve az alábbi e-mail címre: '.$reseller->email);
             }
 
@@ -273,6 +274,9 @@ class ShoprenterController extends Controller
         Log::info('Termékek sikeresen frissítve a Shoprenter adatbázisából!');
     }
 
+    /**
+     *
+     */
     public function testShoprenter()
     {
 
