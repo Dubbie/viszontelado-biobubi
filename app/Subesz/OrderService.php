@@ -165,8 +165,12 @@ class OrderService
         $tax = ($order->paymentMethodTaxRate + 100) / 100;
         $total = round($order->total / $tax);
         $taxPrice = round($order->total - $total);
-        $totalGross = ceil($order->total);
+        $totalGross = round($order->total);
 
+        dump($tax);
+        dump($total);
+        dump($taxPrice);
+        dd($totalGross);
         $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
 
         if (!array_key_exists($orderStatusId, $this->statusMap)) {
