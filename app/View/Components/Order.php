@@ -9,6 +9,7 @@ use Illuminate\View\View;
 /**
  * Class Order
  * @package App\View\Components
+ * @mixin Order
  */
 class Order extends Component
 {

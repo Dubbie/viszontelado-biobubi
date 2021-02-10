@@ -8,11 +8,13 @@ use App\Subesz\BillingoNewService;
 use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
+use Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+use Mail;
 
 /**
  * Class Order
@@ -73,34 +75,6 @@ class Order extends Model
             'resellers' => $this->reseller,
             'correct' => $this->reseller,
         ];
-        /*// Megnézzük, hogy a Viszonteladók irányítószámai közt benne van-e
-        $userZips = UserZip::where('zip', $this->shipping_postcode)->get();
-        $resellers = [];
-        $reseller = null;
-
-        if (count($userZips) > 0) {
-            foreach ($userZips as $userZip) {
-               $resellers[] = $userZip->user;
-           }
-
-           // Alapértelmezetten berakjuk az elsőt, utána ha admint talál akkor felülirja
-           $reseller = $resellers[0];
-           foreach ($resellers as $_reseller) {
-               if ($_reseller->admin) {
-                   $reseller = $_reseller;
-                   break;
-               }
-           }
-       } else {
-            // Találjuk meg az admint akinek van irányítószáma
-            $reseller = User::where('email', '=', 'hello@semmiszemet.hu')->first();
-            $resellers = [$reseller];
-       }
-
-        return [
-            'resellers' => $resellers,
-            'correct' => $reseller,
-        ];*/
     }
 
     /**
@@ -117,7 +91,7 @@ class Order extends Model
     public function todos()
     {
         return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function (Builder $query) {
-            $query->where('user_id', \Auth::id());
+            $query->where('user_id', Auth::id());
         });
     }
 
@@ -218,7 +192,7 @@ class Order extends Model
     /**
      * @return bool
      */
-    public function sendInvoice()
+    public function sendInvoice(): bool
     {
         if (!$this->isInvoiceSaved()) {
             Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
@@ -227,9 +201,9 @@ class Order extends Model
 
         // Elvileg megvan minden, mehet a levél
         if (!$this->hasTrial()) {
-            \Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
+            Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
         } else {
-            \Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
+            Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
         }
 
         return true;
@@ -288,6 +262,61 @@ class Order extends Model
             return 0;
         }
         return ($elapsed / $end) * 100;
+    }
+
+    /**
+     * @return array
+     */
+    public function createInvoice(): array
+    {
+        $bs = resolve('App\Subesz\BillingoNewService');
+        $response = [
+            'success' => false,
+            'message' => 'Számla létrehozásának inicalizálása'
+        ];
+
+        if (!$bs->isBillingoConnected($this->reseller)) {
+            Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
+        } else {
+            // Csak az új típusú számlázást támogatjuk mostantól, és csak akkor hozzuk létre, ha nincs még számla
+            if ($this->draft_invoice_id && (!$this->invoice_path && !$this->invoice_id)) {
+                // 1. Létrehozzuk az éles számlát, ha sikerül
+                $realInvoice = $this->createRealInvoice();
+                if (!$realInvoice) {
+                    Log::error(sprintf('Nem sikerült létrehozni valódi számlát. (Piszkozat: %s, Megr. Azonosító: %s)', $this->draft_invoice_id, $this->id));
+                    $response['message'] = 'Hiba történt a piszkozat számla átalakításakor';
+                    return $response;
+                } else {
+                    // Jók vagyunk
+                    $this->invoice_id = $realInvoice->getId();
+                    $this->save();
+                    $this->refresh();
+                    $path = $bs->downloadInvoice($realInvoice->getId(), $this, $this->reseller);
+                    if (!$path) {
+                        Log::error('Hiba történt a számla letöltésekor');
+                        $response['message'] = 'Hiba történt a számla letöltésekor';
+                        return $response;
+                    }
+
+                    // Elmentjük a számlát helyileg
+                    $this->invoice_path = $path;
+                    $this->save();
+                    $this->sendInvoice();
+                    $response['success'] = true;
+                    $response['message'] = 'Számla sikeresen létrehozva és elküldve az ügyfélnek';
+                }
+            } else if ($this->draft_invoice_id && $this->invoice_id && $this->invoice_path) {
+                Log::info(sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id));
+                $response['success'] = true;
+                $response['message'] = sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id);
+            } else {
+                Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
+                $response['success'] = true;
+                $response['message'] = 'Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)';
+            }
+        }
+
+        return $response;
     }
 
     protected static function booted()

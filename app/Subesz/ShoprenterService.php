@@ -259,7 +259,8 @@ class ShoprenterService
      * @param $statusId
      * @return bool|mixed
      */
-    public function updateOrderStatusId($orderId, $statusId) {
+    public function updateOrderStatusId($orderId, $statusId): bool
+    {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
 
         $ch = curl_init();

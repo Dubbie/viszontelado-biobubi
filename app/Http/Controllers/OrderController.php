@@ -133,16 +133,11 @@ class OrderController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @return RedirectResponse|Redirector
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function updateStatus(Request $request)
     {
-        /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
-        /** @var KlaviyoService $ks */
-        $ks = resolve('App\Subesz\KlaviyoService');
-
         $data = $request->validate([
             'order-id' => 'required',
             'order-status-now' => 'required',
@@ -156,88 +151,18 @@ class OrderController extends Controller
             ]);
         }
 
+        // Kiszedjük a státusz HREF-et
         $statusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $data['order-status-href']);
 
-        if ($this->shoprenterApi->updateOrderStatusId($data['order-id'], $statusId)) {
-            // Kiszállítva állító
-            if ($data['order-status-href'] == sprintf('%s/orderStatuses/b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=', env('SHOPRENTER_API'))) {
-                $orderId = $this->orderService->getLocalOrderByResourceId($data['order-id'])->id;
-
-                $delivery = new Delivery();
-                $delivery->user_id = Auth::id();
-                $delivery->order_id = $orderId;
-                $delivery->save();
-
-                // Kikeressük a helyi megrendelést
-                $localOrder = Order::find($orderId);
-                $order = $localOrder->getShoprenterOrder();
-                $ks->fulfillOrder($order);
-
-                // Töröljük a munkalapról
-                $this->worksheetService->remove($localOrder->id, Auth::id());
-
-                Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
-
-                /** @var User $reseller */
-                $reseller = $localOrder->getReseller()['correct'];
-
-                // Levonjuk a készletet
-                $this->stockService->subtractStockFromOrder($localOrder->id);
-
-                if (!$bs->isBillingoConnected($reseller)) {
-                    Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
-                } else {
-                    // Csak az új típusú számlázást támogatjuk mostantól, és csak akkor hozzuk létre, ha nincs még számla
-                    if ($localOrder->draft_invoice_id && (!$localOrder->invoice_path && !$localOrder->invoice_id)) {
-                        // 1. Létrehozzuk az éles számlát, ha sikerül
-                        $realInvoice = $localOrder->createRealInvoice();
-                        if (!$realInvoice) {
-                            Log::error(sprintf('Nem sikerült létrehozni valódi számlát. (Piszkozat: %s, Megr. Azonosító: %s)', $localOrder->draft_invoice_id, $localOrder->id));
-                            return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-                                'error' => 'Hiba történt a piszkozat számla átalakításakor',
-                            ]);
-                        } else {
-                            // Jók vagyunk
-                            $localOrder->invoice_id = $realInvoice->getId();
-                            $localOrder->save();
-                            $localOrder->refresh();
-                            $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
-                            if (!$path) {
-                                Log::error('Hiba történt a megrendelés állapotának frissítésekor');
-                                return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-                                    'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
-                                ]);
-                            }
-
-                            // Elmentjük a számlát helyileg
-                            $localOrder->invoice_path = $path;
-                            $localOrder->save();
-                            $localOrder->sendInvoice();
-                        }
-                    } else if ($localOrder->draft_invoice_id && $localOrder->invoice_id && $localOrder->invoice_path) {
-                        Log::info(sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $localOrder->id));
-                    } else {
-                        Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
-                    }
-                }
-            } else {
-                $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($data['order-id'])->id);
-                if ($delivery) {
-                    $delivery->delete();
-                }
-            }
-
-            // Flasheljük be, hogy most nem frissülünk
-            $request->session()->flash('updateLocalOrder', false);
-
-            // Mehet a redirect
-            return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-                'success' => 'Állapot sikeresen frissítve',
-            ]);
+        // Frissítjük az új státuszra
+        $result = $this->orderService->updateStatus($data['order-id'], $statusId);
+        $alertType = 'error';
+        if ($result['success']) {
+            $alertType = 'success';
         }
 
-        return redirect(action('OrderController@show', ['orderId' => $data['order-id']]))->with([
-            'error' => 'Ismeretlen hiba történt az állapot frissítésekor',
+        return redirect(url()->previous(action('OrderController@show', ['orderId' => $data['order-id']])))->with([
+           $alertType => $result['message']
         ]);
     }
 
@@ -247,11 +172,6 @@ class OrderController extends Controller
      */
     public function massUpdateStatus(Request $request)
     {
-        /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
-        /** @var KlaviyoService $ks */
-        $ks = resolve('App\Subesz\KlaviyoService');
-
         $data = $request->validate([
             'mos-order-ids' => 'required',
             'order-status-href' => 'required',
@@ -265,74 +185,10 @@ class OrderController extends Controller
 
         // Végigmegyünk a kijelölésen
         $successCount = 0;
-        $shouldDeliver = $statusId == 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=';
-
         foreach ($orderIds as $orderId) {
-            if ($this->shoprenterApi->updateOrderStatusId($orderId, $statusId)) {
-                // Kiszállítva állító
-                if ($shouldDeliver) {
-                    $localOrderId = $this->orderService->getLocalOrderByResourceId($orderId)->id;
-
-                    $delivery = new Delivery();
-                    $delivery->user_id = Auth::id();
-                    $delivery->order_id = $localOrderId;
-                    $delivery->save();
-
-                    // Kikeressük a helyi megrendelést
-                    $localOrder = Order::find($localOrderId);
-                    $reseller = $localOrder->getReseller()['correct'];
-                    $order = $localOrder->getShoprenterOrder();
-                    $ks->fulfillOrder($order);
-
-                    // Töröljük a munkalapról
-                    $this->worksheetService->remove($localOrder->id, Auth::id());
-
-                    // A készletet lerendezzük
-                    $this->stockService->subtractStockFromOrder($localOrder->id);
-
-                    if (!$bs->isBillingoConnected($reseller)) {
-                        Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
-                    } else {
-                        // Csak az új típusú számlázást támogatjuk mostantól, és csak akkor hozzuk létre, ha nincs még számla
-                        if ($localOrder->draft_invoice_id && (!$localOrder->invoice_path && !$localOrder->invoice_id)) {
-                            // 1. Létrehozzuk az éles számlát, ha sikerül
-                            $realInvoice = $localOrder->createRealInvoice();
-                            if (!$realInvoice) {
-                                Log::error(sprintf('Nem sikerült létrehozni valódi számlát. (Piszkozat: %s, Megr. Azonosító: %s)', $localOrder->draft_invoice_id, $localOrder->id));
-                                return redirect(action('OrderController@show', ['orderId' => $orderId]))->with([
-                                    'error' => 'Hiba történt a piszkozat számla átalakításakor',
-                                ]);
-                            } else {
-                                // Jók vagyunk
-                                $localOrder->invoice_id = $realInvoice->getId();
-                                $localOrder->save();
-                                $localOrder->refresh();
-                                $path = $bs->downloadInvoice($realInvoice->getId(), $localOrder, $reseller);
-                                if (!$path) {
-                                    Log::error('Hiba történt a megrendelés állapotának frissítésekor');
-                                    return redirect(action('OrderController@show', ['orderId' => $orderId]))->with([
-                                        'error' => 'Hiba történt a megrendelés állapotának frissítésekor',
-                                    ]);
-                                }
-
-                                // Elmentjük a számlát helyileg
-                                $localOrder->invoice_path = $path;
-                                $localOrder->save();
-                                $localOrder->sendInvoice();
-                            }
-                        } else if ($localOrder->draft_invoice_id && $localOrder->invoice_id && $localOrder->invoice_path) {
-                            Log::info(sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $localOrder->id));
-                        } else {
-                            Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
-                        }
-                    }
-                } else {
-                    $delivery = Delivery::where('order_id', $this->orderService->getLocalOrderByResourceId($orderId)->id);
-                    if ($delivery) {
-                        $delivery->delete();
-                    }
-                }
-
+            // Frissítjük az új státuszra
+            $result = $this->orderService->updateStatus($orderId, $statusId);
+            if ($result['success']) {
                 $successCount++;
             }
         }
@@ -345,7 +201,7 @@ class OrderController extends Controller
         }
 
         return redirect(action('OrderController@index'))->with([
-            'error' => 'Hiba történt az állapotok frissítésekor',
+            'error' => 'Hiba történt némelyik megrendelés frissítésekor frissítésekor, kérlek nézd át újra a kijelölteket, hogy melyik lett sikertelen',
         ]);
     }
 

@@ -35,14 +35,18 @@ class ShoprenterController extends Controller
 
     /**
      * ShoprenterController constructor.
-     * @param OrderService $orderService
-     * @param ShoprenterService $shoprenterService
-     * @param BillingoNewService $billingoNewService
+     *
+     * @param  OrderService        $orderService
+     * @param  ShoprenterService   $shoprenterService
+     * @param  BillingoNewService  $billingoNewService
      */
-    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService, BillingoNewService $billingoNewService)
-    {
-        $this->orderService = $orderService;
-        $this->shoprenterApi = $shoprenterService;
+    public function __construct(
+        OrderService $orderService,
+        ShoprenterService $shoprenterService,
+        BillingoNewService $billingoNewService
+    ) {
+        $this->orderService       = $orderService;
+        $this->shoprenterApi      = $shoprenterService;
         $this->billingoNewService = $billingoNewService;
     }
 
@@ -55,6 +59,7 @@ class ShoprenterController extends Controller
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
             Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
+
             return redirect(action('OrderController@index'))->with([
                 'error' => 'Hibás privát kulcs lett megadva',
             ]);
@@ -62,9 +67,10 @@ class ShoprenterController extends Controller
 
         Log::info('-- Shoprenter API-ból frissítés megkezdése --');
         $start = Carbon::now();
-        $osds = $this->shoprenterApi->getAllStatuses();
-        if (!$osds || !property_exists($osds, 'items')) {
+        $osds  = $this->shoprenterApi->getAllStatuses();
+        if (! $osds || ! property_exists($osds, 'items')) {
             Log::error('A Shoprenter API nem tért vissza eredményekkel');
+
             return redirect(action('UserController@home'))->with([
                 'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
             ]);
@@ -75,7 +81,7 @@ class ShoprenterController extends Controller
             $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
 
             $statusMap[$orderStatusId] = [
-                'name' => $osd->name,
+                'name'  => $osd->name,
                 'color' => $osd->color,
             ];
         }
@@ -83,12 +89,13 @@ class ShoprenterController extends Controller
         $orders = $this->shoprenterApi->getBatchedOrders();
         if (count($orders) == 0) {
             Log::info('- Nem voltak megrendelések a visszatérési értékben -');
+
             return redirect(action('OrderController@index'))->with([
                 'error' => 'Hiba történt a megrendelések frissítésekor',
             ]);
         }
 
-        $successCount = 0;
+        $successCount   = 0;
         $orderResources = [];
         foreach ($orders as $order) {
             $orderResources[] = $order->id;
@@ -99,7 +106,7 @@ class ShoprenterController extends Controller
                     $successCount++;
                 }
             } else {
-                if (!$this->orderService->getLocalOrderByResourceId($order->id)) {
+                if (! $this->orderService->getLocalOrderByResourceId($order->id)) {
                     if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
                         $successCount++;
                     }
@@ -123,6 +130,7 @@ class ShoprenterController extends Controller
             $elapsed = $start->floatDiffInSeconds();
             Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
             Log::info('-- Shoprenter API-ból frissítés vége --');
+
             return redirect(action('OrderController@index'))->with([
                 'success' => sprintf('%s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed),
             ]);
@@ -134,11 +142,11 @@ class ShoprenterController extends Controller
     }
 
     /**
-     * @param $privateKey
-     * @param Request $request
+     * @param  string   $privateKey
+     * @param  Request  $request
      * @return array
      */
-    public function handleWebhook($privateKey, Request $request)
+    public function handleWebhook(string $privateKey, Request $request)
     {
         Log::info('- Shoprenter Új Megrendelés Webhook -');
 
@@ -148,7 +156,7 @@ class ShoprenterController extends Controller
         }
 
         /** @var StockService $ss */
-        $ss = resolve('App\Subesz\StockService');
+        $ss    = resolve('App\Subesz\StockService');
         $array = json_decode($request->input('data'), true);
         Log::info(sprintf('-- Megrendelések száma: %s db', count($array['orders']['order'])));
         foreach ($array['orders']['order'] as $_order) {
@@ -156,26 +164,26 @@ class ShoprenterController extends Controller
             $orderId = str_replace('orders/', '', $_order['innerResourceId']);
 
             // Elmentése a Megrendelésnek db-be
-            $localOrder = new Order();
-            $localOrder->shipping_postcode = $_order['shippingPostcode'];
-            $localOrder->shipping_city = $_order['shippingCity'];
-            $localOrder->shipping_address = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
-            $localOrder->inner_id = $_order['innerId'];
-            $localOrder->inner_resource_id = $orderId;
-            $localOrder->total = $_order['total'];
-            $localOrder->total_gross = $_order['totalGross'];
-            $localOrder->tax_price = $_order['taxPrice'];
-            $localOrder->firstname = $_order['firstname'];
-            $localOrder->lastname = $_order['lastname'];
-            $localOrder->email = $_order['email'];
-            $localOrder->phone = $_order['phone'];
+            $localOrder                       = new Order();
+            $localOrder->shipping_postcode    = $_order['shippingPostcode'];
+            $localOrder->shipping_city        = $_order['shippingCity'];
+            $localOrder->shipping_address     = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
+            $localOrder->inner_id             = $_order['innerId'];
+            $localOrder->inner_resource_id    = $orderId;
+            $localOrder->total                = $_order['total'];
+            $localOrder->total_gross          = $_order['totalGross'];
+            $localOrder->tax_price            = $_order['taxPrice'];
+            $localOrder->firstname            = $_order['firstname'];
+            $localOrder->lastname             = $_order['lastname'];
+            $localOrder->email                = $_order['email'];
+            $localOrder->phone                = $_order['phone'];
             $localOrder->shipping_method_name = $_order['shippingMethodName'];
-            $localOrder->payment_method_name = $_order['paymentMethodName'];
-            $localOrder->status_text = $_order['orderHistory']['statusText'];
-            $localOrder->status_color = '#ff00ff';
-            $localOrder->created_at = date('Y-m-d H:i:s');
+            $localOrder->payment_method_name  = $_order['paymentMethodName'];
+            $localOrder->status_text          = $_order['orderHistory']['statusText'];
+            $localOrder->status_color         = '#ff00ff';
+            $localOrder->created_at           = date('Y-m-d H:i:s');
 
-            if (!$localOrder->save()) {
+            if (! $localOrder->save()) {
                 return ['success' => false];
             }
 
@@ -183,7 +191,7 @@ class ShoprenterController extends Controller
 
             // Elmentjük a készlethez szükséges dolgokat
             $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-            $booked = $ss->bookOrder($orderedProducts, $localOrder->id);
+            $booked          = $ss->bookOrder($orderedProducts, $localOrder->id);
             if ($booked) {
                 $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
             }
@@ -191,31 +199,34 @@ class ShoprenterController extends Controller
             // Mentsük el a számlát
             /** @var Order $localOrder */
             $reseller = $localOrder->getReseller()['correct'];
-            Log::info('Hozzátartozó számlázó fiók neve: ' . $reseller->name);
+            Log::info('Hozzátartozó számlázó fiók neve: '.$reseller->name);
 
             // Elküldjük róla a levelet is
             if ($reseller->email != 'hello@semmiszemet.hu') {
                 \Mail::to($reseller)->send(new NewOrder($order, $reseller));
-                Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
+                Log::info('Levél elküldve az alábbi e-mail címre: '.$reseller->email);
             }
 
             // Ha nincs billing összekötés ne hozzunk létre semmit
-            if (!$this->billingoNewService->isBillingoConnected($reseller)) {
+            if (! $this->billingoNewService->isBillingoConnected($reseller)) {
                 Log::info('A viszonteladónak nincs beállítva billingo összekötés, ezért nem hozunk létre számlát.');
+
                 return ['success' => true];
             }
 
             // 1. Partner
             $partner = $this->billingoNewService->createPartner($order, $reseller);
-            if (!$partner) {
+            if (! $partner) {
                 Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+
                 return ['success' => false];
             }
 
             // 2. Számla
             $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, $reseller);
-            if (!$invoice) {
+            if (! $invoice) {
                 Log::error('Hiba történt a számla létrehozásakor.');
+
                 return ['success' => false];
             }
             Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
@@ -231,6 +242,26 @@ class ShoprenterController extends Controller
         }
 
         return ['success' => true];
+    }
+
+    /**
+     * @param  string                    $privateKey
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool|string[]
+     */
+    public function handleStatusWebhook(string $privateKey, Request $request)
+    {
+        Log::info('- Shoprenter Új Megrendelés Webhook -');
+
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            return ['error' => 'Hibás privát kulcs lett megadva'];
+        }
+
+        $array = json_decode($request->input('data'), true);
+        Log::info($array);
+
+        return true;
     }
 
     /**
@@ -265,49 +296,51 @@ class ShoprenterController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return array
      */
     public function getProduct(Request $request): array
     {
-        $product = $this->shoprenterApi->getProduct($request->input('sku'));
+        $product        = $this->shoprenterApi->getProduct($request->input('sku'));
         $klaviyoProduct = [
-            "ProductName" => $product->productDescriptions[0]->name,
-            "ProductID" => $product->innerId,
-            "ImageURL" => $product->allImages->mainImage,
-            "URL" => 'https://biobubi.hu/' . $product->urlAliases[0]->urlAlias,
-            "Brand" => $product->manufacturer->name ?? 'Semmiszemét',
-            "Price" => $product->price * 1.27,
+            "ProductName"    => $product->productDescriptions[0]->name,
+            "ProductID"      => $product->innerId,
+            "ImageURL"       => $product->allImages->mainImage,
+            "URL"            => 'https://biobubi.hu/'.$product->urlAliases[0]->urlAlias,
+            "Brand"          => $product->manufacturer->name ?? 'Semmiszemét',
+            "Price"          => $product->price * 1.27,
             "CompareAtPrice" => $product->price * 1.27,
         ];
 
         header('Access-Control-Allow-Origin: https://biobubi.hu');
+
         return $klaviyoProduct;
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkZip(Request $request)
     {
         Log::info('Irányítószám ellenőrzése...');
-        $uzip = UserZip::whereZip($request->get('zip'))->first();
+        $uzip     = UserZip::whereZip($request->get('zip'))->first();
         $reseller = $uzip ? $uzip->user : null;
 
         if ($reseller) {
-            Log::info('Az irányítószám megtalálva, viszonteladó: ' . $reseller->name);
+            Log::info('Az irányítószám megtalálva, viszonteladó: '.$reseller->name);
 
             return response()->json([
-               'success' => true,
-               'found' => true,
-               'message' => 'Irányítószám megtalálva.',
+                'success' => true,
+                'found'   => true,
+                'message' => 'Irányítószám megtalálva.',
             ]);
         } else {
             Log::info('Az irányítószám nincs a rendszerben.');
+
             return response()->json([
                 'success' => true,
-                'found' => false,
+                'found'   => false,
                 'message' => 'Irányítószám nincs megtalálva.',
             ]);
         }
