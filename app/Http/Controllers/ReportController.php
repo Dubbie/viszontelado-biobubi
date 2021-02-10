@@ -30,24 +30,26 @@ class ReportController extends Controller
      */
     public function showMonthly(Request $request)
     {
-        $date = $request->input('date') ?? null;
-        $selectedReport = null;
+        $date              = $request->input('date') ?? null;
+        $selectedReport    = null;
         $selectedMarketing = null;
 
         if ($date) {
-            $carbonDate = Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
-            $selectedReport = Auth::user()->reports()->whereDate('created_at', '=',
-                $carbonDate->format('Y-m-d'))->first();
-            $selectedMarketing = Auth::user()->marketingResults()->whereDate('date', '=',
-                $carbonDate->format('Y-m-d'))->first();
+            $carbonDate        = Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
+            $selectedReport    = Auth::user()->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedMarketing = Auth::user()->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
         }
+
         return view('report.monthly')->with([
-            'selectedReport' => $selectedReport,
+            'selectedReport'    => $selectedReport,
             'selectedMarketing' => $selectedMarketing,
         ]);
     }
 
-
+    /**
+     * @param $privateKey
+     * @return array|string[]
+     */
     public function generateMonthlyReports($privateKey): array
     {
         Log::info('Havi riportok generálásának megkezdése...');

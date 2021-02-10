@@ -20,7 +20,7 @@ class Report extends Model
      */
     public function reportProducts(): HasMany
     {
-        return $this->hasMany(ReportProducts::class, 'id', 'report_id');
+        return $this->hasMany(ReportProducts::class, 'report_id', 'id');
     }
 
     /**

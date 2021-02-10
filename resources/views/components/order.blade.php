@@ -30,7 +30,7 @@
                     </div>
 
                     <div class="col-6 text-right">
-                        <p class="h3 font-weight-bold mb-0">{{ number_format($order->total_gross, 0, '.', ' ') }}
+                        <p class="h3 font-weight-bold mb-0">{{ $order->total_gross }}
                             Ft</p>
                     </div>
                 </div>
@@ -105,7 +105,7 @@
                             </span>
                             </button>
                         </form>
-                    
+
                         <form action="{{ action('OrderController@completeOrder') }}" class="form-complete-order d-inline-block ml-2" method="POST">
                             @csrf
                             {{-- Rejtett mező a megrendelésnek --}}

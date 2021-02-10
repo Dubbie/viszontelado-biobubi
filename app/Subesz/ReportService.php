@@ -23,8 +23,8 @@ class ReportService
      */
     public function generateReportByDate(User $reseller, Carbon $currentDate)
     {
-        $endDate = $currentDate->firstOfMonth();
-        $startDate = $endDate->clone()->subMonth();
+        $endDate = $currentDate->subMonth()->lastOfMonth()->setHour(23)->setMinute(59)->setSecond(59);
+        $startDate = $endDate->clone()->firstOfMonth();
 
         // Kiszedjük az összes megrendelését az adott időintervallumra
         $perfStart = microtime(true);
@@ -52,7 +52,7 @@ class ReportService
         $report->gross_expense = $expenses[0]->gross_expense ?? 0;
         $report->gross_income = $orders->sum('total_gross');
         $report->delivered_orders = $orders->count();
-        $report->created_at = $endDate;
+        $report->created_at = $startDate;
         $report->save();
         foreach ($products as $product) {
             $rp = new ReportProducts();
