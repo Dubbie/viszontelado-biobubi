@@ -252,7 +252,7 @@ class ShoprenterController extends Controller
      */
     public function handleStatusWebhook(string $privateKey, Request $request)
     {
-        Log::info('- Shoprenter Új Megrendelés Webhook -');
+        Log::info('- Shoprenter Státusz változás Webhook -');
 
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
