@@ -18,6 +18,7 @@ use Mail;
 
 /**
  * Class Order
+ *
  * @package App
  * @mixin Order
  */
@@ -73,7 +74,7 @@ class Order extends Model
     {
         return [
             'resellers' => $this->reseller,
-            'correct' => $this->reseller,
+            'correct'   => $this->reseller,
         ];
     }
 
@@ -110,6 +111,7 @@ class Order extends Model
     {
         /** @var ShoprenterService $ss */
         $ss = resolve('App\Subesz\ShoprenterService');
+
         return $ss->getOrder($this->inner_resource_id);
     }
 
@@ -166,7 +168,7 @@ class Order extends Model
     public function getDraftInvoice()
     {
         /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
+        $bs       = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
         return $bs->getInvoice($this->draft_invoice_id, $reseller);
@@ -177,13 +179,14 @@ class Order extends Model
      */
     public function createRealInvoice()
     {
-        if (!$this->draft_invoice_id) {
+        if (! $this->draft_invoice_id) {
             Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+
             return null;
         }
 
         /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
+        $bs       = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
         return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller);
@@ -194,13 +197,14 @@ class Order extends Model
      */
     public function sendInvoice(): bool
     {
-        if (!$this->isInvoiceSaved()) {
+        if (! $this->isInvoiceSaved()) {
             Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
+
             return false;
         }
 
         // Elvileg megvan minden, mehet a levél
-        if (!$this->hasTrial()) {
+        if (! $this->hasTrial()) {
             Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
         } else {
             Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
@@ -233,7 +237,8 @@ class Order extends Model
         /** @var Carbon $deadline */
         /** @var Carbon $ordered_at */
         $ordered_at = $this->created_at;
-        $deadline = $ordered_at->clone()->nextWeekday();
+        $deadline   = $ordered_at->clone()->nextWeekday();
+
         return $deadline;
     }
 
@@ -242,7 +247,30 @@ class Order extends Model
      */
     public function isOverdue(): bool
     {
-        return !$this->isCompleted() && (Carbon::now() > $this->getDeadline());
+        return ! $this->isCompleted() && (Carbon::now() > $this->getDeadline());
+    }
+
+    /**
+     * Visszaadja, hogy a megrendelés a bejelentkezett felhasználó munkalapján szerepel-e.
+     *
+     * @return bool
+     */
+    public function onWorksheet(): bool
+    {
+        return $this->getWorksheetEntry() ? true : false;
+    }
+
+    /**
+     * Visszaadja a munkalap elemet a megrendeléshez a jelenleg bejelentkezett felhasználóhoz.
+     *
+     * @return \App\Worksheet|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
+     */
+    function getWorksheetEntry()
+    {
+        return Worksheet::where([
+            ['user_id', '=', Auth::id()],
+            ['order_id', '=', $this->id],
+        ])->first();
     }
 
     /**
@@ -250,9 +278,9 @@ class Order extends Model
      */
     public function getProgress()
     {
-        $start = $this->created_at->getTimestamp();
-        $end = $this->getDeadline()->getTimestamp() - $start;
-        $now = time();
+        $start   = $this->created_at->getTimestamp();
+        $end     = $this->getDeadline()->getTimestamp() - $start;
+        $now     = time();
         $elapsed = $now - $start;
 
         if ($elapsed > $end) {
@@ -261,6 +289,7 @@ class Order extends Model
         if ($now < $start) {
             return 0;
         }
+
         return ($elapsed / $end) * 100;
     }
 
@@ -269,22 +298,23 @@ class Order extends Model
      */
     public function createInvoice(): array
     {
-        $bs = resolve('App\Subesz\BillingoNewService');
+        $bs       = resolve('App\Subesz\BillingoNewService');
         $response = [
             'success' => false,
-            'message' => 'Számla létrehozásának inicalizálása'
+            'message' => 'Számla létrehozásának inicalizálása',
         ];
 
-        if (!$bs->isBillingoConnected($this->reseller)) {
+        if (! $bs->isBillingoConnected($this->reseller)) {
             Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
         } else {
             // Csak az új típusú számlázást támogatjuk mostantól, és csak akkor hozzuk létre, ha nincs még számla
-            if ($this->draft_invoice_id && (!$this->invoice_path && !$this->invoice_id)) {
+            if ($this->draft_invoice_id && (! $this->invoice_path && ! $this->invoice_id)) {
                 // 1. Létrehozzuk az éles számlát, ha sikerül
                 $realInvoice = $this->createRealInvoice();
-                if (!$realInvoice) {
+                if (! $realInvoice) {
                     Log::error(sprintf('Nem sikerült létrehozni valódi számlát. (Piszkozat: %s, Megr. Azonosító: %s)', $this->draft_invoice_id, $this->id));
                     $response['message'] = 'Hiba történt a piszkozat számla átalakításakor';
+
                     return $response;
                 } else {
                     // Jók vagyunk
@@ -292,9 +322,10 @@ class Order extends Model
                     $this->save();
                     $this->refresh();
                     $path = $bs->downloadInvoice($realInvoice->getId(), $this, $this->reseller);
-                    if (!$path) {
+                    if (! $path) {
                         Log::error('Hiba történt a számla letöltésekor');
                         $response['message'] = 'Hiba történt a számla letöltésekor';
+
                         return $response;
                     }
 
@@ -305,14 +336,16 @@ class Order extends Model
                     $response['success'] = true;
                     $response['message'] = 'Számla sikeresen létrehozva és elküldve az ügyfélnek';
                 }
-            } else if ($this->draft_invoice_id && $this->invoice_id && $this->invoice_path) {
-                Log::info(sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id));
-                $response['success'] = true;
-                $response['message'] = sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id);
             } else {
-                Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
-                $response['success'] = true;
-                $response['message'] = 'Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)';
+                if ($this->draft_invoice_id && $this->invoice_id && $this->invoice_path) {
+                    Log::info(sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id));
+                    $response['success'] = true;
+                    $response['message'] = sprintf('A megrendeléshez már létrejött számla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id);
+                } else {
+                    Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
+                    $response['success'] = true;
+                    $response['message'] = 'Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)';
+                }
             }
         }
 
@@ -333,7 +366,7 @@ class Order extends Model
         });
 
         static::created(function (Order $order) {
-            Log::info('Helyi megrendelés elmentve, hozzárendelt viszonteladó: ' . User::find($order->reseller_id)->name);
+            Log::info('Helyi megrendelés elmentve, hozzárendelt viszonteladó: '.User::find($order->reseller_id)->name);
         });
 
         // Törléskör a termékeket kukázzuk
@@ -342,13 +375,12 @@ class Order extends Model
             if ($order->products) {
                 $baseProducts = $order->getBaseProducts();
                 foreach ($baseProducts as $baseProduct) {
-                    /** @var Product $product */
-                    /** @var User $reseller */
+                    /** @var Product $product */ /** @var User $reseller */
                     /** @var Stock $stockItem */
-                    $product = $baseProduct['product'];
+                    $product    = $baseProduct['product'];
                     $stockCount = $baseProduct['count'];
-                    $reseller = $order->getReseller()['correct'];
-                    $stockItem = $reseller->stock()->where('sku', $product->sku)->first();
+                    $reseller   = $order->getReseller()['correct'];
+                    $stockItem  = $reseller->stock()->where('sku', $product->sku)->first();
 
                     if ($stockItem && $order->status_text == 'Teljesítve') {
                         $stockItem->inventory_on_hand += $stockCount;
