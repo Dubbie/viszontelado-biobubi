@@ -246,26 +246,6 @@ class ShoprenterController extends Controller
     }
 
     /**
-     * @param  string                    $privateKey
-     * @param  \Illuminate\Http\Request  $request
-     * @return bool|string[]
-     */
-    public function handleStatusWebhook(string $privateKey, Request $request)
-    {
-        Log::info('- Shoprenter Státusz változás Webhook -');
-
-        // Ellenőrizzük a kulcsot
-        if (env('PRIVATE_KEY') != $privateKey) {
-            return ['error' => 'Hibás privát kulcs lett megadva'];
-        }
-
-        $array = json_decode($request->input('data'), true);
-        Log::info($array);
-
-        return true;
-    }
-
-    /**
      *
      */
     public function updateProducts()

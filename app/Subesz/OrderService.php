@@ -324,15 +324,6 @@ class OrderService
      */
     public function updateStatus(string $orderResourceId, string $statusId): array
     {
-        // Szervizek
-        $ks = resolve('App\Subesz\KlaviyoService');
-        $ws = resolve('App\Subesz\WorksheetService');
-        $ss = resolve('App\Subesz\StockService');
-
-        /** @var Order $localOrder */
-        $localOrder = $this->getLocalOrderByResourceId($orderResourceId);
-        $srOrder    = $localOrder->getShoprenterOrder();
-        $reseller   = $localOrder->reseller;
         $response   = [
             'success' => false,
             'message' => 'Inicializálva',
@@ -343,48 +334,6 @@ class OrderService
             $response['message'] = 'Hiba történt a státusz frissítésekor a ShopRenterben.';
 
             return $response;
-        }
-
-        // Ha Teljesítve státuszba került (Több is lehet), akkor rögzítjük az adatokat
-        if (in_array($statusId, $this->completedStatusMap)) {
-            // Létrehozzuk a Kiszállítást
-            $delivery           = new Delivery();
-            $delivery->user_id  = $reseller->id;
-            $delivery->order_id = $localOrder->id;
-            $delivery->save();
-
-            $ks->fulfillOrder($srOrder); // Klaviyo-ba frissítjük a megrendelést
-            Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
-            $ws->remove($localOrder->id, $reseller->id); // Töröljük a munkalapról
-            Log::info('WorksheetService: - Törölve a munkalapról.');
-            $ss->subtractStockFromOrder($localOrder->id); // Levonjuk a készletet
-            Log::info('StockService: - Készlet levonva.');
-
-            // Logolunk kicsit, aztán számlázunk
-            Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
-            Log::info('Számla gyártás megkezdése...');
-            $invoiceResponse = $localOrder->createInvoice();
-            if (! $invoiceResponse['success']) {
-                $response['message'] = $invoiceResponse['message'];
-            }
-            Log::info('... számla elintézve.');
-
-            $response['success'] = true;
-            $response['message'] = 'Megrendelés sikeresen teljesítve (Minden folyamat lefutott)';
-        } else {
-            $response['message'] = 'Sikeres állapot váltás.';
-            /** @var Delivery $delivery */
-            $delivery = Delivery::where('order_id', $localOrder->id)->first();
-            if ($delivery) {
-                try {
-                    $delivery->delete();
-                    $response['message'] = 'Sikeres állapot váltás, kiszállítási adatok törölve';
-                } catch (Exception $e) {
-                    $response['message'] = 'Hiba a kiszállítás törlésekor';
-                }
-            }
-
-            $response['success'] = true;
         }
 
         return $response;

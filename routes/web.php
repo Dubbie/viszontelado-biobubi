@@ -145,9 +145,10 @@ Route::group(['middleware' => 'auth'], function() {
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
-Route::post('/api/allapot-valtozas/{privateKey}', 'ShoprenterController@handleStatusWebhook');
+Route::post('/api/allapot-valtozas/{privateKey}', 'OrderStatusController@handleStatusWebhook');
 Route::get('/api/havi-riportok/generalas/{privateKey}', 'ReportController@generateMonthlyReports');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
+Route::get('/statuszok/frissites/{privateKey}', 'OrderStatusController@updateStatuses');
 Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProducts');
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');
 Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');

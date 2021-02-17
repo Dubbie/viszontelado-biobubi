@@ -1,7 +1,7 @@
 {{-- Rejtett mező a megrendelésnek --}}
-<input type="hidden" name="order-id" value="{{ $order['order']->id }}">
+<input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
 {{-- Rejtett mező a megrendelés jelenlegi státuszának --}}
-<input type="hidden" name="order-status-now" value="{{ $order['order']->orderStatus->href}}">
+<input type="hidden" name="order-status-now" value="{{ $order->status_name }}">
 {{-- Állapot --}}
 <div class="form-group mb-0">
     <label for="order-status-href">
@@ -12,10 +12,10 @@
         </span>
     </label>
     <select name="order-status-href" id="order-status-href" class="custom-select">
-        @foreach($statuses as $orderStatusDescription)
-            <option value="{{ $orderStatusDescription->orderStatus->href }}"
-                    @if($orderStatusDescription->orderStatus->href == $order['order']->orderStatus->href) selected @endif>
-                {{ $orderStatusDescription->name }}
+        @foreach($statuses as $os)
+            <option value="{{ $os->status_id }}"
+                    @if($os->name == $order->status_name) selected @endif>
+                {{ $os->name }}
             </option>
         @endforeach
     </select>
