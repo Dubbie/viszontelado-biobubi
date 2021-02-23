@@ -31,7 +31,7 @@ class OrderService
     /**
      * OrderService constructor.
      *
-     * @param  ShoprenterService  $shoprenterService
+     * @param  ShoprenterService $shoprenterService
      */
     public function __construct(ShoprenterService $shoprenterService)
     {
@@ -39,7 +39,7 @@ class OrderService
 
         $osds = $this->shoprenterApi->getAllStatuses();
 
-        if (! $osds || ! property_exists($osds, 'items')) {
+        if (!$osds || !property_exists($osds, 'items')) {
             return redirect(action('UserController@home'))->with([
                 'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
             ]);
@@ -56,7 +56,7 @@ class OrderService
             $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
 
             $this->statusMap[$orderStatusId] = [
-                'name'  => $osd->name,
+                'name' => $osd->name,
                 'color' => $osd->color,
             ];
         }
@@ -69,18 +69,25 @@ class OrderService
     public function getOrdersFiltered($filter = [])
     {
         // Viszonteladó filter
-        $userId = Auth::id();
-        if (array_key_exists('reseller', $filter)) {
-            $userId = intval($filter['reseller']);
-        }
+        $orders = Order::where('reseller_id', '=', Auth::id());
 
-        $orders = Order::where('reseller_id', $userId);
+        if (Auth::user()->admin && array_key_exists('reseller', $filter)) {
+            if ($filter['reseller'] == 'ALL') {
+                $orders = Order::where('reseller_id', '!=', null);
+            } else {
+                $orders = Order::where('reseller_id', '=', intval($filter['reseller']));
+            }
+        }
 
         // Filter
         if (array_key_exists('query', $filter)) {
-            $searchValue = '%'.$filter['query'].'%';
-            $orders      = $orders->where(function ($query) use ($searchValue) {
-                $query->where('firstname', 'like', $searchValue)->orWhere('lastname', 'like', $searchValue)->orWhere('shipping_address', 'like', $searchValue)->orWhere('email', 'like', $searchValue);
+            $searchValue = '%' . $filter['query'] . '%';
+            $orders = $orders->where(function ($query) use ($searchValue) {
+                $query->where('firstname', 'like', $searchValue)
+                    ->orWhere('lastname', 'like', $searchValue)
+                    ->orWhere('shipping_address', 'like', $searchValue)
+                    ->orWhere('inner_id', 'like', $searchValue)
+                    ->orWhere('email', 'like', $searchValue);
             });
         }
 
@@ -115,7 +122,7 @@ class OrderService
         $user = User::find($userId);
 
         // Ha admin és van irányítószáma akkor nézzük meg, hogy mik azok a megrendelések amikhez nincs viszonteladói irányítószám
-        $userZips     = array_column($user->zips->toArray(), 'zip');
+        $userZips = array_column($user->zips->toArray(), 'zip');
         $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
 
         if ($user->admin && count($user->zips) == 0) {
@@ -132,32 +139,32 @@ class OrderService
     }
 
     /**
-     * @param  stdClass  $order
-     * @param  bool      $muted
+     * @param  stdClass $order
+     * @param  bool $muted
      * @return \App\Order|bool|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object
      */
     public function updateLocalOrder($order, $muted = false)
     {
-        if (! $muted) {
+        if (!$muted) {
             Log::info('-- Megrendelés frissítése --');
         }
         $local = Order::where('inner_resource_id', $order->id)->first();
-        if (! $local) {
-            if (! $muted) {
+        if (!$local) {
+            if (!$muted) {
                 Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order->id));
                 Log::info('Új megrendelés létrehozása...');
             }
             $local = new Order();
         }
 
-        $tax        = ($order->paymentMethodTaxRate + 100) / 100;
-        $total      = round($order->total / $tax);
-        $taxPrice   = round($order->total - $total);
+        $tax = ($order->paymentMethodTaxRate + 100) / 100;
+        $total = round($order->total / $tax);
+        $taxPrice = round($order->total - $total);
         $totalGross = round($order->total);
 
         $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
 
-        if (! array_key_exists($orderStatusId, $this->statusMap)) {
+        if (!array_key_exists($orderStatusId, $this->statusMap)) {
             Log::error('Nem volt megtalálható a státusz azonosító a státusz leíró térképben.');
             Log::error(var_dump($this->statusMap));
 
@@ -165,28 +172,28 @@ class OrderService
         }
 
         $local->fill([
-            'inner_id'             => $order->innerId,
-            'inner_resource_id'    => $order->id,
-            'total'                => $total,
-            'total_gross'          => $totalGross,
-            'tax_price'            => $taxPrice,
-            'firstname'            => $order->firstname,
-            'lastname'             => $order->lastname,
-            'email'                => $order->email,
-            'phone'                => $order->phone,
-            'status_text'          => $this->statusMap[$orderStatusId]['name'],
-            'status_color'         => $this->statusMap[$orderStatusId]['color'],
+            'inner_id' => $order->innerId,
+            'inner_resource_id' => $order->id,
+            'total' => $total,
+            'total_gross' => $totalGross,
+            'tax_price' => $taxPrice,
+            'firstname' => $order->firstname,
+            'lastname' => $order->lastname,
+            'email' => $order->email,
+            'phone' => $order->phone,
+            'status_text' => $this->statusMap[$orderStatusId]['name'],
+            'status_color' => $this->statusMap[$orderStatusId]['color'],
             'shipping_method_name' => $order->shippingMethodName,
-            'payment_method_name'  => $order->paymentMethodName,
-            'shipping_postcode'    => $order->shippingPostcode,
-            'shipping_city'        => $order->shippingCity,
-            'shipping_address'     => sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2),
-            'created_at'           => date('Y-m-d H:i:s', strtotime($order->dateCreated)),
-            'updated_at'           => date('Y-m-d H:i:s'),
+            'payment_method_name' => $order->paymentMethodName,
+            'shipping_postcode' => $order->shippingPostcode,
+            'shipping_city' => $order->shippingCity,
+            'shipping_address' => sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2),
+            'created_at' => date('Y-m-d H:i:s', strtotime($order->dateCreated)),
+            'updated_at' => date('Y-m-d H:i:s'),
         ]);
 
         if ($local->save()) {
-            if (! $muted) {
+            if (!$muted) {
                 Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
             }
 
@@ -197,7 +204,7 @@ class OrderService
     }
 
     /**
-     * @param  int  $limit
+     * @param  int $limit
      * @return Builder|Model|null|object
      */
     public function getLatestOrder($limit = 1)
@@ -214,7 +221,7 @@ class OrderService
     {
         /** @var Order $lastOrder */
         $lastOrder = Order::orderBy('updated_at')->first();
-        if (! $lastOrder) {
+        if (!$lastOrder) {
             return null;
         }
 
@@ -248,7 +255,7 @@ class OrderService
     /**
      * Visszaadja a megrendelésből a megrendelt termékeket és darabszámukat.
      *
-     * @param  array  $order
+     * @param  array $order
      * @return array
      */
     public function getOrderedProductsFromOrder(array $order): array
@@ -256,7 +263,7 @@ class OrderService
         $productsList = [];
         foreach ($order['products']->items as $item) {
             $productsList[] = [
-                'sku'   => $item->sku,
+                'sku' => $item->sku,
                 'count' => intval($item->stock1),
             ];
         }
@@ -280,7 +287,7 @@ class OrderService
     }
 
     /**
-     * @param  string  $string
+     * @param  string $string
      * @return User|Builder|Model|mixed|null|object
      */
     public function getResellerByZip(string $string)
@@ -295,7 +302,7 @@ class OrderService
     }
 
     /**
-     * @param  array  $skuList
+     * @param  array $skuList
      * @param         $orderId
      */
     public function saveOrderedProducts(array $skuList, $orderId)
@@ -307,8 +314,8 @@ class OrderService
             $lp = $ss->getLocalProductBySku($orderedProduct['sku']);
 
             foreach ($lp->getSubProducts() as $subProduct) {
-                $op              = new OrderProducts();
-                $op->order_id    = $orderId;
+                $op = new OrderProducts();
+                $op->order_id = $orderId;
                 $op->product_sku = $subProduct['product']->sku;
                 $op->product_qty = $subProduct['count'] * $orderedProduct['count'];
                 $op->save();
@@ -318,19 +325,19 @@ class OrderService
     }
 
     /**
-     * @param  string  $orderResourceId
-     * @param  string  $statusId
+     * @param  string $orderResourceId
+     * @param  string $statusId
      * @return array
      */
     public function updateStatus(string $orderResourceId, string $statusId): array
     {
-        $response   = [
+        $response = [
             'success' => true,
             'message' => 'Státusz frissítve',
         ];
 
         // Ha hibára fut a Shoprenter frissítés akkor visszatérünk
-        if (! $this->shoprenterApi->updateOrderStatusId($orderResourceId, $statusId)) {
+        if (!$this->shoprenterApi->updateOrderStatusId($orderResourceId, $statusId)) {
             $response['success'] = false;
             $response['message'] = 'Hiba történt a státusz frissítésekor a ShopRenterben.';
 
