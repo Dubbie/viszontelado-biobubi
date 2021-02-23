@@ -325,12 +325,13 @@ class OrderService
     public function updateStatus(string $orderResourceId, string $statusId): array
     {
         $response   = [
-            'success' => false,
-            'message' => 'Inicializálva',
+            'success' => true,
+            'message' => 'Státusz frissítve',
         ];
 
         // Ha hibára fut a Shoprenter frissítés akkor visszatérünk
         if (! $this->shoprenterApi->updateOrderStatusId($orderResourceId, $statusId)) {
+            $response['success'] = false;
             $response['message'] = 'Hiba történt a státusz frissítésekor a ShopRenterben.';
 
             return $response;
