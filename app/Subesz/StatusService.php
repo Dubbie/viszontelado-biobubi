@@ -82,7 +82,7 @@ class StatusService
             $delivery->order_id = $localOrder->id;
             $delivery->save();
 
-            //$ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
+            $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
             Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
             $ws->remove($localOrder->id, $reseller->id); // Töröljük a munkalapról
             Log::info('WorksheetService: - Törölve a munkalapról.');
