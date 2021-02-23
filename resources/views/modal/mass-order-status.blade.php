@@ -23,9 +23,9 @@
                     </label>
                     <select name="order-status-href" id="order-status-href" class="custom-select">
                         <option value="" selected disabled hidden>Kérjük válasszon...</option>
-                        @foreach($statuses as $orderStatusDescription)
-                            <option value="{{ $orderStatusDescription->orderStatus->href }}">
-                                {{ $orderStatusDescription->name }}
+                        @foreach($statuses as $os)
+                            <option value="{{ $os->status_id }}">
+                                {{ $os->name }}
                             </option>
                         @endforeach
                     </select>

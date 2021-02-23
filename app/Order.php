@@ -265,7 +265,7 @@ class Order extends Model
      *
      * @return \App\Worksheet|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
-    function getWorksheetEntry()
+    public function getWorksheetEntry()
     {
         return Worksheet::where([
             ['user_id', '=', Auth::id()],

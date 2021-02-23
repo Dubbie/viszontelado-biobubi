@@ -4,15 +4,13 @@ namespace App\Subesz;
 
 
 use App\Order;
+use App\OrderStatus;
 use App\Product;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
 class ShoprenterService
 {
-    /** @var array */
-    private $statusMap;
-
     /** @var array */
     private $bundleSkus;
 
@@ -21,24 +19,6 @@ class ShoprenterService
      */
     public function __construct()
     {
-
-        $osds = $this->getAllStatuses();
-
-        if (!$osds || !property_exists($osds, 'items')) {
-            return redirect(action('UserController@home'))->with([
-                'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
-            ]);
-        }
-
-        foreach ($osds->items as $osd) {
-            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
-
-            $this->statusMap[$orderStatusId] = [
-                'name' => $osd->name,
-                'color' => $osd->color,
-            ];
-        }
-
         // Lekezeljük a csomagokat
         $this->bundleSkus = [
             '1', 'CEM3', 'CEFSZ3', 'CEF3', 'CEFMSZB', 'CEFMSZ', '11'
@@ -329,19 +309,13 @@ class ShoprenterService
     }
 
     /**
-     * Visszaadja a szűrt státuszokat
-     *
-     * @return array
+     * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      */
     public function getStatusesFiltered() {
-        $statuses = $this->getAllStatuses();
-        $filteredStatuses = [];
-        foreach ($statuses->items as $statusItem) {
-            if (strpos($statusItem->name, 'zzz') !== 0 && $statusItem->name != 'Törölt') {
-                $filteredStatuses[] = $statusItem;
-            }
-        }
-        return $filteredStatuses;
+        return OrderStatus::where([
+            ['active','!=', 'true'],
+            ['name','!=', 'Törölt']
+        ])->get();
     }
 
     /**
