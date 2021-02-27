@@ -45,7 +45,7 @@
                             <p class="mb-0">Vásárló:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">
-                            <p class="mb-0">{{ $order['order']->firstname }} {{ $order['order']->lastname }}</p>
+                            <p class="font-weight-bold mb-0">{{ $order['order']->firstname }} {{ $order['order']->lastname }}</p>
                             <p class="mb-0">{{ $order['order']->email }}</p>
                             <p class="mb-0">{{ $order['order']->phone }}</p>
                         </div>
@@ -85,6 +85,41 @@
                     </div>
                 </div>
             </div>
+
+            @if(Auth::user()->admin)
+                <div class="row mt-5">
+                    <div class="col-lg-3">
+                        <h5 class="font-weight-bold mb-2">Számla</h5>
+                        <p class="text-muted">Csak <span class="badge badge-pill badge-success">Adminisztrátori</span> fiók láthatja ezeket az adatokat jelenleg.</p>
+                    </div>
+                    <div class="col-lg-9">
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                                <p class="mb-0">Piszkozat:</p>
+                            </div>
+                            <div class="col-md-6 col-lg-8">
+                                <p class="font-weight-bold mb-0">{{ $localOrder->draft_invoice_id ? 'Létrejött' : 'Nem jött létre' }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                                <p class="mb-0">Éles számla:</p>
+                            </div>
+                            <div class="col-md-6 col-lg-8">
+                                <p class="font-weight-bold mb-0">{{ $localOrder->invoice_id ? 'Létrejött' : 'Nem jött létre' }}</p>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 col-lg-4">
+                                <p class="mb-0">Számla elmentése:</p>
+                            </div>
+                            <div class="col-md-6 col-lg-8">
+                                <p class="font-weight-bold mb-0">{{ $localOrder->invoice_path ? 'Sikeres' : 'Sikertelen' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
             <div class="row mt-5">
                 <div class="col-lg-3">
