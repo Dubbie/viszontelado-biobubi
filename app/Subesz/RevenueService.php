@@ -35,13 +35,10 @@ class RevenueService
     public function getIncomeByRange($start, $end, $userId = null)
     {
         // Alap lekérés a jelenlegi felhasználóhoz
-        $query = null;
-
-        if ($userId) {
-            $query = $this->orderService->getOrdersQueryByUserId($userId);
-        } else {
-            $query = $this->orderService->getOrdersQueryByUserId(Auth::id());
+        if (!$userId) {
+            $userId = Auth::id();
         }
+        $query = Income::where('user_id', '=', $userId);
 
         $data = [];
         $dayDiff = $start->diffInDays($end);
@@ -57,17 +54,16 @@ class RevenueService
         }
 
         // Visszanyerjük a megfelelő lekérdezéssel
-        $result = $query->where('status_text', 'Teljesítve')
-            ->where([
-                ['created_at', '>=', $start],
-                ['created_at', '<=', $end],
+        $result = $query->where([
+                ['date', '>=', $start],
+                ['date', '<=', $end],
             ])
             ->groupBy('date')
             ->orderBy('date')
             ->get([
-                DB::raw('Date(created_at) as "date"'),
+                DB::raw('Date(date) as "date"'),
                 DB::raw('COUNT(*) AS "count"'),
-                DB::raw('SUM(`total_gross`) as "total"')
+                DB::raw('SUM(`gross_value`) as "total"')
             ])->toArray();
 
         $sum = 0;
@@ -188,6 +184,29 @@ class RevenueService
     }
 
     /**
+     * @param           $name
+     * @param           $amount
+     * @param \App\User $reseller
+     * @param           $date
+     * @param           $comment
+     * @return bool
+     */
+    public function storeResellerIncome($name, $amount, User $reseller, $date, $comment) {
+        $income = new Income();
+        $income->gross_value = $amount;
+        $income->name = $name;
+        $income->user_id = $reseller->id;
+        $income->comment = $comment;
+        $income->tax_value = $amount - ($amount / 1.27);
+        $income->date = $date ? $date : date('Y-m-d');
+        $income->save();
+
+        Log::info(sprintf('Viszonteladó bevétele elmentve. (%s, %s Ft, %s)', $reseller->name, $amount, $name));
+
+        return true;
+    }
+
+    /**
      * @param $start
      * @param $end
      * @return array
@@ -208,7 +227,7 @@ class RevenueService
             ['date', '<=', $end],
         ])->orderBy('date', 'DESC')
             ->get();
-        /** @var Income[] $incoms */
+        /** @var Income[] $incomes */
         $incomes = Income::select(['id', 'name', 'gross_value', 'tax_value', 'comment', 'date'])->where([
             ['user_id', '=', null],
             ['date', '>=', $start],

@@ -148,6 +148,7 @@ Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebh
 Route::post('/api/allapot-valtozas/{privateKey}', 'OrderStatusController@handleStatusWebhook');
 Route::get('/api/havi-riportok/generalas/{privateKey}', 'ReportController@generateMonthlyReports');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
+Route::get('/megrendelesek/bevetelek/frissites/{privateKey}', 'RevenueController@generateOrderIncomes');
 Route::get('/statuszok/frissites/{privateKey}', 'OrderStatusController@updateStatuses');
 Route::get('/termekek/frissites/{privateKey}', 'ShoprenterController@updateProducts');
 Route::get('/test-billingo', 'ShoprenterController@testBillingo');

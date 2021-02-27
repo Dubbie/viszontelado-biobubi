@@ -105,6 +105,14 @@ class Order extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function income()
+    {
+        return $this->hasOne(Income::class, 'id', 'income_id');
+    }
+
+    /**
      * @return array
      */
     public function getShoprenterOrder()
@@ -168,7 +176,7 @@ class Order extends Model
     public function getDraftInvoice()
     {
         /** @var BillingoNewService $bs */
-        $bs       = resolve('App\Subesz\BillingoNewService');
+        $bs = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
         return $bs->getInvoice($this->draft_invoice_id, $reseller);
@@ -186,7 +194,7 @@ class Order extends Model
         }
 
         /** @var BillingoNewService $bs */
-        $bs       = resolve('App\Subesz\BillingoNewService');
+        $bs = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
         return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller);
@@ -218,7 +226,7 @@ class Order extends Model
      */
     public function isCompleted(): bool
     {
-        return $this->status_text == 'Teljesítve';
+        return resolve('App\Subesz\StatusService')->isCompleted($this->id);
     }
 
     /**
@@ -237,7 +245,7 @@ class Order extends Model
         /** @var Carbon $deadline */
         /** @var Carbon $ordered_at */
         $ordered_at = $this->created_at;
-        $deadline   = $ordered_at->clone()->nextWeekday();
+        $deadline = $ordered_at->clone()->nextWeekday();
 
         return $deadline;
     }
@@ -278,9 +286,9 @@ class Order extends Model
      */
     public function getProgress()
     {
-        $start   = $this->created_at->getTimestamp();
-        $end     = $this->getDeadline()->getTimestamp() - $start;
-        $now     = time();
+        $start = $this->created_at->getTimestamp();
+        $end = $this->getDeadline()->getTimestamp() - $start;
+        $now = time();
         $elapsed = $now - $start;
 
         if ($elapsed > $end) {
@@ -298,7 +306,7 @@ class Order extends Model
      */
     public function createInvoice(): array
     {
-        $bs       = resolve('App\Subesz\BillingoNewService');
+        $bs = resolve('App\Subesz\BillingoNewService');
         $response = [
             'success' => false,
             'message' => 'Számla létrehozásának inicalizálása',
@@ -352,6 +360,31 @@ class Order extends Model
         return $response;
     }
 
+    /**
+     * @param null $date
+     * @return bool
+     */
+    public function updateIncome($date = null)
+    {
+        // Ha nincs teljesítve akkor nincs bevételünk...
+        if (! $this->isCompleted()) {
+            return true;
+        }
+
+        $income = $this->income ?? new Income();
+        $income->gross_value = $this->total_gross;
+        $income->name = 'Megrendelés';
+        $income->user_id = $this->reseller_id;
+        $income->comment = sprintf('#%s megrendelésszám (%s %s)', $this->inner_id, $this->firstname, $this->lastname);
+        $income->tax_value = $this->total_gross - ($this->total_gross / 1.27);
+        $income->date = $date ? $date : $this->created_at;
+        $success = $income->save();
+
+        Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->inner_id, $this->total_gross));
+
+        return $success;
+    }
+
     protected static function booted()
     {
         // Létrehozásnál nézzünk viszonteladót a megrendeléshez
@@ -375,12 +408,13 @@ class Order extends Model
             if ($order->products) {
                 $baseProducts = $order->getBaseProducts();
                 foreach ($baseProducts as $baseProduct) {
-                    /** @var Product $product */ /** @var User $reseller */
+                    /** @var Product $product */
+                    /** @var User $reseller */
                     /** @var Stock $stockItem */
-                    $product    = $baseProduct['product'];
+                    $product = $baseProduct['product'];
                     $stockCount = $baseProduct['count'];
-                    $reseller   = $order->getReseller()['correct'];
-                    $stockItem  = $reseller->stock()->where('sku', $product->sku)->first();
+                    $reseller = $order->getReseller()['correct'];
+                    $stockItem = $reseller->stock()->where('sku', $product->sku)->first();
 
                     if ($stockItem && $order->status_text == 'Teljesítve') {
                         $stockItem->inventory_on_hand += $stockCount;

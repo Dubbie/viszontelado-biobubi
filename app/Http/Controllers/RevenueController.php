@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Expense;
 use App\Income;
+use App\Order;
 use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
@@ -27,7 +28,8 @@ class RevenueController extends Controller
 
     /**
      * RevenueController constructor.
-     * @param OrderService $orderService
+     *
+     * @param OrderService   $orderService
      * @param RevenueService $revenueService
      */
     public function __construct(OrderService $orderService, RevenueService $revenueService)
@@ -51,17 +53,13 @@ class RevenueController extends Controller
     public function fetchIncome(Request $request)
     {
         $input = $request->validate([
-            'user-id' => 'nullable',
+            'user-id'    => 'nullable',
             'start-date' => 'required',
-            'end-date' => 'required',
+            'end-date'   => 'required',
         ]);
 
         $dateFormat = 'M. d.';
-        $apiResults = $this->revenueService->getIncomeByRange(
-            Carbon::parse($input['start-date']),
-            Carbon::parse($input['end-date'] . ' 23:59:59'),
-            $input['user-id'] ?? null
-        );
+        $apiResults = $this->revenueService->getIncomeByRange(Carbon::parse($input['start-date']), Carbon::parse($input['end-date'].' 23:59:59'), $input['user-id'] ?? null);
 
         $labels = [];
         $data = [];
@@ -76,16 +74,16 @@ class RevenueController extends Controller
             ];
 
             $count[] = [
-                'date' => $date->format($dateFormat),
+                'date'  => $date->format($dateFormat),
                 'count' => $stat['count'],
             ];
         }
 
         $response = [
             'labels' => $labels,
-            'data' => $data,
-            'count' => $count,
-            'sum' => $apiResults['sum'],
+            'data'   => $data,
+            'count'  => $count,
+            'sum'    => $apiResults['sum'],
         ];
 
         return $response;
@@ -106,10 +104,10 @@ class RevenueController extends Controller
     public function storeExpense(Request $request)
     {
         $data = $request->validate([
-            'e-hq' => 'nullable',
-            'e-name' => 'required',
-            'e-amount' => 'required',
-            'e-date' => 'required',
+            'e-hq'      => 'nullable',
+            'e-name'    => 'required',
+            'e-amount'  => 'required',
+            'e-date'    => 'required',
             'e-comment' => 'nullable',
         ]);
 
@@ -131,16 +129,12 @@ class RevenueController extends Controller
     public function fetchExpense(Request $request)
     {
         $input = $request->validate([
-            'user-id' => 'nullable',
+            'user-id'    => 'nullable',
             'start-date' => 'required',
-            'end-date' => 'required',
+            'end-date'   => 'required',
         ]);
 
-        $userExpenses = $this->revenueService->getExpenseByRange(
-            Carbon::parse($input['start-date']),
-            Carbon::parse($input['end-date'] . ' 23:59:59'),
-            $input['user-id'] ?? Auth::id()
-        );
+        $userExpenses = $this->revenueService->getExpenseByRange(Carbon::parse($input['start-date']), Carbon::parse($input['end-date'].' 23:59:59'), $input['user-id'] ?? Auth::id());
 
         return $userExpenses;
     }
@@ -149,7 +143,8 @@ class RevenueController extends Controller
      * @param $expenseId
      * @return array
      */
-    public function destroyExpense($expenseId) {
+    public function destroyExpense($expenseId)
+    {
         $expense = Auth::user()->expenses->find(intval($expenseId));
         $success = false;
 
@@ -171,9 +166,10 @@ class RevenueController extends Controller
     /**
      * @return Factory|View
      */
-    public function hqFinance() {
+    public function hqFinance()
+    {
         return view('hq.finance')->with([
-            'resellers' => User::where('admin', false)->orderBy('name')->get(),
+            'resellers'     => User::where('admin', false)->orderBy('name')->get(),
             'hqFinanceData' => $this->revenueService->getHqFinanceDaily(Carbon::now()->firstOfMonth(), Carbon::now()->endOfDay()),
         ]);
     }
@@ -182,22 +178,17 @@ class RevenueController extends Controller
      * @param Request $request
      * @return array
      */
-    public function getHqFinance(Request $request) {
+    public function getHqFinance(Request $request)
+    {
         $input = $request->validate([
-            'view-mode' => 'required',
+            'view-mode'  => 'required',
             'start-date' => 'required',
-            'end-date' => 'required',
+            'end-date'   => 'required',
         ]);
 
-        $hqFinance = $this->revenueService->getHqFinanceDaily(
-            Carbon::parse($input['start-date']),
-            Carbon::parse($input['end-date'] . ' 23:59:59')
-        );
+        $hqFinance = $this->revenueService->getHqFinanceDaily(Carbon::parse($input['start-date']), Carbon::parse($input['end-date'].' 23:59:59'));
         if ($input['view-mode'] != 'DAILY') {
-            $hqFinance = $this->revenueService->getHqFinanceMonthly(
-                Carbon::parse($input['start-date']),
-                Carbon::parse($input['end-date'] . ' 23:59:59')
-            );
+            $hqFinance = $this->revenueService->getHqFinanceMonthly(Carbon::parse($input['start-date']), Carbon::parse($input['end-date'].' 23:59:59'));
         }
 
         return $hqFinance;
@@ -210,11 +201,11 @@ class RevenueController extends Controller
     public function storeIncome(Request $request)
     {
         $data = $request->validate([
-            'hqi-name' => 'required',
-            'hqi-amount' => 'required',
+            'hqi-name'        => 'required',
+            'hqi-amount'      => 'required',
             'hqi-reseller-id' => 'nullable',
-            'hqi-date' => 'required',
-            'hqi-comment' => 'nullable',
+            'hqi-date'        => 'required',
+            'hqi-comment'     => 'nullable',
         ]);
 
         $this->revenueService->storeCentralIncome($data['hqi-name'], $data['hqi-reseller-id'] ?? null, intval($data['hqi-amount']), date('Y-m-d H:i:s', strtotime($data['hqi-date'])), $data['hqi-comment'] ?? null);
@@ -222,5 +213,12 @@ class RevenueController extends Controller
         return redirect(url()->previous())->with([
             'success' => 'Bevétel sikeresen hozzáadva',
         ]);
+    }
+
+    public function generateOrderIncomes() {
+        /** @var Order $order */
+        foreach (Order::all() as $order) {
+            $order->updateIncome();
+        }
     }
 }

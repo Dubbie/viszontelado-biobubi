@@ -13,6 +13,9 @@ class StatusService
     /** @var string[] */
     private $completedStatusMap;
 
+    /** @var string[] */
+    private $completedStatusTextMap;
+
     /** @var string */
     private $creditCardPaidStatus;
 
@@ -27,11 +30,14 @@ class StatusService
             'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTI0', // FOXPOST Teljesítve
         ];
 
+        // Teljesített státusz szövegek alapján
+        $this->completedStatusTextMap = ['Teljesítve', 'FOXPOST Teljesítve'];
+
         $this->creditCardPaidStatus = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4'; // BK. Függőben lévő
     }
 
     /**
-     * @param  string  $statusName
+     * @param  string $statusName
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
     public function getOrderStatusByName(string $statusName)
@@ -43,7 +49,7 @@ class StatusService
     }
 
     /**
-     * @param  string  $statusId
+     * @param  string $statusId
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
     public function getOrderStatusByID(string $statusId)
@@ -52,6 +58,17 @@ class StatusService
         $status = OrderStatus::where('status_id', '=', $statusId)->first();
 
         return $status;
+    }
+
+    /**
+     * @param $localOrderId
+     * @return bool
+     */
+    public function isCompleted($localOrderId)
+    {
+        $localOrder = Order::find($localOrderId);
+
+        return in_array($localOrder->status_text, $this->completedStatusTextMap);
     }
 
     /**
@@ -77,10 +94,13 @@ class StatusService
         // Ha Teljesítve státuszba került (Több is lehet), akkor rögzítjük az adatokat
         if (in_array($newStatus->status_id, $this->completedStatusMap)) {
             // Létrehozzuk a Kiszállítást
-            $delivery           = new Delivery();
-            $delivery->user_id  = $reseller->id;
+            $delivery = new Delivery();
+            $delivery->user_id = $reseller->id;
             $delivery->order_id = $localOrder->id;
             $delivery->save();
+
+            // Létrehozzuk a bevételt
+            $localOrder->updateIncome(date('Y-m-d'));
 
             $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
             Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');

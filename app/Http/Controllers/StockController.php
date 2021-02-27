@@ -73,7 +73,6 @@ class StockController extends Controller
             // Elmentjük
             $this->stockService->addToStock(
                 User::find($data['stock-user-id']),
-                \Auth::user(),
                 $item['sku'],
                 $item['count']
             );
