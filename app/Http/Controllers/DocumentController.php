@@ -65,7 +65,7 @@ class DocumentController extends Controller
             foreach ($order['products']->items as $item) {
                 $itemIndex = array_search($item->sku, array_column($sum['items'], 'sku'));
 
-                if (!$itemIndex) {
+                if ($itemIndex === false) {
                     $sum['items'][] = [
                         'sku' => $item->sku,
                         'name' => $item->name,
