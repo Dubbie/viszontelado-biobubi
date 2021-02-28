@@ -34,7 +34,7 @@ class StockService
      */
     public function getBaseProducts()
     {
-        return Product::doesntHave('subProducts')->where('status', '==','1')->get();
+        return Product::doesntHave('subProducts')->where('status', '=','1')->get();
     }
 
     /**
