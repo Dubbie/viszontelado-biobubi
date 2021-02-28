@@ -76,9 +76,31 @@
         </div>
     </div>
     <div class="col-12 mt-3">
-        <div class="row no-gutters">
-            <div class="col offset-md-8">
+        <div class="row no-gutters align-items-center">
+            @if(Auth::user()->admin)
+                <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
+                    <div class="d-flex align-items-center">
+                        <span class="icon text-muted">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-person" viewBox="0 0 16 16">
+                                <path d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                <path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                            </svg>
+                        </span>
+                        <p class="mb-0 font-weight-bold">{{ $order->reseller->name }}</p>
+                    </div>
+                </div>
+            @endif
+            <div class="col">
                 <div class="d-flex justify-content-end">
+                    {{-- Nem jó a számla - TODO --}}
+                    @if(Auth::user()->admin && $order->isCompleted() && !$order->invoice_id)
+                        <span class="icon icon-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
+                              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                            </svg>
+                        </span>
+                    @endif
+
                     {{-- Hívás gomb --}}
                     @if($order->phone)
                         <a href="tel:{{ $order->phone }}" class="btn btn-icon has-tooltip" data-toggle="tooltip"

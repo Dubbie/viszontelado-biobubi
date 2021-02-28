@@ -128,6 +128,7 @@ class StatusService
             if ($delivery) {
                 try {
                     $delivery->delete();
+                    $response['success'] = true;
                     $response['message'] = 'Sikeres állapot váltás, kiszállítási adatok törölve';
                     Log::info('Sikeres állapot váltás, kiszállítási adatok törölve');
                 } catch (Exception $e) {
@@ -145,6 +146,7 @@ class StatusService
             }
 
             $response['success'] = true;
+            $response['message'] = 'Státusz váltás sikeres';
             Log::info('StatusService: Státusz váltás sikeresen teljesítve');
         }
 

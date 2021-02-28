@@ -64,6 +64,7 @@
                                         <option value="{{ $reseller->id }}"
                                                 @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
                                     @endforeach
+                                    <option value="ALL" @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>Összes viszonteladó</option>
                                 </select>
                             </div>
                         </div>

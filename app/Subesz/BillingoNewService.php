@@ -281,7 +281,7 @@ class BillingoNewService
                 'partner_id' => $draft->getPartner()->getId(),
                 'block_id' => $draft->getBlockId(),
                 'type' => DocumentType::INVOICE,
-                'fulfillment_date' => $draft->getFulfillmentDate(),
+                'fulfillment_date' => date('Y-m-d'),
                 'due_date' => $draft->getDueDate(),
                 'payment_method' => $draft->getPaymentMethod(),
                 'language' => $draft->getLanguage(),
