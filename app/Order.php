@@ -185,7 +185,7 @@ class Order extends Model
     /**
      * @return null|\Swagger\Client\Model\Document
      */
-    public function createRealInvoice()
+    public function createRealInvoice(): ?\Swagger\Client\Model\Document
     {
         if (! $this->draft_invoice_id) {
             Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
