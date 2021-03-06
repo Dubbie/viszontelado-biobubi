@@ -123,7 +123,7 @@ class UserController extends Controller
             $active = 'user-monthly-reports';
         } else {
             $selectedReport = $user->reports->last();
-            $selectedMarketing = $user->marketingResults->last();
+            $selectedMarketing = $user->marketingResults->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
         }
 
         return view('user.show')->with([
