@@ -24,6 +24,16 @@
                     <p class="text-muted">Alapvető információk a megrendelésről</p>
                 </div>
                 <div class="col-lg-9">
+                    @if(Auth::user()->admin)
+                        <div class="row mb-2">
+                            <div class="col-md-6 col-lg-4">
+                                <p class="text-muted mb-0">Portál Azonosító:</p>
+                            </div>
+                            <div class="col-md-6 col-lg-8">
+                                <p class="text-muted font-weight-bold mb-0">{{ $localOrder->id }} <span class="badge badge-pill badge-success">Admin</span></p>
+                            </div>
+                        </div>
+                    @endif
                     <div class="row mb-2">
                         <div class="col-md-6 col-lg-4">
                             <p class="mb-0">Rendelésazonosító:</p>

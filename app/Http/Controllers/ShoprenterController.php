@@ -259,14 +259,8 @@ class ShoprenterController extends Controller
      */
     public function testShoprenter()
     {
-        $repService = resolve('App\Subesz\ReportService');
-        foreach (User::withCount('zips')->get() as $reseller) {
-            if ($reseller->zips_count == 0) {
-                Log::info('- %s nem viszonteladó, mivel nincs hozzárendelve irányítószám, ezért kihagyjuk.');
-                continue;
-            }
-
-            $repService->generateReportByDate($reseller, Carbon::now()->subMonth());
+        foreach (Order::all() as $order) {
+            $order->updateIncome();
         }
     }
 
