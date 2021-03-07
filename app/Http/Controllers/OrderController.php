@@ -317,4 +317,18 @@ class OrderController extends Controller
             $returnType => $output,
         ]);
     }
+
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function updateOrderIncomes() {
+        set_time_limit(0);
+        foreach (Order::all() as $order) {
+            $order->updateIncome();
+        }
+
+        return redirect(action('RevenueController@hqFinance'))->with([
+            'success' => 'Bevételek sikeresen frissítve'
+        ]);
+    }
 }

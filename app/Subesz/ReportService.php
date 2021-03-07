@@ -25,7 +25,7 @@ class ReportService
      */
     public function generateReportByDate(User $reseller, Carbon $currentDate)
     {
-        $endDate = $currentDate->subMonth()->lastOfMonth()->setHour(23)->setMinute(59)->setSecond(59);
+        $endDate = $currentDate->clone()->subMonth()->lastOfMonth()->setHour(23)->setMinute(59)->setSecond(59);
         $startDate = $endDate->clone()->firstOfMonth();
 
         // Kiszedjük az összes megrendelését az adott időintervallumra

@@ -259,9 +259,7 @@ class ShoprenterController extends Controller
      */
     public function testShoprenter()
     {
-        foreach (Order::all() as $order) {
-            $order->updateIncome();
-        }
+        
     }
 
     /**

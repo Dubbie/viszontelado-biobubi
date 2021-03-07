@@ -7,6 +7,8 @@
                 <h1 class="font-weight-bold mb-4">Központi pénzügyek</h1>
             </div>
             <div class="col-12 col-md-auto text-md-right">
+                <a href="{{ action('OrderController@updateOrderIncomes') }}" class="btn btn-primary">Bevételek frissítése</a>
+                <a href="{{ action('ReportController@regenerateReports') }}" class="btn btn-success">Riportok újragenerálása</a>
                 <a href="#newMarketingResult" data-toggle="modal" class="btn btn-outline-primary">Új marketinges riport</a>
             </div>
         </div>

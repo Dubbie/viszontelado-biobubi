@@ -32,6 +32,7 @@ Route::group(['middleware' => 'auth'], function() {
         Route::get('/felhasznalok/{userId}', 'UserController@show');
 
         Route::post('/megrendelesek/viszontelado-frissitese', 'OrderController@massUpdateReseller');
+        Route::get('/megrendelesek/bevetelek/frissites', 'OrderController@updateOrderIncomes');
 
         Route::post('/api/billingo/test', 'UserController@testBillingo');
 
@@ -73,6 +74,8 @@ Route::group(['middleware' => 'auth'], function() {
 
         Route::get('kozpont/marketing', 'MarketingResultController@show');
         Route::post('kozpont/marketing/mentes', 'MarketingResultController@store');
+
+        Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
     });
 
     // Index

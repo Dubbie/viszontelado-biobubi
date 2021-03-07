@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Report;
+use App\ReportProducts;
 use App\Subesz\ReportService;
 use App\User;
 use Auth;
@@ -11,6 +13,7 @@ use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Log;
+use Schema;
 
 class ReportController extends Controller
 {
@@ -73,5 +76,44 @@ class ReportController extends Controller
         }
 
         return ['success' => sprintf('... Havi riportok sikeresen létrehozva összesen %ss alatt.', round(microtime(true) - $start, 2))];
+    }
+
+    public function regenerateReports()
+    {
+        Log::info('Havi riportok újragenerálásának megkezdése...');
+        $start = microtime(true);
+
+        Log::info('---');
+        Log::info('Havi riportok törlése...');
+
+        Schema::disableForeignKeyConstraints();
+        ReportProducts::truncate();
+        Report::truncate();
+        Schema::enableForeignKeyConstraints();
+
+        Log::info('Havi riportok törlése sikeres!');
+        Log::info('---');
+
+        $rsDate = Carbon::create(2021);
+        $now    = Carbon::now()->addMonth();
+        while ($rsDate <= $now) {
+            /** @var User $reseller */
+            /** @var ReportService $repService */
+            $repService = resolve('App\Subesz\ReportService');
+            foreach (User::withCount('zips')->get() as $reseller) {
+                if ($reseller->zips_count == 0) {
+                    Log::info(sprintf('- %s nem viszonteladó, mivel nincs hozzárendelve irányítószám, ezért kihagyjuk.', $reseller->name));
+                    continue;
+                }
+
+                $repService->generateReportByDate($reseller, $rsDate);
+            }
+
+            $rsDate->addMonth();
+        }
+
+        return redirect(action('RevenueController@hqFinance'))->with([
+            'success' => sprintf('... Havi riportok sikeresen létrehozva összesen %ss alatt.', round(microtime(true) - $start, 2)),
+        ]);
     }
 }

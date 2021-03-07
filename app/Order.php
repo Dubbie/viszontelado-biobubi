@@ -364,7 +364,7 @@ class Order extends Model
      * @param null $date
      * @return bool
      */
-    public function updateIncome($date = null)
+    public function updateIncome($date = null): bool
     {
         // Ha nincs teljesítve akkor nincs bevételünk...
         if (! $this->isCompleted()) {
