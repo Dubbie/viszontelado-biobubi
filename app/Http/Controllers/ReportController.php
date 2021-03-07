@@ -78,6 +78,9 @@ class ReportController extends Controller
         return ['success' => sprintf('... Havi riportok sikeresen létrehozva összesen %ss alatt.', round(microtime(true) - $start, 2))];
     }
 
+    /**
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function regenerateReports()
     {
         Log::info('Havi riportok újragenerálásának megkezdése...');
@@ -94,7 +97,7 @@ class ReportController extends Controller
         Log::info('Havi riportok törlése sikeres!');
         Log::info('---');
 
-        $rsDate = Carbon::create(2021);
+        $rsDate = Carbon::create(2021, 2);
         $now    = Carbon::now()->addMonth();
         while ($rsDate <= $now) {
             /** @var User $reseller */
