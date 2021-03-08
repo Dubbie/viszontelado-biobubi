@@ -215,6 +215,9 @@ class RevenueController extends Controller
         ]);
     }
 
+    /**
+     * Frissíti a megrendelésekhez tartozó bevételeket
+     */
     public function generateOrderIncomes() {
         /** @var Order $order */
         foreach (Order::all() as $order) {

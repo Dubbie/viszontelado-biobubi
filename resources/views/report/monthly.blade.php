@@ -172,7 +172,7 @@
                                     </p>
                                     <p class="row no-gutters mb-0">
                                         <span class="col-12 col-lg-7 text-muted">Vásárlások száma</span>
-                                        <span class="col-12 col-lg-5 text-lg-right"><b>{{ resolve('App\Subesz\MoneyService')->getFormattedMoney($selectedMarketing->reached) }} fő</b></span>
+                                        <span class="col-12 col-lg-5 text-lg-right"><b>{{ resolve('App\Subesz\MoneyService')->getFormattedMoney($selectedMarketing->reached) }} megrendelés</b></span>
                                     </p>
                                     <p class="row no-gutters mb-0">
                                         <span class="col-12 col-lg-9 text-muted">Átlag. költés / Vásárlások száma</span>

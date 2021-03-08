@@ -65,11 +65,11 @@
                         </div>
                         <div class="col-md-5">
                             <div class="form-group">
-                                <label for="mr-reached">Elért emberek száma</label>
+                                <label for="mr-reached">Vásárlások száma</label>
                                 <div class="input-group">
                                     <input type="text" name="mr-reached" id="mr-reached" class="form-control text-right" required>
                                     <div class="input-group-append">
-                                        <span class="input-group-text">Fő</span>
+                                        <span class="input-group-text">megrendelés</span>
                                     </div>
                                 </div>
                             </div>

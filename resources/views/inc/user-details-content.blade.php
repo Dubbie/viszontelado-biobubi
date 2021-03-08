@@ -1,10 +1,19 @@
 @php /** @var \App\User $user */ @endphp
 <div class="row">
-    <div class="col-md-10">
-        <h3 class="font-weight-bold mb-0">{{ $user->name }} @if($user->admin) <span
+    <div class="col-md-9">
+        <h3 class="h1 font-weight-bold mb-0">{{ $user->name }} @if($user->admin) <span
                     class="badge badge-success">Admin</span> @endif</h3>
         <h5 class="font-weight-bold text-muted mb-2">{{ $user->email }}</h5>
         <p class="text-muted mb-0">{{ $user->vat_id == env('AAM_VAT_ID') ? 'Alanyi Adómentes' : 'Nem Alanyi Adómentes' }}</p>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-5">
+        <h4 class="font-weight-bold">Egyenleg</h4>
+    </div>
+    <div class="col-md-6 offset-md-1">
+        <p class="h4 mb-0"><span class="@if($user->balance < 0) text-danger @endif">{{ $user->getFormattedBalance() }}</span><span class="font-weight-bold ml-1">Ft</span></p>
     </div>
 </div>
 

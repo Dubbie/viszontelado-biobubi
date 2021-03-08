@@ -14,6 +14,7 @@ use Illuminate\Notifications\Notifiable;
 
 /**
  * Class User
+ *
  * @package App
  * @mixin User
  */
@@ -27,7 +28,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'email',
+        'password',
     ];
 
     /**
@@ -36,7 +39,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -51,7 +55,8 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function zips(): HasMany {
+    public function zips(): HasMany
+    {
         return $this->hasMany(UserZip::class, 'user_id', 'id');
     }
 
@@ -76,7 +81,8 @@ class User extends Authenticatable
      *
      * @return Builder[]|Collection
      */
-    public function getOrders() {
+    public function getOrders()
+    {
         /** @var OrderService $orderService */
         $orderService = resolve('App\Subesz\OrderService');
 
@@ -86,12 +92,13 @@ class User extends Authenticatable
     /**
      * @return Builder[]|Collection
      */
-    public function getOrdersWithProducts() {
+    public function getOrdersWithProducts()
+    {
         /** @var OrderService $orderService */
         $orderService = resolve('App\Subesz\OrderService');
 
         return $orderService->getOrdersFiltered([
-            'reseller' => $this->id,
+            'reseller'      => $this->id,
             'with_products' => true,
         ]);
     }
@@ -147,7 +154,8 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function worksheet(): HasMany {
+    public function worksheet(): HasMany
+    {
         return $this->hasMany(Worksheet::class, 'user_id', 'id');
     }
 
@@ -175,7 +183,19 @@ class User extends Authenticatable
     public function getDeliveryCountThisMonth(): int
     {
         $start = Carbon::now()->firstOfMonth();
-        $end = Carbon::now()->endOfDay();
+        $end   = Carbon::now()->endOfDay();
+
         return $this->deliveries()->whereBetween('delivered_at', [$start, $end])->count();
+    }
+
+    /**
+     * @param bool $withSuffix
+     * @return string
+     */
+    public function getFormattedBalance($withSuffix = false)
+    {
+        $balanceOutput = number_format($this->balance, 0, ' ', ' ');
+
+        return $withSuffix ? $balanceOutput.' Ft' : $balanceOutput;
     }
 }
