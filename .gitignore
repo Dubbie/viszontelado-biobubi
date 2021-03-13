@@ -246,3 +246,4 @@ _ide_helper_models.php
 storage/app/invoices
 storage/app/storage/documents
 public/js/klaviyo.js
+.editorconfig

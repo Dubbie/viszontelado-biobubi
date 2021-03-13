@@ -218,6 +218,10 @@
                            href="{{ action('CentralStockController@index') }}">
                             <span>Raktárkészlet</span>
                         </a>
+                        <a class="nav-link @if(Request::is('kozpont/atutalasok*')) active @endif"
+                           href="{{ action('MoneyTransferController@index') }}">
+                            <span>Átutalások</span>
+                        </a>
                     </div>
                 </li>
             @endif
