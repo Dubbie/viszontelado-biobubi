@@ -117,11 +117,15 @@
                     {{-- Gombok --}}
                     <div class="row mt-5">
                         <div class="col-md-8 offset-md-4">
-                            <button type="button" class="btn btn-sm btn-success">Elutaltam</button>
+                            <button type="button" data-toggle="modal" data-target="#completeTransfer"
+                                    class="btn btn-sm btn-success">Elutaltam
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    @include('modal.transfer.complete')
 @endsection

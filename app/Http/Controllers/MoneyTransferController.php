@@ -8,6 +8,7 @@ use App\Subesz\OrderService;
 use App\Subesz\TransferService;
 use App\User;
 use Auth;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class MoneyTransferController extends Controller
@@ -169,11 +170,37 @@ class MoneyTransferController extends Controller
         ]);
     }
 
+    /**
+     * @param $transferId
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     */
     public function show($transferId) {
         $mt = MoneyTransfer::find($transferId);
 
         return view('hq.transfers.show')->with([
             'transfer' => $mt,
         ]);
+    }
+
+    public function complete(Request $request) {
+        $data = $request->validate([
+            'mt-transfer-id' => 'required|numeric',
+            'mt-attachment'  => 'required|file',
+        ]);
+
+        $mt = MoneyTransfer::find($data['mt-transfer-id']);
+        /** @var \Illuminate\Http\UploadedFile $file */
+        $file = $data['mt-attachment'];
+        $path = $file->store('/storage/documents');
+
+        if (! $path) {
+            return redirect(url()->previous())->with([
+                'error' => 'Hiba történt a fájl feltöltésekor',
+            ]);
+        }
+
+        $mt->attachment_path = $path;
+        $mt->completed_at    = Carbon::now();
+        $mt->save();
     }
 }
