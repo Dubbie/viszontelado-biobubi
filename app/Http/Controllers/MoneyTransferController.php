@@ -168,4 +168,12 @@ class MoneyTransferController extends Controller
             'success' => $response['message'],
         ]);
     }
+
+    public function show($transferId) {
+        $mt = MoneyTransfer::find($transferId);
+
+        return view('hq.transfers.show')->with([
+            'transfer' => $mt,
+        ]);
+    }
 }

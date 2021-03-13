@@ -36,7 +36,7 @@
                             </div>
                             <div class="col-12 col-md-3">
                                 <p class="mb-0" style="line-height: 1.25">
-                                    <span class="d-block">{{ $mt->reseller->name }}</span>
+                                    <span class="d-block text-truncate">{{ $mt->reseller->name }}</span>
                                     <small class="text-muted">{{ $mt->transfer_orders_count }} megrendelés</small>
                                 </p>
                             </div>
@@ -48,7 +48,7 @@
                                 <span>{{ $mt->completed_at ? 'Elutalva' : 'Utalás alatt' }}</span>
                             </div>
                             <div class="col-12 col-md-1">
-                                <a href="#!" class="btn btn-muted">
+                                <a href="{{ action('MoneyTransferController@show', $mt) }}" class="btn btn-muted">
                                     <span class="icon">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                                              fill="currentColor"
