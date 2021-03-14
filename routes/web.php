@@ -82,6 +82,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('kozpont/atutalasok/uj/mentes', 'MoneyTransferController@store');
         Route::get('kozpont/atutalasok/{transferId}', 'MoneyTransferController@show');
         Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
+        Route::delete('kozpont/atutalasok/{transferId}/torles', 'MoneyTransferController@destroy');
+        Route::get('kozpont/atutalasok/csatolmany/{transferId}', 'MoneyTransferController@downloadAttachment');
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
     });

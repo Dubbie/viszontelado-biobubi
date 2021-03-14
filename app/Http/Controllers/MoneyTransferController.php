@@ -182,6 +182,10 @@ class MoneyTransferController extends Controller
         ]);
     }
 
+    /**
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
     public function complete(Request $request) {
         $data = $request->validate([
             'mt-transfer-id' => 'required|numeric',
@@ -191,7 +195,7 @@ class MoneyTransferController extends Controller
         $mt = MoneyTransfer::find($data['mt-transfer-id']);
         /** @var \Illuminate\Http\UploadedFile $file */
         $file = $data['mt-attachment'];
-        $path = $file->store('/storage/documents');
+        $path = $file->store('/storage/transfers/' . $mt->id);
 
         if (! $path) {
             return redirect(url()->previous())->with([
@@ -202,5 +206,49 @@ class MoneyTransferController extends Controller
         $mt->attachment_path = $path;
         $mt->completed_at    = Carbon::now();
         $mt->save();
+
+        return redirect(action('MoneyTransferController@show', $mt))->with([
+           'success' => 'Átutalás sikeresen teljesítve'
+        ]);
+    }
+
+    /**
+     * @param $transferId
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function destroy($transferId) {
+        $mt = MoneyTransfer::find($transferId);
+
+        if ($mt->attachment_path) {
+            \Storage::delete($mt->attachment_path);
+        }
+
+        try {
+            // Kitöröljük egyesével a hozzá tartozó adatokat
+            foreach ($mt->transferOrders as $mto) {
+                $mto->delete();
+            }
+
+
+            // Kitöröljük magát az átutalást is
+            $mt->delete();
+        } catch (\Exception $e) {
+            \Log::error('Hiba történt az átutalás törlésekor.');
+            return redirect(url()->previous(action('MoneyTransferController@show', $mt)))->with([
+                'error' => 'Hiba történt az átutalás törlésekor'
+            ]);
+        }
+
+        return redirect(action('MoneyTransferController@index'))->with([
+            'success' => 'Átutalás sikeresen törölve'
+        ]);
+    }
+
+    /**
+     * @param $transferId
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function downloadAttachment($transferId) {
+        return \Storage::download(MoneyTransfer::find($transferId)->attachment_path);
     }
 }

@@ -16,9 +16,9 @@ class CreateMoneyTransferOrdersTable extends Migration
         Schema::create('money_transfer_orders', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('transfer_id')->comment('Az átutalás azonosítója');
-            $table->foreign('transfer_id')->references('id')->on('money_transfers');
+            $table->foreign('transfer_id')->references('id')->on('money_transfers')->cascadeOnDelete();
             $table->unsignedBigInteger('order_id')->comment('A kiválasztott megrendelés');
-            $table->foreign('order_id')->references('id')->on('orders');
+            $table->foreign('order_id')->references('id')->on('orders')->cascadeOnDelete();
             $table->timestamps();
         });
     }

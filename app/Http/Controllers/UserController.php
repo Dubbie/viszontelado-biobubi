@@ -230,6 +230,7 @@ class UserController extends Controller
             'u-billing-address1' => 'required_with:u-billing-zip|nullable',
             'u-billing-address2' => 'nullable',
             'u-billing-tax-number' => 'nullable',
+            'u-billing-account-number' => 'nullable',
             'u-shipping-name' => 'nullable',
             'u-shipping-email' => 'nullable',
             'u-shipping-phone' => 'nullable',
@@ -253,6 +254,7 @@ class UserController extends Controller
             'u-billing-address1',
             'u-billing-address2',
             'u-billing-tax-number',
+            'u-billing-account-number',
             'u-shipping-name',
             'u-shipping-email',
             'u-shipping-phone',
@@ -294,6 +296,7 @@ class UserController extends Controller
             // Mentsük el az egyéb adatokat
             $ud->billing_name = $data['u-billing-name'];
             $ud->billing_tax_number = $data['u-billing-tax-number'];
+            $ud->billing_account_number = $data['u-billing-account-number'];
             $ud->shipping_email = $data['u-shipping-email'];
             $ud->shipping_phone = $data['u-shipping-phone'];
             $ud->billing_address_id = $billingAddress ? $billingAddress->id : null;

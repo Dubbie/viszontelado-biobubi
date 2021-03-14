@@ -33,11 +33,3 @@
         </div>
     </div>
 </div>
-
-@section('scripts')
-    <script>
-        $(() => {
-            bsCustomFileInput.init();
-        });
-    </script>
-@endsection

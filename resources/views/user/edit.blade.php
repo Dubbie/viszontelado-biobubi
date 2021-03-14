@@ -1,5 +1,6 @@
 @extends('layouts.app')
 
+@php /** @var \App\User $user */ @endphp
 @section('content')
     <div class="container">
         <div class="row">
@@ -97,6 +98,11 @@
                                     <label for="u-billing-tax-number">Adószám</label>
                                     <input type="text" id="u-billing-tax-number" name="u-billing-tax-number"
                                            value="{{ $user->details ? $user->details->billing_tax_number : '' }}" class="form-control">
+                                </div>
+                                <div class="form-group">
+                                    <label for="u-billing-account-number">Számlaszám</label>
+                                    <input type="text" id="u-billing-account-number" name="u-billing-account-number"
+                                           value="{{ $user->details ? $user->details->billing_account_number : '' }}" class="form-control">
                                 </div>
                             </div>
                         </div>
@@ -206,4 +212,12 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('scripts')
+    <script>
+        $(() => {
+           $('#u-billing-account-number').mask('00000000-00000000-00000000');
+        });
+    </script>
 @endsection

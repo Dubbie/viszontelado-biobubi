@@ -4,7 +4,15 @@
     <div class="container">
         <div class="row">
             <div class="col-12 col-md">
-                <h1 class="font-weight-bold mb-4">Új átutalás</h1>
+                <p class="mb-0">
+                    <a href="{{ url()->previous(action('MoneyTransferController@chooseOrders')) }}" class="btn-muted font-weight-bold text-decoration-none">
+                        <span class="icon icon-sm">
+                            <i class="fas fa-arrow-left"></i>
+                        </span>
+                        <span>Vissza az előző oldalra</span>
+                    </a>
+                </p>
+                <h1 class="font-weight-bold mb-4">Átutalás rögzítése</h1>
             </div>
         </div>
 
@@ -51,31 +59,53 @@
                                             <span class="d-block text-muted">{{ $reseller->email }}</span>
                                         </p>
                                     </div>
-                                    <p class="font-weight-bold d-flex align-items-center mb-0">
-                                        <span class="icon icon-sm text-muted mr-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                 fill="currentColor"
-                                                 class="bi bi-credit-card" viewBox="0 0 16 16">
-                                                  <path
-                                                      d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
-                                                  <path
-                                                      d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
-                                                </svg>
-                                        </span>
-                                        <span class="d-block font-weight-bold mr-4">00000000-00000000-00000000</span>
-                                    </p>
-                                    <p class="d-flex align-items-center mb-4">
-                                        <span class="icon icon-sm text-muted mr-2">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                                                 fill="currentColor"
-                                                 class="bi bi-cash" viewBox="0 0 16 16">
-                                              <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/>
-                                              <path
-                                                  d="M0 4a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V4zm3 0a2 2 0 0 1-2 2v4a2 2 0 0 1 2 2h10a2 2 0 0 1 2-2V6a2 2 0 0 1-2-2H3z"/>
-                                            </svg>
-                                        </span>
-                                        <span class="font-weight-bold mb-0 mr-4">{{ resolve('App\Subesz\MoneyService')->getFormattedMoney($sum) }} Ft</span>
-                                    </p>
+                                    @if($reseller->details)
+                                        <hr>
+
+                                        @if($reseller->details->billing_name)
+                                            <div class="row">
+                                                <div class="col-12">
+                                                    <p class="font-weight-semibold text-muted mb-0">Kedvezményezett</p>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p class="mb-0">{{ $reseller->details->billing_name }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if($reseller->details->billing_account_number)
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <p class="font-weight-semibold text-muted mb-0">Számlaszám</p>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p class="mb-0">{{ $reseller->details->billing_account_number }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if($reseller->details->billing_tax_number)
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <p class="font-weight-semibold text-muted mb-0">Adóazonosító</p>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p class="mb-0">{{ $reseller->details->billing_tax_number }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+
+                                        @if($reseller->details->billingAddress)
+                                            <div class="row mt-2">
+                                                <div class="col-12">
+                                                    <p class="font-weight-semibold text-muted mb-0">Székhely</p>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <p class="mb-0">{{ $reseller->details->billingAddress->getFormattedAddress() }}</p>
+                                                </div>
+                                            </div>
+                                        @endif
+                                    @endif
                                 </div>
                                 <div class="col-6">
                                     @foreach($orders as $order)

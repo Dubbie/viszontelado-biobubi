@@ -4,7 +4,15 @@
     <div class="container">
         <div class="row">
             <div class="col-12 col-md">
-                <h1 class="font-weight-bold mb-4">Új átutalás</h1>
+                <p class="mb-0">
+                    <a href="{{ url()->previous(action('MoneyTransferController@index')) }}" class="btn-muted font-weight-bold text-decoration-none">
+                        <span class="icon icon-sm">
+                            <i class="fas fa-arrow-left"></i>
+                        </span>
+                        <span>Vissza az előző oldalra</span>
+                    </a>
+                </p>
+                <h1 class="font-weight-bold mb-4">Átutalás rögzítése</h1>
             </div>
         </div>
 
@@ -39,7 +47,7 @@
                                 </div>
 
                                 <div class="form-group mt-4 mb-0 text-right">
-                                    <button type="submit" class="btn btn-success">Tovább a megrendeléseihez</button>
+                                    <button type="submit" class="btn btn-sm btn-success">Tovább a megrendeléseihez</button>
                                 </div>
                             </form>
                         </div>
