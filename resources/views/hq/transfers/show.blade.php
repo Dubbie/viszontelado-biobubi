@@ -197,7 +197,9 @@
                             @foreach($transfer->transferOrders as $to)
                                 <div class="row align-items-center mb-4">
                                     <div class="col-12 col-md-7">
-                                        <p class="mb-0">#{{ $to->order->inner_id }}</p>
+                                        <p class="mb-0">
+                                            <a href="{{ action('OrderController@show', $to->order->inner_resource_id) }}">#{{ $to->order->inner_id }}</a>
+                                        </p>
                                         <p class="mb-0"><b>{{ $to->order->firstname }} {{ $to->order->lastname }}</b>
                                         </p>
                                         <p class="mb-0">{{ $to->order->getFormattedAddress() }}</p>
