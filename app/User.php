@@ -11,9 +11,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class User
+ *
  * @package App
  * @mixin User
  */
@@ -27,7 +29,9 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'name', 'email', 'password',
+        'name',
+        'email',
+        'password',
     ];
 
     /**
@@ -36,7 +40,8 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password',
+        'remember_token',
     ];
 
     /**
@@ -58,16 +63,14 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function stock(): HasMany
-    {
+    public function stock(): HasMany {
         return $this->hasMany(Stock::class, 'user_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function orders(): HasMany
-    {
+    public function orders(): HasMany {
         return $this->hasMany(Order::class, 'reseller_id', 'id');
     }
 
@@ -91,7 +94,7 @@ class User extends Authenticatable
         $orderService = resolve('App\Subesz\OrderService');
 
         return $orderService->getOrdersFiltered([
-            'reseller' => $this->id,
+            'reseller'      => $this->id,
             'with_products' => true,
         ]);
     }
@@ -99,48 +102,35 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function deliveries(): HasMany
-    {
-        return $this->hasMany(Delivery::class, 'user_id', 'id');
-    }
-
-    /**
-     * @return HasMany
-     */
-    public function expenses(): HasMany
-    {
+    public function expenses(): HasMany {
         return $this->hasMany(Expense::class, 'user_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function todos(): HasMany
-    {
+    public function todos(): HasMany {
         return $this->hasMany(OrderTodo::class, 'user_id', 'id');
     }
 
     /**
      * @return HasOne
      */
-    public function details(): HasOne
-    {
+    public function details(): HasOne {
         return $this->hasOne(UserDetails::class, 'user_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function incomes(): HasMany
-    {
+    public function incomes(): HasMany {
         return $this->hasMany(Income::class, 'user_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function reports(): HasMany
-    {
+    public function reports(): HasMany {
         return $this->hasMany(Report::class, 'user_id', 'id');
     }
 
@@ -154,8 +144,7 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function marketingResults(): HasMany
-    {
+    public function marketingResults(): HasMany {
         return $this->hasMany(MarketingResult::class, 'user_id', 'id');
     }
 
@@ -164,18 +153,33 @@ class User extends Authenticatable
      *
      * @return bool
      */
-    public function isAAM(): bool
-    {
+    public function isAAM(): bool {
         return $this->vat_id == env('AAM_VAT_ID');
+    }
+
+    /**
+     * Visszaadja, hogy mennyi a marketing egyenlege az adott felhasználónak.
+     *
+     * @return int
+     */
+    public function marketingBalance(): int {
+        return (int) $this->balance;
     }
 
     /**
      * @return int
      */
-    public function getDeliveryCountThisMonth(): int
-    {
+    public function getDeliveryCountThisMonth(): int {
         $start = Carbon::now()->firstOfMonth();
-        $end = Carbon::now()->endOfDay();
+        $end   = Carbon::now()->endOfDay();
+
         return $this->deliveries()->whereBetween('delivered_at', [$start, $end])->count();
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function deliveries(): HasMany {
+        return $this->hasMany(Delivery::class, 'user_id', 'id');
     }
 }

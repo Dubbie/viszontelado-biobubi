@@ -228,7 +228,8 @@
                 <li class="nav-item dropup">
                     <a id="navbarDropdown" class="nav-link " href="#" role="button"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
-                        <span class="d-block font-weight-bold text-dark py-3">{{ Auth::user()->name }}</span>
+                        <span title="Egyenleg: {{resolve('App\Subesz\MoneyService')->getFormattedMoney(Auth::user()->marketingBalance())}} Ft" data-toggle="tooltip" aria-haspopup="true" aria-expanded="true"
+                              class="d-block font-weight-bold text-dark py-3 has-tooltip">{{ Auth::user()->name }}</span>
                     </a>
 
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
