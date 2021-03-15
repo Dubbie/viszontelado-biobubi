@@ -18773,6 +18773,8 @@ body .select2-container--default .select2-selection--single .select2-selection__
 
 .steps-list {
   counter-reset: step;
+  margin: 0;
+  padding: 0;
 }
 
 .steps-list-item {
@@ -18838,6 +18840,12 @@ body .select2-container--default .select2-selection--single .select2-selection__
 
 .steps-list-item.is-active:after {
   background-color: #00aea5;
+}
+
+@media screen and (max-width: 768px) {
+  .steps-list-item {
+    font-size: 0px;
+  }
 }
 
 .nav-tabs {

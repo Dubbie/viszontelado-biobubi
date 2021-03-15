@@ -9,8 +9,17 @@ use App\Subesz\TransferService;
 use App\User;
 use Auth;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Http\Request;
+use Log;
+use Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
+/**
+ * Class MoneyTransferController
+ *
+ * @package App\Http\Controllers
+ */
 class MoneyTransferController extends Controller
 {
     /** @var \App\Subesz\OrderService */
@@ -42,8 +51,10 @@ class MoneyTransferController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function index() {
+        $transfers = MoneyTransfer::withCount('transferOrders')->orderBy('completed_at')->orderBy('created_at')->paginate(25);
+
         return view('hq.transfers.index')->with([
-            'transfers' => MoneyTransfer::withCount('transferOrders')->get(),
+            'transfers' => $transfers,
         ]);
     }
 
@@ -84,7 +95,8 @@ class MoneyTransferController extends Controller
         }
 
         return view('hq.transfers.orders')->with([
-            'orders' => $this->orderService->getBankcardOrdersByResellerId($resellerId),
+            'reseller' => User::find($resellerId),
+            'orders'   => $this->orderService->getBankcardOrdersByResellerId($resellerId),
         ]);
     }
 
@@ -183,7 +195,7 @@ class MoneyTransferController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function complete(Request $request) {
@@ -195,7 +207,7 @@ class MoneyTransferController extends Controller
         $mt = MoneyTransfer::find($data['mt-transfer-id']);
         /** @var \Illuminate\Http\UploadedFile $file */
         $file = $data['mt-attachment'];
-        $path = $file->store('/storage/transfers/' . $mt->id);
+        $path = $file->store('/storage/transfers/'.$mt->id);
 
         if (! $path) {
             return redirect(url()->previous())->with([
@@ -208,7 +220,7 @@ class MoneyTransferController extends Controller
         $mt->save();
 
         return redirect(action('MoneyTransferController@show', $mt))->with([
-           'success' => 'Átutalás sikeresen teljesítve'
+            'success' => 'Átutalás sikeresen teljesítve',
         ]);
     }
 
@@ -220,7 +232,7 @@ class MoneyTransferController extends Controller
         $mt = MoneyTransfer::find($transferId);
 
         if ($mt->attachment_path) {
-            \Storage::delete($mt->attachment_path);
+            Storage::delete($mt->attachment_path);
         }
 
         try {
@@ -229,18 +241,18 @@ class MoneyTransferController extends Controller
                 $mto->delete();
             }
 
-
             // Kitöröljük magát az átutalást is
             $mt->delete();
-        } catch (\Exception $e) {
-            \Log::error('Hiba történt az átutalás törlésekor.');
+        } catch (Exception $e) {
+            Log::error('Hiba történt az átutalás törlésekor.');
+
             return redirect(url()->previous(action('MoneyTransferController@show', $mt)))->with([
-                'error' => 'Hiba történt az átutalás törlésekor'
+                'error' => 'Hiba történt az átutalás törlésekor',
             ]);
         }
 
         return redirect(action('MoneyTransferController@index'))->with([
-            'success' => 'Átutalás sikeresen törölve'
+            'success' => 'Átutalás sikeresen törölve',
         ]);
     }
 
@@ -248,7 +260,7 @@ class MoneyTransferController extends Controller
      * @param $transferId
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function downloadAttachment($transferId) {
-        return \Storage::download(MoneyTransfer::find($transferId)->attachment_path);
+    public function downloadAttachment($transferId): StreamedResponse {
+        return Storage::download(MoneyTransfer::find($transferId)->attachment_path);
     }
 }

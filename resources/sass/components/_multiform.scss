@@ -4,6 +4,8 @@ $sli-border-width: 2px;
 
 .steps-list {
   counter-reset: step;
+  margin: 0;
+  padding: 0;
 }
 
 .steps-list-item {
@@ -72,5 +74,11 @@ $sli-border-width: 2px;
     &:after {
       background-color: $teal;
     }
+  }
+}
+
+@media screen and (max-width: map-get($grid-breakpoints, 'md')) {
+  .steps-list-item {
+    font-size: 0px;
   }
 }

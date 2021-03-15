@@ -19,7 +19,7 @@ class MoneyTransfer extends Model
      * @param $value
      * @return \Carbon\Carbon|null
      */
-    public function getCompletedAtAttribute($value) {
+    public function getCompletedAtAttribute($value): ?Carbon {
         return $value ? Carbon::parse($value) : $value;
     }
 
@@ -38,30 +38,30 @@ class MoneyTransfer extends Model
     }
 
     /**
+     * @return string
+     */
+    public function getStatusText(): string {
+        return $this->isCompleted() ? 'Elutalva' : 'Utalás alatt';
+    }
+
+    /**
      * @return bool
      */
-    public function isCompleted() {
+    public function isCompleted(): bool {
         return $this->completed_at !== null;
     }
 
     /**
      * @return string
      */
-    public function getStatusText() {
-        return $this->isCompleted() ? 'Elutalva' : 'Utalás alatt';
+    public function getTextColorClass(): string {
+        return $this->isCompleted() ? 'text-success-pastel' : 'text-info-pastel';
     }
 
     /**
      * @return string
      */
-    public function getTextColorClass() {
-        return $this->isCompleted() ? 'text-success-pastel' : 'text-danger-pastel';
-    }
-
-    /**
-     * @return string
-     */
-    public function getId() {
-        return '#BBT-' . str_pad($this->id, 5, '0', STR_PAD_LEFT);
+    public function getId(): string {
+        return '#BBT-'.str_pad($this->id, 5, '0', STR_PAD_LEFT);
     }
 }

@@ -5,7 +5,8 @@
         <div class="row">
             <div class="col-12 col-md">
                 <p class="mb-0">
-                    <a href="{{ url()->previous(action('MoneyTransferController@index')) }}" class="btn-muted font-weight-bold text-decoration-none">
+                    <a href="{{ url()->previous(action('MoneyTransferController@index')) }}"
+                       class="btn-muted font-weight-bold text-decoration-none">
                         <span class="icon icon-sm">
                             <i class="fas fa-arrow-left"></i>
                         </span>
@@ -32,14 +33,15 @@
                     <h3 class="mb-4 font-weight-bold">Kinek szeretnél utalni?</h3>
 
                     <div class="row">
-                        <div class="col-10 offset-1">
+                        <div class="col-md-10 offset-md-1">
                             <form action="{{ action('MoneyTransferController@storeReseller') }}" method="POST">
                                 @csrf
                                 <div class="form-group">
                                     <label for="mt-reseller-id" class="d-flex align-items-center mb-0">Viszonteladó
                                         *</label>
-                                    <select name="mt-reseller-id" id="mt-reseller-id" class="form-control">
+                                    <select name="mt-reseller-id" id="mt-reseller-id" class="form-control" required>
                                         @php /** @var \App\User $reseller */ @endphp
+                                        <option value="" hidden>Kérlek először válassz viszonteladót...</option>
                                         @foreach($resellers as $reseller)
                                             <option value="{{ $reseller->id }}">{{ $reseller->name }}</option>
                                         @endforeach
@@ -47,7 +49,8 @@
                                 </div>
 
                                 <div class="form-group mt-4 mb-0 text-right">
-                                    <button type="submit" class="btn btn-sm btn-success">Tovább a megrendeléseihez</button>
+                                    <button type="submit" class="btn btn-sm btn-success">Tovább a megrendeléseihez
+                                    </button>
                                 </div>
                             </form>
                         </div>

@@ -5,7 +5,8 @@
         <div class="row">
             <div class="col-12 col-md">
                 <p class="mb-0">
-                    <a href="{{ url()->previous(action('MoneyTransferController@chooseOrders')) }}" class="btn-muted font-weight-bold text-decoration-none">
+                    <a href="{{ url()->previous(action('MoneyTransferController@chooseOrders')) }}"
+                       class="btn-muted font-weight-bold text-decoration-none">
                         <span class="icon icon-sm">
                             <i class="fas fa-arrow-left"></i>
                         </span>
@@ -39,7 +40,7 @@
                     <div class="row">
                         <div class="col-md-10 offset-md-1">
                             <div class="row mt-4">
-                                <div class="col-6 text-left">
+                                <div class="col-lg-6 text-left">
                                     <div class="d-flex align-items-baseline">
                                          <span class="icon icon-sm text-muted mr-2">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
@@ -107,7 +108,9 @@
                                         @endif
                                     @endif
                                 </div>
-                                <div class="col-6">
+                                <div class="col-lg-6">
+                                    <hr class="d-block d-lg-none">
+                                    <p class="mb-4 font-weight-semibold d-block d-lg-none">Megrendelések</p>
                                     @foreach($orders as $order)
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="text-left">
@@ -138,8 +141,8 @@
                                 @csrf
                                 <div class="form-group d-flex justify-content-between mb-0">
                                     <a href="{{ action('MoneyTransferController@chooseOrders') }}"
-                                       class="btn btn-link px-0 text-muted">Vissza</a>
-                                    <button type="submit" class="btn btn-success">Rögzítem</button>
+                                       class="btn btn-sm btn-link px-0 text-muted">Vissza</a>
+                                    <button type="submit" class="btn btn-sm btn-success">Rögzítem</button>
                                 </div>
                             </form>
                         </div>
