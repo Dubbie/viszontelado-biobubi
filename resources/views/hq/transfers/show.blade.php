@@ -27,7 +27,7 @@
                     <div class="row">
                         <div class="col-md-3">
                             <div class="d-flex">
-                                <span class="icon icon-lg mr-3 text-info">
+                                <span class="icon icon-lg mr-3 text-muted" style="opacity: 0.33">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
                                          class="bi bi-journal-arrow-up" viewBox="0 0 16 16">
                                         <path fill-rule="evenodd"
@@ -83,7 +83,7 @@
                     <div class="row mt-5">
                         <div class="col-md-3">
                             <div class="d-flex">
-                                <span class="icon icon-lg mr-3 text-info">
+                                <span class="icon icon-lg mr-3 text-muted" style="opacity: 0.33">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
                                          class="bi bi-person-badge" viewBox="0 0 16 16">
                                         <path
@@ -178,7 +178,7 @@
                     <div class="row mt-5">
                         <div class="col-md-3">
                             <div class="d-flex">
-                                <span class="icon icon-lg mr-3 text-info">
+                                <span class="icon icon-lg mr-3 text-muted" style="opacity: 0.33">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor"
                                          class="bi bi-archive" viewBox="0 0 16 16">
                                         <path
