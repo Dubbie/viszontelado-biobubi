@@ -51,3 +51,15 @@
         </div>
     </div>
 @endsection
+
+@section('scripts')
+    <script>
+        $(() => {
+            $('.form-delete-transfer').on('submit', e => {
+                if (!confirm('Biztosan törölni szeretnéd az átutalásról szóló rögzítést? Ez a folyamat nem visszafordítható')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+@endsection
