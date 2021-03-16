@@ -160,10 +160,10 @@ class User extends Authenticatable
     /**
      * Visszaadja, hogy mennyi a marketing egyenlege az adott felhasználónak.
      *
-     * @return int
+     * @return double
      */
-    public function marketingBalance(): int {
-        return (int) $this->balance;
+    public function marketingBalance(): float {
+        return (double) $this->balance;
     }
 
     /**

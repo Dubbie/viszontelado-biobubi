@@ -170,36 +170,54 @@
                                     <label for="u-block-uid">Számlatömb azonosító</label>
                                     <input type="text" id="u-block-uid" name="u-block-uid" class="form-control" value="{{ $user->block_uid }}">
                                     <small class="form-text text-muted"><a
-                                                href="https://app.billingo.hu/beallitasok/szamlazo/szamlatomb">Ezen</a>
+                                            href="https://app.billingo.hu/beallitasok/szamlazo/szamlatomb">Ezen</a>
                                         az oldalon található, Tömb API ID-t kell ide beírni. <b class="d-block">FONTOS: Nem a Legacy API ID-t.</b>
                                     </small>
                                 </div>
-
-                                <div id="billingo-test-results" class="mb-5" style="display: none;">
-
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group mb-0 text-right">
-                            <button type="button" id="btn-billingo-api-test" class="btn btn-sm btn-outline-secondary mr-2">
-                                <span class="text">Billingo integráció teszelése</span>
-                                <span class="loading" style="display: none;">
+                                <div class="form-group">
+                                    <button type="button" id="btn-billingo-api-test" class="btn btn-sm btn-outline-secondary mr-2">
+                                        <span class="text">Billingo integráció teszelése</span>
+                                        <span class="loading" style="display: none;">
                                     <span class="spinner-border spinner-border-sm text-primary" role="status">
                                       <span class="sr-only">Loading...</span>
                                     </span>
                                     <span class="ml-2">Csatlakozás folyamatban...</span>
                                 </span>
-                            </button>
-                            <button type="submit" class="btn btn-sm btn-success">
-                                <span class="text">Felhasználó frissítése</span>
-                                <span class="loading" style="display: none;">
+                                    </button>
+                                </div>
+                                <div id="billingo-test-results" class="mb-5" style="display: none;">
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <h5 class="font-weight-bold mb-1">Marketing egyenleg</h5>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="form-group">
+                                    <label for="u-marketing-balance">Marketing egyenleg</label>
+                                    <div class="input-group">
+                                        <input type="text" id="u-marketing-balance" name="u-marketing-balance" aria-describedby="currency-text" value="{{ $user->marketingBalance() }}" class="text-right form-control">
+                                        <div class="input-group-append">
+                                            <span class="input-group-text" id="currency-text">Ft</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="form-group col-lg-8 offset-lg-4">
+                                <button type="submit" class="btn btn-sm btn-success btn-block">
+                                    <span class="text">Felhasználó frissítése</span>
+                                    <span class="loading" style="display: none;">
                                     <span class="spinner-border spinner-border-sm text-primary" role="status">
                                       <span class="sr-only">Loading...</span>
                                     </span>
                                     <span class="ml-2">Frissítés...</span>
                                 </span>
-                            </button>
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </div>
