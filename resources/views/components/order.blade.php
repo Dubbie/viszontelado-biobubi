@@ -79,7 +79,7 @@
         <div class="row no-gutters align-items-center">
             @if(Auth::user()->admin)
                 <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
-                    <div class="d-flex align-items-center">
+                    <div class="d-flex align-items-center mb-2">
                         <span class="icon text-muted">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-person" viewBox="0 0 16 16">
                                 <path d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
@@ -87,7 +87,24 @@
                             </svg>
                         </span>
                         <p class="mb-0 font-weight-bold">{{ $order->reseller->name }}</p>
+                        <span class="ml-1 mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-dot" viewBox="0 0 16 16">
+                              <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                            </svg>
+                        </span>
+                        <span class="text-muted mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chat-right" viewBox="0 0 16 16">
+                                <path
+                                    d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+                            </svg>
+                        </span>
+                        <a id="show-hide-comments" class="text-muted">{{ $order->comments()->count() }} megjegyzés.</a>
                     </div>
+                    <ul class="d-none list-group ml-1" id="comments-box">
+                        @foreach($order->comments as $comment)
+                            <li class="list-group-item">{{ $comment["content"] }}</li>
+                        @endforeach
+                    </ul>
                 </div>
             @endif
             <div class="col">
@@ -96,7 +113,8 @@
                     @if(Auth::user()->admin && $order->isCompleted() && !$order->invoice_id)
                         <span class="icon icon-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
-                              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                              <path
+                                  d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                             </svg>
                         </span>
                     @endif
@@ -179,3 +197,16 @@
         </div>
     </div>
 </div>
+@section('scripts')
+    <script>
+        let toggleCmmntsBtn = $("#show-hide-comments");
+        let commentBoxClassList = $("#comments-box")[0].classList;
+        toggleCmmntsBtn.click(() => {
+            if (commentBoxClassList.contains('d-none')) {
+                commentBoxClassList.remove('d-none');
+            } else {
+                commentBoxClassList.add('d-none');
+            }
+        });
+    </script>
+@endsection
