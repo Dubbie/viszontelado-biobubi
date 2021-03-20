@@ -184,20 +184,19 @@
 		});
 
 		/* modal feltöltő js - megjegyzésekhez */
-
-		let modalData;
-
+		//kikukázza a linkeket
 		let commentButtons = document.getElementsByName("comments-modal-link");
+		//rárakja mindre az eventlistenert
 		commentButtons.forEach((comment) => {
 			comment.addEventListener('click', fetchModalData);
 		});
 
+		//küldi a requestet, megnézi hogy melyik linket nyomta az emberünk
 		async function fetchModalData(e) {
 			let id = e.currentTarget.getAttribute("data-order-id");
+			//feltölti a modal testét
 			let modal = document.getElementById("modal-body-content");
 			await fetch("/megrendelesek/" + id + "/megjegyzesek/html").then(res => res.text()).then(data => modal.innerHTML = data);
 		}
-
-
 	</script>
 @endsection

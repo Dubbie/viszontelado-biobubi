@@ -110,6 +110,7 @@ Route::group(['middleware' => 'auth'], function () {
 	Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
 	Route::get('/megrendelesek/{orderId}', 'OrderController@show');
 	Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
+	//Javascript számára megjegyzéseket küld vissza, HTML/Text.
 	Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
 
 	// Munkalapos dolgok

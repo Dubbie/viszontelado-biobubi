@@ -337,16 +337,16 @@ class OrderService {
 	/**
 	 * @param int $orderID
 	 * @return \Illuminate\Database\Query\Builder
+	 * returns and order object based on the ID given
 	 */
 	public function getCommentsHTML(string $orderID) {
 		try {
 			$response['success'] = true;
 			$response['order'] = Order::find($orderID);
-			return $response;
 		} catch (Exception $e) {
 			$response['success'] = false;
 			$response['message'] = "Nem található a kért megrendelés.";
-			return $response;
 		}
+		return $response;
 	}
 }

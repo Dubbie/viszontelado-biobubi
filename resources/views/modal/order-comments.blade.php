@@ -1,4 +1,4 @@
-<!--order comments modal-->
+<!--Megrendelésen kommenteket megjelenítő modal külső része, javascript tölti fel-->
 <div class="modal fade" id="comments-modal" tabindex="-1" aria-labelledby="comments-modal" aria-hidden="true">
 	<div class="modal-dialog">
 		<div class="modal-content">
@@ -16,4 +16,4 @@
 		</div>
 	</div>
 </div>
-<!--end order comments modal-->
+

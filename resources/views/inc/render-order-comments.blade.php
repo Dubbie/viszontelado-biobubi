@@ -1,3 +1,4 @@
+{{--Megrendelést megjelenítő modal belső része, ezt kapod meg ha fetchelsz a "megrendelesek/{orderID}/megjegyzesek/html" URL-re. --}}
 @if($order->comments()->count()>0)
 	@foreach($order->comments as $comment)
 		<div class="order-comment border rounded-lg p-3">

@@ -320,8 +320,14 @@ class OrderController extends Controller {
 		]);
 	}
 
+	/***
+	 * @param Request $request
+	 * @param $orderID
+	 * @return array|string
+	 * Bejövő request (orderID) alapján renderel egy templatet, ami a megrendelésen lévő megjegyzéseket listázza.
+	 * Visszatérési értéke HTML/Text
+	 */
 	public function getCommentsHTML(Request $request, $orderID) {
-
 		$result = $this->orderService->getCommentsHTML((int)$orderID);
 		if ($result['success']) {
 			return view("inc.render-order-comments")->with(['order' => $result['order']])->toHtml();
