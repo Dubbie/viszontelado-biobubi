@@ -4,22 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Mail\NewOrder;
 use App\Order;
-use App\OrderProducts;
-use App\Product;
 use App\Subesz\BillingoNewService;
-use App\Subesz\BillingoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
-use App\User;
 use App\UserZip;
-use Auth;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Mail;
-use Swagger\Client\Api\BankAccountApi;
 use Swagger\Client\Api\DocumentApi;
 use Swagger\Client\ApiException;
 use Swagger\Client\Configuration;
@@ -56,8 +50,7 @@ class ShoprenterController extends Controller
      * @param $privateKey
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function updateOrders($privateKey)
-    {
+    public function updateOrders($privateKey) {
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
             Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
@@ -148,8 +141,7 @@ class ShoprenterController extends Controller
      * @param  Request  $request
      * @return array
      */
-    public function handleWebhook(string $privateKey, Request $request)
-    {
+    public function handleWebhook(string $privateKey, Request $request) {
         Log::info('- Shoprenter Új Megrendelés Webhook -');
 
         // Ellenőrizzük a kulcsot
@@ -248,8 +240,7 @@ class ShoprenterController extends Controller
     /**
      *
      */
-    public function updateProducts()
-    {
+    public function updateProducts() {
         $this->shoprenterApi->updateProducts();
         Log::info('Termékek sikeresen frissítve a Shoprenter adatbázisából!');
     }
@@ -257,9 +248,154 @@ class ShoprenterController extends Controller
     /**
      *
      */
-    public function testShoprenter()
-    {
-        
+    public function testShoprenter() {
+        $_order = [
+            'storeName'               => 'biobubi',
+            'innerId'                 => '8049',
+            'innerResourceId'         => 'orders/b3JkZXItb3JkZXJfaWQ9ODA0OQ==',
+            'outerResourceId'         => '',
+            'firstname'               => 'Budaházi',
+            'lastname'                => 'Krisztina',
+            'phone'                   => '+36705479960',
+            'fax'                     => '',
+            'email'                   => 'Budahazi.krisztina@gmail.com',
+            'cart_token'              => 'cart',
+            'shippingFirstname'       => 'Budaházi',
+            'shippingLastname'        => 'Krisztina',
+            'shippingCompany'         => '',
+            'shippingAddress1'        => 'Csokonai Vitéz Mihály utca 27/2',
+            'shippingAddress2'        => '',
+            'shippingCity'            => 'Százhalombatta',
+            'shippingCountryName'     => 'Magyarország',
+            'shippingZoneName'        => '',
+            'shippingPostcode'        => '2440',
+            'paymentFirstname'        => 'Budaházi',
+            'paymentLastname'         => 'Krisztina',
+            'paymentCompany'          => '',
+            'paymentAddress1'         => 'Csokonai Vitéz Mihály utca 27/2',
+            'paymentAddress2'         => '',
+            'paymentCity'             => 'Százhalombatta',
+            'paymentCountryName'      => 'Magyarország',
+            'paymentZoneName'         => 'Pest',
+            'shippingMethodName'      => 'Hulladékmentes házhozszállítás',
+            'shippingNetPrice'        => 0,
+            'shippingGrossPrice'      => '0',
+            'shippingInnerResourceId' => 'shippingModeExtend/c2hpcHBpbmdNb2RlLWlkPTE4',
+            'paymentMethodName'       => 'Utánvétel',
+            'paymentNetPrice'         => 0,
+            'paymentGrossPrice'       => 0,
+            'couponCode'              => '',
+            'couponGrossPrice'        => null,
+            'languageId'              => '1',
+            'languageCode'            => 'hu',
+            'comment'                 => '',
+            'total'                   => '8220',
+            'totalGross'              => '10440',
+            'taxPrice'                => '2220',
+            'currency'                => 'HUF',
+            'paymentPostcode'         => '2440',
+            'paymentTaxnumber'        => '',
+            'orderHistory'            => [
+                'status'     => '1',
+                'statusText' => 'Függőben lévő',
+                'comment'    => '',
+            ],
+            'orderProducts'           => [
+                'orderProduct' => [
+                    0 => [
+                        'innerId'         => '29824',
+                        'innerResourceId' => 'orderProducts/b3JkZXJQcm9kdWN0LW9yZGVyX3Byb2R1Y3RfaWQ9Mjk4MjQ=',
+                        'outerResourceId' => '',
+                        'name'            => 'BioBubi utántöltő 5l',
+                        'sku'             => '2',
+                        'price'           => '5897.638',
+                        'currency'        => 'HUF',
+                        'taxRate'         => '27.0000',
+                        'quantity'        => '1',
+                        'image'           => 'https://biobubi.hu/custom/biobubi/image/data/%C3%9Aj%20k%C3%A9pek%20png/Biobubi_utantolto_5l_profil.png',
+                        'category'        => 'BioBubi Mosószer, Hulladékmentes tisztítószerek',
+                        'volume'          => [
+                            'height'     => '0.00',
+                            'width'      => '0.00',
+                            'length'     => '0.00',
+                            'volumeUnit' => [
+                                0 => [
+                                    'unit'     => 'cm',
+                                    'language' => 'hu',
+                                ],
+                            ],
+                        ],
+                        'weight'          => [
+                            'weight'     => '0.00',
+                            'weightUnit' => [
+                                0 => [
+                                    'unit'     => 'kg',
+                                    'language' => 'hu',
+                                ],
+                            ],
+                        ],
+                    ],
+                    1 => [
+                        'innerId'         => '29825',
+                        'innerResourceId' => 'orderProducts/b3JkZXJQcm9kdWN0LW9yZGVyX3Byb2R1Y3RfaWQ9Mjk4MjU=',
+                        'outerResourceId' => '',
+                        'name'            => 'Biobubi mosogatószer és általános tisztítószer csomag',
+                        'sku'             => 'BKMPACS',
+                        'price'           => '2322.835',
+                        'currency'        => 'HUF',
+                        'taxRate'         => '27.0000',
+                        'quantity'        => '1',
+                        'image'           => 'https://biobubi.hu/custom/biobubi/image/data/%C3%9Aj%20term%C3%A9kk%C3%A9pek/ujtermekek402.png',
+                        'category'        => 'Hulladékmentes tisztítószerek, Próbálj ki minket, Felmosószerek, Mosogatószerek',
+                        'volume'          => [
+                            'height'     => '0.00',
+                            'width'      => '0.00',
+                            'length'     => '0.00',
+                            'volumeUnit' => [
+                                0 => [
+                                    'unit'     => 'cm',
+                                    'language' => 'hu',
+                                ],
+                            ],
+                        ],
+                        'weight'          => [
+                            'weight'     => '0.00',
+                            'weightUnit' => [
+                                0 => [
+                                    'unit'     => 'kg',
+                                    'language' => 'hu',
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
+        $orderId = str_replace('orders/', '', $_order['innerResourceId']);
+
+        // Elmentése a Megrendelésnek db-be
+        $localOrder                       = new Order();
+        $localOrder->shipping_postcode    = $_order['shippingPostcode'];
+        $localOrder->shipping_city        = $_order['shippingCity'];
+        $localOrder->shipping_address     = sprintf('%s %s', $_order['shippingAddress1'], $_order['shippingAddress2']);
+        $localOrder->inner_id             = $_order['innerId'];
+        $localOrder->inner_resource_id    = $orderId;
+        $localOrder->total                = $_order['total'];
+        $localOrder->total_gross          = $_order['totalGross'];
+        $localOrder->tax_price            = $_order['taxPrice'];
+        $localOrder->firstname            = $_order['firstname'];
+        $localOrder->lastname             = $_order['lastname'];
+        $localOrder->email                = $_order['email'];
+        $localOrder->phone                = $_order['phone'];
+        $localOrder->shipping_method_name = $_order['shippingMethodName'];
+        $localOrder->payment_method_name  = $_order['paymentMethodName'];
+        $localOrder->status_text          = $_order['orderHistory']['statusText'];
+        $localOrder->status_color         = '#ff00ff';
+        $localOrder->created_at           = date('Y-m-d H:i:s');
+        $localOrder->save();
+
+        dd($localOrder);
     }
 
     /**
@@ -267,8 +403,7 @@ class ShoprenterController extends Controller
      *
      * @return bool
      */
-    public function testBillingo(): bool
-    {
+    public function testBillingo(): bool {
         $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '');
 
         $docu = new DocumentApi(new Client(), $config);
@@ -283,8 +418,7 @@ class ShoprenterController extends Controller
      * @param  Request  $request
      * @return array
      */
-    public function getProduct(Request $request): array
-    {
+    public function getProduct(Request $request): array {
         $product        = $this->shoprenterApi->getProduct($request->input('sku'));
         $klaviyoProduct = [
             "ProductName"    => $product->productDescriptions[0]->name,
@@ -305,8 +439,7 @@ class ShoprenterController extends Controller
      * @param  Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function checkZip(Request $request)
-    {
+    public function checkZip(Request $request) {
         Log::info('Irányítószám ellenőrzése...');
         $uzip     = UserZip::whereZip($request->get('zip'))->first();
         $reseller = $uzip ? $uzip->user : null;

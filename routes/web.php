@@ -1,7 +1,5 @@
 <?php
 
-use App\Subesz\OrderService;
-use Billingo\API\Connector\HTTP\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Route;
 
@@ -18,11 +16,11 @@ use Illuminate\Support\Facades\Route;
 
 Auth::routes(['register' => false]);
 
-Route::group(['middleware' => 'auth'], function() {
+Route::group(['middleware' => 'auth'], function () {
     /**
      * Adminisztrátori jogot igénylő routeok.
      */
-    Route::group(['middleware' => 'admin'], function() {
+    Route::group(['middleware' => 'admin'], function () {
         Route::get('/felhasznalok', 'UserController@index');
         Route::get('/felhasznalok/uj', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
@@ -76,6 +74,10 @@ Route::group(['middleware' => 'auth'], function() {
         Route::post('kozpont/marketing/mentes', 'MarketingResultController@store');
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
+
+        // Régió
+        Route::get('regio/generalas', 'RegionController@generateByResellers');
+        Route::resource('regiok', 'RegionController');
     });
 
     // Index
@@ -99,7 +101,7 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('hirek/{postId}', 'PostController@showPublic');
 
     // Régi URL...
-    Route::get('/bevetel', function() {
+    Route::get('/bevetel', function () {
         return redirect(action('RevenueController@income'));
     });
 
@@ -142,9 +144,12 @@ Route::group(['middleware' => 'auth'], function() {
     Route::get('/riport/havi', 'ReportController@showMonthly');
 
     // Készlet
-    Route::resource('keszletem', 'StockController', ['only' => [
-        'index', 'store'
-    ]]);
+    Route::resource('keszletem', 'StockController', [
+        'only' => [
+            'index',
+            'store',
+        ],
+    ]);
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
