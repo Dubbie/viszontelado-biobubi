@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php /** @var \App\Region $region */ @endphp
     <div class="container">
         <div class="row">
             <div class="col-lg-8 offset-lg-2">
@@ -15,12 +16,13 @@
                 </p>
                 <div class="row">
                     <div class="col">
-                        <h1 class="font-weight-bold mb-4">Új régió</h1>
+                        <h1 class="font-weight-bold mb-4">Régió szerkesztése</h1>
                     </div>
                 </div>
                 <div class="card card-body">
-                    <form action="{{ action('RegionController@store') }}" method="POST">
+                    <form action="{{ action('RegionController@update', $region) }}" method="POST">
                         @csrf
+                        @method('PUT')
                         {{-- Régi megnevezése --}}
                         <div class="form-row">
                             <div class="col-md-4">
@@ -28,7 +30,8 @@
                                 <p class="text-muted">Ez alapján fogod tudni azonosítani a régió listában.</p>
                             </div>
                             <div class="col offset-md-1">
-                                <input id="region-name" name="region-name" type="text" class="form-control" required>
+                                <input id="region-name" name="region-name" type="text" class="form-control"
+                                       value="{{ old('region-name', $region->name) }}" required>
                             </div>
                         </div>
 
@@ -41,9 +44,9 @@
                             </div>
                             <div class="col offset-md-1">
                                 <select name="region-user-id" id="region-user-id" class="custom-select">
-                                    <option value="" hidden selected disabled>Kérlek válassz...</option>
                                     @foreach($resellers as $reseller)
-                                        <option value="{{ $reseller->id }}">{{ $reseller->name }}</option>
+                                        <option value="{{ $reseller->id }}"
+                                                @if(old('region-user-id', $region->user->id) == $reseller->id) selected @endif>{{ $reseller->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -57,13 +60,14 @@
                                     megrendelés.</p>
                             </div>
                             <div class="col offset-md-1">
-                                <input type="text" id="u-zip" name="region-zips" class="form-control" required>
+                                <input type="text" id="u-zip" name="region-zips" class="form-control"
+                                       value="{{ old('u-zip', $region->encodeZips()) }}" required>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="col-md-8 offset-md-4 text-md-right">
-                                <button type="submit" class="btn btn-success">Régió mentése</button>
+                                <button type="submit" class="btn btn-success">Régió frissítése</button>
                             </div>
                         </div>
                     </form>

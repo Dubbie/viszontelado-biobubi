@@ -20,9 +20,9 @@
             </div>
         </div>
 
-        @if(Auth::user()->admin && count(Auth::user()->zips) == 0)
+        @if(Auth::user()->admin && count(Auth::user()->regions) == 0)
             <div class="alert alert-info">
-                <p class="mb-0">A fiókodhoz nincs hozzárendelve irányítószám,
+                <p class="mb-0">A fiókodhoz nincs hozzárendelve régió,
                     ezért nem kapsz megrendeléseket.</p>
             </div>
         @endif
@@ -64,7 +64,10 @@
                                         <option value="{{ $reseller->id }}"
                                                 @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
                                     @endforeach
-                                    <option value="ALL" @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>Összes viszonteladó</option>
+                                    <option value="ALL"
+                                            @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>
+                                        Összes viszonteladó
+                                    </option>
                                 </select>
                             </div>
                         </div>
@@ -88,8 +91,10 @@
                         <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
                     </div>
                     <div class="col">
-                        <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint érkezik egy itt fogod látni!</p>
-                        <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés leadása</a>
+                        <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint érkezik
+                            egy itt fogod látni!</p>
+                        <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
+                            leadása</a>
                     </div>
                 </div>
             </div>

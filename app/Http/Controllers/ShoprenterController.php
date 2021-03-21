@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Mail\NewOrder;
 use App\Order;
+use App\RegionZip;
 use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
-use App\UserZip;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
@@ -440,9 +440,10 @@ class ShoprenterController extends Controller
      * @return \Illuminate\Http\JsonResponse
      */
     public function checkZip(Request $request) {
-        Log::info('Irányítószám ellenőrzése...');
-        $uzip     = UserZip::whereZip($request->get('zip'))->first();
-        $reseller = $uzip ? $uzip->user : null;
+        Log::info('Irányítószám ellenőrzése ShopRenter felületről...');
+
+        $rZip     = RegionZip::whereZip($request->get('zip'))->first();
+        $reseller = $rZip ? $rZip->reseller : null;
 
         if ($reseller) {
             Log::info('Az irányítószám megtalálva, viszonteladó: '.$reseller->name);

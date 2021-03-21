@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Delivery;
 use App\Http\Requests\BillingoApiTestRequest;
 use App\Post;
 use App\Subesz\BillingoNewService;
@@ -10,8 +9,6 @@ use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
 use App\UserDetails;
-use App\UserZip;
-use Billingo\API\Connector\HTTP\Route;
 use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -26,36 +23,33 @@ use Psr\Http\Message\ResponseInterface;
 
 class UserController extends Controller
 {
-
     /**
      * UserController constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
 
     }
 
     /**
      * @return Factory|View
      */
-    public function home()
-    {
+    public function home() {
         /** @var RevenueService $revenueService */
         $revenueService = resolve('App\Subesz\RevenueService');
         /** @var BillingoNewService $billingoService */
         $billingoService = resolve('App\Subesz\BillingoNewService');
 
         $start = Carbon::now()->startOfMonth();
-        $end = Carbon::now();
+        $end   = Carbon::now();
 
         // Benji kikeresése
         $benjiExpenses = null;
-        $benji = User::where('email', 'gbenji20@gmail.com')->first();
+        $benji         = User::where('email', 'gbenji20@gmail.com')->first();
         if (Auth::user()->admin && $benji) {
             $benjiExpenses = $revenueService->getExpenseByRange($start, $end, $benji->id)['sum'];
         }
 
-        $income = $revenueService->getIncomeByRange($start, $end)['sum'];
+        $income  = $revenueService->getIncomeByRange($start, $end)['sum'];
         $expense = $revenueService->getExpenseByRange($start, $end, Auth::id())['sum'];
         // Benjit levonjuk ha kell
         if ($benjiExpenses) {
@@ -72,22 +66,21 @@ class UserController extends Controller
         $todos = Auth::user()->todos()->whereDate('deadline', Carbon::now())->where('completed_at', '=', null)->orderBy('deadline')->get();
 
         return view('home')->with([
-            'orders' => $os->getLatestOrder(5),
-            'income' => $income,
-            'expense' => $expense,
-            'profit' => $profit,
+            'orders'   => $os->getLatestOrder(5),
+            'income'   => $income,
+            'expense'  => $expense,
+            'profit'   => $profit,
             'billingo' => $billingoResults,
-            'news' => Post::orderByDesc('created_at')->limit(5)->get(),
-            'todos' => $todos
+            'news'     => Post::orderByDesc('created_at')->limit(5)->get(),
+            'todos'    => $todos,
         ]);
     }
 
     /**
      * @return Factory|View
      */
-    public function index()
-    {
-        $users = User::withCount(['deliveries', 'zips'])->get();
+    public function index() {
+        $users = User::withCount(['deliveries', 'regions'])->get();
 
         return view('user.index')->with([
             'users' => $users,
@@ -97,40 +90,38 @@ class UserController extends Controller
     /**
      * @return Factory|View
      */
-    public function create()
-    {
+    public function create() {
         return view('user.create');
     }
 
     /**
-     * @param $userId
+     * @param           $userId
      * @param  Request  $request
      * @return Factory|View
      */
-    public function show($userId, Request $request)
-    {
+    public function show($userId, Request $request) {
         /** @var User $user */
-        $user = User::where('id', $userId)->withCount('deliveries')->first();
-        $date = $request->input('date') ?? null;
-        $selectedReport = null;
+        $user              = User::where('id', $userId)->withCount('deliveries')->first();
+        $date              = $request->input('date') ?? null;
+        $selectedReport    = null;
         $selectedMarketing = null;
-        $active = 'user-details';
+        $active            = 'user-details';
 
         if ($date) {
-            $carbonDate = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date . '-01 00:00:01');
-            $selectedReport = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $carbonDate        = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
+            $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
-            $active = 'user-monthly-reports';
+            $active            = 'user-monthly-reports';
         } else {
-            $selectedReport = $user->reports->last();
+            $selectedReport    = $user->reports->last();
             $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
         }
 
         return view('user.show')->with([
-            'user' => $user,
-            'selectedReport' => $selectedReport,
+            'user'              => $user,
+            'selectedReport'    => $selectedReport,
             'selectedMarketing' => $selectedMarketing,
-            'activeTab' => $active,
+            'activeTab'         => $active,
         ]);
     }
 
@@ -138,115 +129,84 @@ class UserController extends Controller
      * @param $userId
      * @return Factory|View
      */
-    public function edit($userId)
-    {
+    public function edit($userId) {
         $user = User::find($userId);
-        $zips = [];
-
-        foreach ($user->zips as $zip) {
-            $zips[] = [
-                'value' => $zip->zip,
-            ];
-        }
 
         return view('user.edit')->with([
             'user' => $user,
-            'zips' => json_encode($zips),
         ]);
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
-            'u-name' => 'required',
-            'u-email' => 'required|email|unique:users,email',
-            'u-password' => 'required',
-            'u-zip' => 'nullable',
-            'u-aam' => 'nullable',
+            'u-name'             => 'required',
+            'u-email'            => 'required|email|unique:users,email',
+            'u-password'         => 'required',
+            'u-aam'              => 'nullable',
             'u-billingo-api-key' => 'nullable',
-            'u-block-uid' => 'nullable',
+            'u-block-uid'        => 'nullable',
         ]);
 
-        $user = new User();
-        $user->name = trim($data['u-name']);
-        $user->email = trim($data['u-email']);
-        $user->password = Hash::make($data['u-password']);
-        $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
+        $user                   = new User();
+        $user->name             = trim($data['u-name']);
+        $user->email            = trim($data['u-email']);
+        $user->password         = Hash::make($data['u-password']);
+        $user->vat_id           = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
         $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : null;
-        $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : null;
+        $user->block_uid        = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : null;
 
-        if (!$user->save()) {
+        if (! $user->save()) {
             Log::error('Hiba történt a felhasználó mentésekor! %s', $user);
+
             return redirect(url()->previous())->withErrors([
                 'store' => 'Hiba történt a felhasználó létrehozásakor!',
             ]);
         }
 
-        $zips = json_decode($data['u-zip'], true);
-        $zipSuccess = 0;
-        foreach ($zips as $i => $zip) {
-
-            $userZip = new UserZip();
-            $userZip->user_id = $user->id;
-            $userZip->zip = $zip['value'];
-
-            if ($userZip->save()) {
-                $zipSuccess++;
-            }
-        }
-
-        if ($zipSuccess == count($zips)) {
-            return redirect(action('UserController@index'))->with([
-                'success' => 'Új felhasználó sikeresen létrehozva!',
-            ]);
-        } else {
-            return redirect(url()->previous())->withErrors([
-                'store' => 'Hiba történt a felhasználó létrehozásakor!',
-            ]);
-        }
+        return redirect(action('UserController@index'))->with([
+            'success' => 'Új felhasználó sikeresen létrehozva!',
+        ]);
     }
 
     /**
-     * @param $userId
-     * @param Request $request
+     * @param           $userId
+     * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function update($userId, Request $request)
-    {
+    public function update($userId, Request $request) {
         $data = $request->validate([
-            'u-name' => 'required',
-            'u-email' => 'required|email|unique:users,email,' . $userId,
-            'u-zip' => 'nullable',
-            'u-aam' => 'nullable',
-            'u-billingo-api-key' => 'nullable',
-            'u-block-uid' => 'nullable',
-            'u-billing-name' => 'nullable',
-            'u-billing-zip' => 'nullable',
-            'u-billing-city' => 'required_with:u-billing-zip|nullable',
-            'u-billing-address1' => 'required_with:u-billing-zip|nullable',
-            'u-billing-address2' => 'nullable',
+            'u-name'               => 'required',
+            'u-email'              => 'required|email|unique:users,email,'.$userId,
+            'u-aam'                => 'nullable',
+            'u-billingo-api-key'   => 'nullable',
+            'u-block-uid'          => 'nullable',
+            'u-billing-name'       => 'nullable',
+            'u-billing-zip'        => 'nullable',
+            'u-billing-city'       => 'required_with:u-billing-zip|nullable',
+            'u-billing-address1'   => 'required_with:u-billing-zip|nullable',
+            'u-billing-address2'   => 'nullable',
             'u-billing-tax-number' => 'nullable',
-            'u-shipping-name' => 'nullable',
-            'u-shipping-email' => 'nullable',
-            'u-shipping-phone' => 'nullable',
-            'u-shipping-zip' => 'nullable',
-            'u-shipping-city' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address1' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address2' => 'nullable',
+            'u-shipping-name'      => 'nullable',
+            'u-shipping-email'     => 'nullable',
+            'u-shipping-phone'     => 'nullable',
+            'u-shipping-zip'       => 'nullable',
+            'u-shipping-city'      => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address1'  => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address2'  => 'nullable',
         ]);
 
-        $user = User::find($userId);
-        $user->name = $data['u-name'];
-        $user->email = $data['u-email'];
-        $user->vat_id = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
+        $user                   = User::find($userId);
+        $user->name             = $data['u-name'];
+        $user->email            = $data['u-email'];
+        $user->vat_id           = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
         $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
-        $user->block_uid = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
+        $user->block_uid        = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
 
-        $detailsKeys = [
+        $detailsKeys       = [
             'u-billing-name',
             'u-billing-zip',
             'u-billing-city',
@@ -259,7 +219,7 @@ class UserController extends Controller
             'u-shipping-zip',
             'u-shipping-city',
             'u-shipping-address1',
-            'u-shipping-address2'
+            'u-shipping-address2',
         ];
         $shouldHaveDetails = false;
         foreach ($detailsKeys as $key) {
@@ -274,60 +234,36 @@ class UserController extends Controller
             $ud = $user->details;
             $as = resolve('App\Subesz\AddressService');
 
-            if (!$ud) {
-                $ud = new UserDetails();
+            if (! $ud) {
+                $ud          = new UserDetails();
                 $ud->user_id = $user->id;
             }
 
             // Mentsük el a címeket
-            $billingAddress = $as->storeAddress($data['u-billing-zip'],
-                $data['u-billing-city'],
-                $data['u-billing-address1'],
-                $data['u-billing-address2']
-            );
-            $shippingAddress = $as->storeAddress($data['u-shipping-zip'],
-                $data['u-shipping-city'],
-                $data['u-shipping-address1'],
-                $data['u-shipping-address2']
-            );
+            $billingAddress  = $as->storeAddress($data['u-billing-zip'], $data['u-billing-city'], $data['u-billing-address1'], $data['u-billing-address2']);
+            $shippingAddress = $as->storeAddress($data['u-shipping-zip'], $data['u-shipping-city'], $data['u-shipping-address1'], $data['u-shipping-address2']);
 
             // Mentsük el az egyéb adatokat
-            $ud->billing_name = $data['u-billing-name'];
-            $ud->billing_tax_number = $data['u-billing-tax-number'];
-            $ud->shipping_email = $data['u-shipping-email'];
-            $ud->shipping_phone = $data['u-shipping-phone'];
-            $ud->billing_address_id = $billingAddress ? $billingAddress->id : null;
+            $ud->billing_name        = $data['u-billing-name'];
+            $ud->billing_tax_number  = $data['u-billing-tax-number'];
+            $ud->shipping_email      = $data['u-shipping-email'];
+            $ud->shipping_phone      = $data['u-shipping-phone'];
+            $ud->billing_address_id  = $billingAddress ? $billingAddress->id : null;
             $ud->shipping_address_id = $shippingAddress ? $shippingAddress->id : null;
 
             $ud->save();
-        } else if (!$shouldHaveDetails && $user->details) {
-            try {
-                $user->details->delete();
-            } catch (Exception $e) {
-                Log::error('Hiba történt a felhasználó részleteinek törlésekor');
-                Log::error($e->getMessage());
+        } else {
+            if ($user->details) {
+                try {
+                    $user->details->delete();
+                } catch (Exception $e) {
+                    Log::error('Hiba történt a felhasználó részleteinek törlésekor');
+                    Log::error($e->getMessage());
+                }
             }
         }
 
-        // Kitöröljük a régieket...
-        UserZip::where('user_id', $userId)->delete();
-
-        // Bejönnek az újak...
-        $zips = $data['u-zip'] ? json_decode($data['u-zip'], true) : [];
-        $zipSuccess = 0;
-        foreach ($zips as $i => $zip) {
-            $userZip = new UserZip();
-            $userZip->user_id = $user->id;
-            $userZip->zip = $zip['value'];
-
-            if ($userZip->save()) {
-                $zipSuccess++;
-            }
-        }
-
-        if ($zipSuccess == count($zips)) {
-            $user->save();
-
+        if ($user->save()) {
             return redirect(url()->previous())->with([
                 'success' => 'Felhasználó sikeresen frissítve!',
             ]);
@@ -341,8 +277,7 @@ class UserController extends Controller
     /**
      * @return Factory|View
      */
-    public function profile()
-    {
+    public function profile() {
         /** @var BillingoNewService $billingoService */
         $billingoService = resolve('App\Subesz\BillingoNewService');
         $billingoResults = $billingoService->isBillingoConnected(Auth::user());
@@ -353,19 +288,18 @@ class UserController extends Controller
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function updatePassword(Request $request)
-    {
+    public function updatePassword(Request $request) {
         $data = $request->validate([
             'old-password' => 'required',
-            'password' => 'required|confirmed'
+            'password'     => 'required|confirmed',
         ]);
 
         // Megnézzük, hogy jó-e a jelszó
         $user = User::find(Auth::id());
-        if (!Hash::check($data['old-password'], $user->password)) {
+        if (! Hash::check($data['old-password'], $user->password)) {
             return redirect(url()->previous())->with([
                 'error' => 'Helytelen jelenlegi jelszó lett megadva',
             ]);
@@ -385,15 +319,15 @@ class UserController extends Controller
     }
 
     /**
-     * @param BillingoApiTestRequest $request
+     * @param  BillingoApiTestRequest  $request
      * @return mixed|ResponseInterface
      */
-    public function testBillingo(BillingoApiTestRequest $request)
-    {
+    public function testBillingo(BillingoApiTestRequest $request) {
         /** @var BillingoNewService $billingoService */
         $billingoService = resolve('App\Subesz\BillingoNewService');
-        $data = $request->validated();
-        $response = $billingoService->isBillingoWorking($data['u-billingo-api-key'], $data['u-block-uid']);
+        $data            = $request->validated();
+        $response        = $billingoService->isBillingoWorking($data['u-billingo-api-key'], $data['u-block-uid']);
+
         return $response;
     }
 
@@ -402,20 +336,21 @@ class UserController extends Controller
      * @param $lastWeek
      * @return string
      */
-    private function getDiffPercent($thisWeek, $lastWeek)
-    {
+    private function getDiffPercent($thisWeek, $lastWeek) {
         if ($lastWeek == 0 && $thisWeek == 0) {
             $amount = 0;
-        } else if ($lastWeek == 0) {
-            $amount = (100 - round(($lastWeek / $thisWeek) * 100));
         } else {
-            $amount = -1 * (100 - round(($thisWeek / $lastWeek) * 100));
+            if ($lastWeek == 0) {
+                $amount = (100 - round(($lastWeek / $thisWeek) * 100));
+            } else {
+                $amount = -1 * (100 - round(($thisWeek / $lastWeek) * 100));
+            }
         }
 
         if ($amount > 0) {
-            $amount = '+' . $amount;
+            $amount = '+'.$amount;
         }
 
-        return $amount . '%';
+        return $amount.'%';
     }
 }

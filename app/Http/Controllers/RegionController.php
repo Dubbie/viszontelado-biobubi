@@ -4,12 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Region;
 use App\RegionZip;
+use App\Subesz\RegionService;
 use App\User;
 use Illuminate\Http\Request;
 use Log;
 
 class RegionController extends Controller
 {
+    /** @var \App\Subesz\RegionService */
+    private $regionService;
+
+    /**
+     * RegionController constructor.
+     *
+     * @param  \App\Subesz\RegionService  $regionService
+     */
+    public function __construct(RegionService $regionService) {
+        $this->regionService = $regionService;
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -17,7 +30,7 @@ class RegionController extends Controller
      */
     public function index() {
         return view('region.index')->with([
-            'regions' => Region::all(),
+            'regions' => Region::withCount('zips')->get(),
         ]);
     }
 
@@ -28,7 +41,7 @@ class RegionController extends Controller
      */
     public function create() {
         return view('region.create')->with([
-            'resellers' => User::whereHas('zips')->get(),
+            'resellers' => User::all(),
         ]);
     }
 
@@ -55,22 +68,66 @@ class RegionController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Region  $region
-     * @return \Illuminate\Http\Response
+     * @param  $region
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Http\Response|\Illuminate\View\View
      */
-    public function edit(Region $region) {
-        //
+    public function edit($region) {
+
+        return view('region.edit')->with([
+            'region'    => Region::find($region),
+            'resellers' => User::all(),
+        ]);
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Region               $region
-     * @return \Illuminate\Http\Response
+     * @param  int                       $regionId
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
-    public function update(Request $request, Region $region) {
-        //
+    public function update(Request $request, int $regionId) {
+        $data = $request->validate([
+            'region-name'    => 'required',
+            'region-user-id' => 'required|integer',
+            'region-zips'    => 'required|json',
+        ]);
+
+        $region     = Region::find($regionId);
+        $regionZips = array_column(json_decode($data['region-zips']), 'value');
+
+        // Frissítjük a két alap adatot
+        $region->user_id = intval($data['region-user-id']);
+        $region->name    = trim($data['region-name']);
+
+        // Lekezeljük az irányítószámokat
+        // - Kitöröljük a régieket...
+        RegionZip::where('region_id', $regionId)->delete();
+
+        // - Bejönnek az újak...
+        $zipSuccess = 0;
+        foreach ($regionZips as $zip) {
+            if (RegionZip::where('zip', $zip)->first()) {
+                continue;
+            }
+            $rZip            = new RegionZip();
+            $rZip->region_id = $regionId;
+            $rZip->zip       = $zip;
+
+            if ($rZip->save()) {
+                $zipSuccess++;
+            }
+        }
+
+        if ($zipSuccess = count($regionZips)) {
+            return redirect(url()->previous(action('RegionController@index')))->with([
+                'success' => 'Régió sikeresen frissítve',
+            ]);
+        }
+
+        return redirect(url()->previous(action('RegionController@index')))->with([
+            'error' => 'Hiba történt a régió frissítésekor',
+        ]);
     }
 
     /**

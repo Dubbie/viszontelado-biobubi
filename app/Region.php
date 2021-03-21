@@ -27,4 +27,11 @@ class Region extends Model
     public function user(): HasOne {
         return $this->hasOne(User::class, 'id', 'user_id');
     }
+
+    /**
+     * @return array|false|string
+     */
+    public function encodeZips() {
+        return resolve('App\Subesz\RegionService')->encodeRegionZipsByRegion($this->id);
+    }
 }

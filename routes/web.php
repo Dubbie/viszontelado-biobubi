@@ -76,7 +76,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
 
         // Régió
-        Route::get('regio/generalas', 'RegionController@generateByResellers');
+        Route::get('regiok/generalas', 'RegionController@generateByResellers');
         Route::resource('regiok', 'RegionController');
     });
 

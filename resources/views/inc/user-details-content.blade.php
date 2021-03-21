@@ -69,34 +69,6 @@
     </div>
 </div>
 
-<div style="opacity: 0.25">
-    <p class="h5 font-weight-bold mt-4 mb-3">Irányítószámok</p>
-    <div class="row">
-        <div class="col-md-5">
-            <p class="mb-0 text-muted">Ezek az irányítószámok lettek hozzárendelve a felhasználóhoz.<br>Új
-                megrendeléskor nézi a rendszer, ez alapján találja meg a helyes viszonteladót.</p>
-        </div>
-        <div class="col-md-6 offset-md-1">
-            <div class="row">
-                @if(count($user->zips) > 0)
-                    @foreach($user->zips->sortBy('zip') as $zip)
-                        <div class="col-md-4 col-lg-3">
-                            <p class="font-weight-bold mb-0">{{ $zip->zip }}</p>
-                        </div>
-                    @endforeach
-                @else
-                    <div class="col">
-                        <div class="alert alert-info">
-                            <p class="lead mb-0">A felhasználóhoz nem tartozik egy irányítószám sem, ezért nem fog kapni
-                                megrendeléseket automatikusan.</p>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-    </div>
-</div>
-
 @if($user->details)
     <div class="row mt-5">
         <div class="col-md-5">
