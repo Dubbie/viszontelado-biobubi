@@ -28,7 +28,8 @@
                                 <p class="text-muted">Ez alapján fogod tudni azonosítani a régió listában.</p>
                             </div>
                             <div class="col offset-md-1">
-                                <input id="region-name" name="region-name" type="text" class="form-control" required>
+                                <input id="region-name" name="region-name" type="text" class="form-control"
+                                       value="{{ old('region-name') }}" required>
                             </div>
                         </div>
 
@@ -43,7 +44,8 @@
                                 <select name="region-user-id" id="region-user-id" class="custom-select">
                                     <option value="" hidden selected disabled>Kérlek válassz...</option>
                                     @foreach($resellers as $reseller)
-                                        <option value="{{ $reseller->id }}">{{ $reseller->name }}</option>
+                                        <option value="{{ $reseller->id }}"
+                                                @if(old('region-user-id') && old('region-user-id') == $reseller->id) selected @endif>{{ $reseller->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -57,7 +59,8 @@
                                     megrendelés.</p>
                             </div>
                             <div class="col offset-md-1">
-                                <input type="text" id="u-zip" name="region-zips" class="form-control" required>
+                                <input type="text" id="u-zip" name="region-zips" class="form-control"
+                                       value="{{ old('region-zips') }}" required>
                             </div>
                         </div>
 

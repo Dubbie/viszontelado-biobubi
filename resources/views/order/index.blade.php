@@ -53,8 +53,22 @@
                             </select>
                         </div>
                     </div>
+                    @if(Auth::user()->regions()->count() > 0)
+                        <div class="col-xl-2 col-lg-3 col-md-3">
+                            <div class="form-group">
+                                <label for="filter-region">Régió</label>
+                                <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
+                                    <option value="">Összes</option>
+                                    @foreach(Auth::user()->regions as $region)
+                                        <option value="{{ $region->id }}"
+                                                @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
+                    @endif
                     @if(Auth::user()->admin)
-                        <div class="col-xl-3 col-lg-5 col-md-5">
+                        <div class="col-xl-3 col-lg-4 col-md-5">
                             <div class="form-group">
                                 <label for="filter-reseller">Viszonteladó</label>
                                 <select name="filter-reseller" id="filter-reseller"
@@ -85,19 +99,38 @@
                 <x-order :order="$order" type="regular" :worksheet="null"></x-order>
             @endforeach
         @else
-            <div class="card card-body">
-                <div class="row align-items-center">
-                    <div class="col-12 col-md-3">
-                        <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
-                    </div>
-                    <div class="col">
-                        <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint érkezik
-                            egy itt fogod látni!</p>
-                        <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
-                            leadása</a>
+            @if(!empty($filter))
+                <div class="card card-body">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-3">
+                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
+                        </div>
+                        <div class="col">
+                            <p class="lead">Az általad beállított szűrők alapján nem találtunk megfelelő
+                                megrendeléseket!</p>
+                            <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
+                                leadása</a>
+                            <a href="{{ action('OrderController@index') }}" class="btn btn-sm btn-outline-secondary">Szűrési
+                                feltételek törlése</a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            @else
+                <div class="card card-body">
+                    <div class="row align-items-center">
+                        <div class="col-12 col-md-3">
+                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
+                        </div>
+                        <div class="col">
+                            <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint
+                                érkezik
+                                egy itt fogod látni!</p>
+                            <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
+                                leadása</a>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endif
 
         <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>

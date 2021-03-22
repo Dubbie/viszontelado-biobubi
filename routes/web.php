@@ -22,7 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
      */
     Route::group(['middleware' => 'admin'], function () {
         Route::get('/felhasznalok', 'UserController@index');
-        Route::get('/felhasznalok/uj', 'UserController@create');
+        Route::get('/felhasznalok/uj/fiok', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
         Route::get('/felhasznalok/{userId}/megrendelesek', 'UserController@orders');
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');

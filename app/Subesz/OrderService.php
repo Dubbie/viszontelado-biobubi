@@ -88,6 +88,15 @@ class OrderService
             $orders->has('products');
         }
 
+        // Régió
+        if (array_key_exists('region', $filter)) {
+            /** @var \App\Region $region */
+            $region = Auth::user()->regions()->find($filter['region']);
+            if ($region) {
+                $orders = $orders->whereIn('shipping_postcode', $region->zips->pluck('zip')->toArray());
+            }
+        }
+
         // Státusz
         if (array_key_exists('status', $filter)) {
             $orders = $orders->where('status_text', '=', $filter['status']);

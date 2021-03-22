@@ -19,6 +19,9 @@ class CreateRegionZipsTable extends Migration
             $table->string('zip');
             $table->timestamps();
         });
+
+        // Lefuttatjuk gyorsan mielőtt baj lesz a régiók átmozgatását
+        resolve('App\Subesz\RegionService')->generateRegionsByResellers();
     }
 
     /**

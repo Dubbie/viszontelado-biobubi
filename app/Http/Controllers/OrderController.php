@@ -2,27 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Delivery;
-use App\Mail\RegularOrderCompleted;
-use App\Mail\TrialOrderCompleted;
 use App\Order;
 use App\Subesz\BillingoNewService;
-use App\Subesz\BillingoService;
-use App\Subesz\KlaviyoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
 use App\Subesz\WorksheetService;
 use App\User;
-use Billingo\API\Connector\Exceptions\JSONParseException;
-use Billingo\API\Connector\Exceptions\RequestErrorException;
-use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -65,8 +55,7 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return Factory|View
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $filter = [];
 
         if ($request->has('filter-reseller')) {
@@ -77,6 +66,9 @@ class OrderController extends Controller
         }
         if ($request->has('filter-query')) {
             $filter['query'] = $request->input('filter-query');
+        }
+        if ($request->has('filter-region')) {
+            $filter['region'] = $request->input('filter-region');
         }
 
         $orders = $this->orderService->getOrdersFiltered($filter);
@@ -108,8 +100,7 @@ class OrderController extends Controller
      * @param $orderId
      * @return Factory|View
      */
-    public function show($orderId)
-    {
+    public function show($orderId) {
         $order = $this->shoprenterApi->getOrder($orderId);
 
         // Kezeljük le a státusz frissítéskor létrejövő session-t
@@ -127,8 +118,7 @@ class OrderController extends Controller
      * @param $orderId
      * @return Factory|View
      */
-    public function showStatus($orderId)
-    {
+    public function showStatus($orderId) {
         $order = $this->orderService->getLocalOrderByResourceId($orderId);
 
         return view('inc.order-status-content')->with([
@@ -141,8 +131,7 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function updateStatus(Request $request)
-    {
+    public function updateStatus(Request $request) {
         $data = $request->validate([
             'order-id'          => 'required',
             'order-status-now'  => 'required',
@@ -176,8 +165,7 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function massUpdateStatus(Request $request)
-    {
+    public function massUpdateStatus(Request $request) {
         $data = $request->validate([
             'mos-order-ids'     => 'required',
             'order-status-href' => 'required',
@@ -215,8 +203,7 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function completeOrder(Request $request)
-    {
+    public function completeOrder(Request $request) {
         $data = $request->validate([
             'order-id' => 'required',
         ]);
@@ -238,8 +225,7 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function massUpdateReseller(Request $request)
-    {
+    public function massUpdateReseller(Request $request) {
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
 
@@ -328,7 +314,7 @@ class OrderController extends Controller
         }
 
         return redirect(action('RevenueController@hqFinance'))->with([
-            'success' => 'Bevételek sikeresen frissítve'
+            'success' => 'Bevételek sikeresen frissítve',
         ]);
     }
 }

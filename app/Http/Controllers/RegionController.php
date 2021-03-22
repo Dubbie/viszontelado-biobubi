@@ -6,6 +6,8 @@ use App\Region;
 use App\RegionZip;
 use App\Subesz\RegionService;
 use App\User;
+use Exception;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Log;
 
@@ -49,10 +51,48 @@ class RegionController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Http\Response|\Illuminate\Routing\Redirector
      */
     public function store(Request $request) {
-        //
+        $data = $request->validate([
+            'region-name'    => 'required|unique:App\Region,name',
+            'region-user-id' => 'required|integer',
+            'region-zips'    => 'required|json',
+        ]);
+
+        $regionZips = $this->regionService->decodeRegionZipsByJSON($data['region-zips']);
+
+        // Leellenőrizzük, hogy egyediek-e az irányítószámk
+        $existingZips    = [];
+        $affectedRegions = [];
+        foreach ($regionZips as $zip) {
+            /** @var RegionZip|null $foundZip */
+            if ($foundZip = RegionZip::where('zip', '=', $zip)->first()) {
+                $affectedRegions[] = $foundZip->region->name;
+                $existingZips[]    = $zip;
+            }
+        }
+        if (count($existingZips) > 0) {
+            return redirect()->back()->withInput()->with([
+                'error' => sprintf('Már létezik ilyen irányítószám valamely régióban. (Érintett régiók: %s, Ir. Számok: %s)', implode(', ', $affectedRegions), implode(', ', $existingZips)),
+            ]);
+        }
+
+        // Nem volt probléma
+        $region          = new Region();
+        $region->name    = trim($data['region-name']);
+        $region->user_id = intval($data['region-user-id']);
+        $region->save();
+        foreach ($regionZips as $zip) {
+            $rZip            = new RegionZip();
+            $rZip->zip       = $zip;
+            $rZip->region_id = $region->id;
+            $rZip->save();
+        }
+
+        return redirect()->action('RegionController@index')->with([
+            'success' => 'Régió sikeresen létrehozva',
+        ]);
     }
 
     /**
@@ -133,38 +173,24 @@ class RegionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Region  $region
-     * @return \Illuminate\Http\Response
+     * @param  string  $regionId
+     * @return \Illuminate\Http\RedirectResponse
      */
-    public function destroy(Region $region) {
-        //
-    }
+    public function destroy(string $regionId): RedirectResponse {
+        $region = Region::find($regionId);
+        try {
+            $region->delete();
+        } catch (Exception $e) {
+            Log::error('Hiba történt a régió törlésekor');
+            Log::error($e->getMessage());
 
-    public function generateByResellers() {
-        Log::info('Régiók generálása a viszonteladók régi irányítószámai alapján');
-
-        $users = User::whereHas('zips')->get();
-        foreach ($users as $user) {
-            echo $user->name.'<br>';
-            $region          = new Region();
-            $region->name    = $user->name.' régió';
-            $region->user_id = $user->id;
-            $region->save();
-
-            foreach ($user->zips as $userZip) {
-                $rz            = new RegionZip();
-                $rz->region_id = $region->id;
-                $rz->zip       = $userZip->zip;
-                $rz->save();
-            }
-
-            Log::info(sprintf('Új régió létrehozva: %s (%s irányítószám)', $region->name, $region->zips()->count()));
+            return redirect()->back()->with([
+                'error' => 'Hiba történt a régió törlésekor. '.$e->getMessage(),
+            ]);
         }
 
-        if (Region::count() == count($users)) {
-            Log::info('Az összes viszonteladóhoz létrejöttek a régiók');
-        } else {
-            Log::error('Nem jött létre minden viszonteladóhoz a régiója');
-        }
+        return redirect(url()->previous(action('RegionController@index')))->with([
+            'success' => 'Régió sikeresen törölve',
+        ]);
     }
 }
