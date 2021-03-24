@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Delivery;
 use App\Http\Requests\BillingoApiTestRequest;
 use App\Post;
 use App\Subesz\BillingoNewService;
@@ -11,7 +10,6 @@ use App\Subesz\RevenueService;
 use App\User;
 use App\UserDetails;
 use App\UserZip;
-use Billingo\API\Connector\HTTP\Route;
 use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -116,8 +114,11 @@ class UserController extends Controller
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
             $active            = 'user-monthly-reports';
         } else {
-            $selectedReport    = $user->reports->last();
-            $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
+            $selectedReport = $user->reports->last();
+
+            if ($selectedReport) {
+                $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
+            }
         }
 
         return view('user.show')->with([
