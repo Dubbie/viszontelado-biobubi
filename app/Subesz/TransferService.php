@@ -4,11 +4,25 @@ namespace App\Subesz;
 
 use App\MoneyTransfer;
 use App\MoneyTransferOrder;
+use App\User;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
 class TransferService
 {
+    /**
+     * @param $userId
+     * @return \App\MoneyTransfer|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function getTransfersQueryByUser($userId) {
+        $user = User::find($userId);
+        if ($user->admin) {
+            return MoneyTransfer::query();
+        }
+
+        return $user->moneyTransfers();
+    }
+
     /**
      * @param $resellerId
      * @param $orderIds

@@ -227,22 +227,31 @@
                     <div class="row mt-5">
                         <div class="col-md-8 offset-md-4">
                             <div class="d-flex">
-                                @if(!$transfer->isCompleted())
-                                    <button type="button" data-toggle="modal" data-target="#completeTransfer"
-                                            class="btn btn-sm btn-outline-success mr-1">Teljesítés
-                                    </button>
-                                @else
+                                @if($transfer->isCompleted())
                                     <a href="{{ action('MoneyTransferController@downloadAttachment', $transfer) }}"
                                        class="btn btn-sm btn-primary mr-1">Csatolmány letöltése</a>
+                                @elseif(!Auth::user()->admin)
+                                    <p class="text-muted">Amint az átutalást végrehajtják elkönyvelik itt tudod majd
+                                        elérni az igazoló
+                                        dokumentumot.</p>
                                 @endif
-                                <form id="form-delete-transfer"
-                                      action="{{ action('MoneyTransferController@destroy', $transfer) }}"
-                                      method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-sm btn-link text-muted">Átutalás törlése
-                                    </button>
-                                </form>
+
+                                @if(Auth::user()->admin)
+                                    @if(!$transfer->isCompleted())
+                                        <button type="button" data-toggle="modal" data-target="#completeTransfer"
+                                                class="btn btn-sm btn-outline-success mr-1">Teljesítés
+                                        </button>
+                                    @endif
+
+                                    <form id="form-delete-transfer"
+                                          action="{{ action('MoneyTransferController@destroy', $transfer) }}"
+                                          method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-link text-muted">Átutalás törlése
+                                        </button>
+                                    </form>
+                                @endif
                             </div>
                         </div>
                     </div>

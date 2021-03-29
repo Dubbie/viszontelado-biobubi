@@ -13,7 +13,6 @@ use Exception;
 use Illuminate\Http\Request;
 use Log;
 use Storage;
-use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Class MoneyTransferController
@@ -48,13 +47,48 @@ class MoneyTransferController extends Controller
     }
 
     /**
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index() {
-        $transfers = MoneyTransfer::withCount('transferOrders')->orderBy('completed_at')->orderBy('created_at')->paginate(25);
+    public function index(Request $request) {
+        $transfers = $this->transferService->getTransfersQueryByUser(Auth::id())->withCount('transferOrders');
+        $resellers = Auth::user()->admin ? User::whereHas('zips')->get() : [];
+        $filter    = [];
+
+        // Tartalmazza
+        if ($request->has('filter-contains')) {
+            $filter['contains'] = $request->input('filter-contains');
+            $transfers          = $transfers->contains($request->input('filter-contains'));
+        }
+
+        // Állapot
+        if ($request->has('filter-status')) {
+            $filter['status'] = $request->input('filter-status');
+
+            if ($filter['status'] == 'true') {
+                $transfers = $transfers->completed();
+            } else {
+                if ($filter['status'] == 'false') {
+                    $transfers = $transfers->incomplete();
+                }
+            }
+        }
+
+        // Viszonteladó
+        if ($request->has('filter-reseller') && Auth::user()->admin) {
+            $filter['reseller'] = $request->input('filter-reseller');
+
+            if ($filter['reseller'] != 'ALL') {
+                $transfers = $transfers->where('user_id', $filter['reseller']);
+            }
+        }
+
+        $transfers = $transfers->orderBy('completed_at')->orderBy('created_at')->paginate(25);
 
         return view('hq.transfers.index')->with([
             'transfers' => $transfers,
+            'resellers' => $resellers,
+            'filter'    => $filter,
         ]);
     }
 
@@ -187,7 +221,7 @@ class MoneyTransferController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function show($transferId) {
-        $mt = MoneyTransfer::find($transferId);
+        $mt = $this->transferService->getTransfersQueryByUser(Auth::id())->find($transferId);
 
         return view('hq.transfers.show')->with([
             'transfer' => $mt,
@@ -229,7 +263,7 @@ class MoneyTransferController extends Controller
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function destroy($transferId) {
-        $mt = MoneyTransfer::find($transferId);
+        $mt = $this->transferService->getTransfersQueryByUser(Auth::id())->find($transferId);
 
         if ($mt->attachment_path) {
             Storage::delete($mt->attachment_path);
@@ -258,9 +292,15 @@ class MoneyTransferController extends Controller
 
     /**
      * @param $transferId
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     * @return false|\Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function downloadAttachment($transferId): StreamedResponse {
-        return Storage::download(MoneyTransfer::find($transferId)->attachment_path);
+    public function downloadAttachment($transferId) {
+        if ($this->transferService->getTransfersQueryByUser(Auth::id())->find($transferId)) {
+            return Storage::download(MoneyTransfer::find($transferId)->attachment_path);
+        }
+
+        Log::error('A felhasználó rossz azonosítóval próbált letölteni átutalási csatolmányt');
+
+        return false;
     }
 }
