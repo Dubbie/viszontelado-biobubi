@@ -323,25 +323,23 @@ class OrderService
         // Azokat a megrendeléseket nem mutatjuk, amik már szerepelnek az átutalások között
         $exceptions = MoneyTransferOrder::get('order_id')->pluck('order_id')->toArray();
 
-        return $reseller->orders()->where([
-            ['payment_method_name', '!=', 'Utánvétel'],
-            ['payment_method_name', '!=', ''],
-        ])->whereNotIn('id', $exceptions)->get();
+        return $reseller->orders()->where('payment_method_name', 'Online bankkártyás fizetés')->whereNotIn('id', $exceptions)->get();
     }
-    
-	/**
-	 * @param int $orderID
-	 * @return \Illuminate\Database\Query\Builder
-	 * returns and order object based on the ID given
-	 */
-	public function getCommentsHTML(string $orderID) {
-		try {
-			$response['success'] = true;
-			$response['order'] = Order::find($orderID);
-		} catch (Exception $e) {
-			$response['success'] = false;
-			$response['message'] = "Nem található a kért megrendelés.";
-		}
-		return $response;
-	}
+
+    /**
+     * @param  int  $orderID
+     * @return \Illuminate\Database\Query\Builder
+     * returns and order object based on the ID given
+     */
+    public function getCommentsHTML(string $orderID) {
+        try {
+            $response['success'] = true;
+            $response['order']   = Order::find($orderID);
+        } catch (Exception $e) {
+            $response['success'] = false;
+            $response['message'] = "Nem található a kért megrendelés.";
+        }
+
+        return $response;
+    }
 }
