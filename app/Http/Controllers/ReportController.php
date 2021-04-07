@@ -20,8 +20,7 @@ class ReportController extends Controller
     /**
      * @return Factory|View
      */
-    public function showQuick()
-    {
+    public function showQuick() {
         return view('report.quick')->with([
             'deliveredCount' => Auth::user()->getDeliveryCountThisMonth(),
         ]);
@@ -31,8 +30,7 @@ class ReportController extends Controller
      * @param  Request  $request
      * @return Application|Factory|View
      */
-    public function showMonthly(Request $request)
-    {
+    public function showMonthly(Request $request) {
         $date              = $request->input('date') ?? null;
         $selectedReport    = null;
         $selectedMarketing = null;
@@ -53,8 +51,7 @@ class ReportController extends Controller
      * @param $privateKey
      * @return array|string[]
      */
-    public function generateMonthlyReports($privateKey): array
-    {
+    public function generateMonthlyReports($privateKey): array {
         Log::info('Havi riportok generálásának megkezdése...');
         $start = microtime(true);
 
@@ -66,9 +63,9 @@ class ReportController extends Controller
         /** @var User $reseller */
         /** @var ReportService $repService */
         $repService = resolve('App\Subesz\ReportService');
-        foreach (User::withCount('zips')->get() as $reseller) {
-            if ($reseller->zips_count == 0) {
-                Log::info('- %s nem viszonteladó, mivel nincs hozzárendelve irányítószám, ezért kihagyjuk.');
+        foreach (User::withCount('regions')->get() as $reseller) {
+            if ($reseller->regions_count == 0) {
+                Log::info('- %s nem viszonteladó, mivel nincs hozzárendelve régió, ezért kihagyjuk.');
                 continue;
             }
 
@@ -81,8 +78,7 @@ class ReportController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function regenerateReports()
-    {
+    public function regenerateReports() {
         Log::info('Havi riportok újragenerálásának megkezdése...');
         $start = microtime(true);
 

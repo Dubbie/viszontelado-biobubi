@@ -46,10 +46,10 @@ class Order extends Model
     protected static function booted() {
         // Létrehozásnál nézzünk viszonteladót a megrendeléshez
         static::creating(function (Order $order) {
-            /** @var UserZip $uZip */
-            $uZip = UserZip::where('zip', $order->shipping_postcode)->first();
-            if ($uZip) {
-                $order->reseller_id = $uZip->user->id;
+            /** @var \App\RegionZip $rZip */
+            $rZip = RegionZip::where('zip', $order->shipping_postcode)->first();
+            if ($rZip) {
+                $order->reseller_id = $rZip->reseller->id;
             } else {
                 $order->reseller_id = env('ADMIN_USER_ID');
             }

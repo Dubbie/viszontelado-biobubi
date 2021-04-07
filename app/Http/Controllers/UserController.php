@@ -81,7 +81,7 @@ class UserController extends Controller
      * @return Factory|View
      */
     public function index() {
-        $users = User::withCount(['deliveries', 'zips'])->get();
+        $users = User::withCount(['deliveries', 'regions'])->get();
 
         return view('user.index')->with([
             'users' => $users,
@@ -135,17 +135,9 @@ class UserController extends Controller
      */
     public function edit($userId) {
         $user = User::find($userId);
-        $zips = [];
-
-        foreach ($user->zips as $zip) {
-            $zips[] = [
-                'value' => $zip->zip,
-            ];
-        }
 
         return view('user.edit')->with([
             'user' => $user,
-            'zips' => json_encode($zips),
         ]);
     }
 
@@ -158,7 +150,6 @@ class UserController extends Controller
             'u-name'             => 'required',
             'u-email'            => 'required|email|unique:users,email',
             'u-password'         => 'required',
-            'u-zip'              => 'nullable',
             'u-aam'              => 'nullable',
             'u-billingo-api-key' => 'nullable',
             'u-block-uid'        => 'nullable',
@@ -180,28 +171,9 @@ class UserController extends Controller
             ]);
         }
 
-        $zips       = json_decode($data['u-zip'], true);
-        $zipSuccess = 0;
-        foreach ($zips as $i => $zip) {
-
-            $userZip          = new UserZip();
-            $userZip->user_id = $user->id;
-            $userZip->zip     = $zip['value'];
-
-            if ($userZip->save()) {
-                $zipSuccess++;
-            }
-        }
-
-        if ($zipSuccess == count($zips)) {
-            return redirect(action('UserController@index'))->with([
-                'success' => 'Új felhasználó sikeresen létrehozva!',
-            ]);
-        } else {
-            return redirect(url()->previous())->withErrors([
-                'store' => 'Hiba történt a felhasználó létrehozásakor!',
-            ]);
-        }
+        return redirect(action('UserController@index'))->with([
+            'success' => 'Új felhasználó sikeresen létrehozva!',
+        ]);
     }
 
     /**
@@ -213,7 +185,6 @@ class UserController extends Controller
         $data = $request->validate([
             'u-name'               => 'required',
             'u-email'              => 'required|email|unique:users,email,'.$userId,
-            'u-zip'                => 'nullable',
             'u-aam'                => 'nullable',
             'u-billingo-api-key'   => 'nullable',
             'u-block-uid'          => 'nullable',
@@ -298,25 +269,7 @@ class UserController extends Controller
             }
         }
 
-        // Kitöröljük a régieket...
-        UserZip::where('user_id', $userId)->delete();
-
-        // Bejönnek az újak...
-        $zips       = $data['u-zip'] ? json_decode($data['u-zip'], true) : [];
-        $zipSuccess = 0;
-        foreach ($zips as $i => $zip) {
-            $userZip          = new UserZip();
-            $userZip->user_id = $user->id;
-            $userZip->zip     = $zip['value'];
-
-            if ($userZip->save()) {
-                $zipSuccess++;
-            }
-        }
-
-        if ($zipSuccess == count($zips)) {
-            $user->save();
-
+        if ($user->save()) {
             return redirect(url()->previous())->with([
                 'success' => 'Felhasználó sikeresen frissítve!',
             ]);
