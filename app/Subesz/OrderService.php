@@ -5,8 +5,8 @@ namespace App\Subesz;
 use App\MoneyTransferOrder;
 use App\Order;
 use App\OrderProducts;
+use App\RegionZip;
 use App\User;
-use App\UserZip;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -89,44 +89,21 @@ class OrderService
             $orders->has('products');
         }
 
+        // Régió
+        if (array_key_exists('region', $filter)) {
+            /** @var \App\Region $region */
+            $region = Auth::user()->regions()->find($filter['region']);
+            if ($region) {
+                $orders = $orders->whereIn('shipping_postcode', $region->zips->pluck('zip')->toArray());
+            }
+        }
+
         // Státusz
         if (array_key_exists('status', $filter)) {
             $orders = $orders->where('status_text', '=', $filter['status']);
         }
 
         return $orders->orderBy('created_at', 'desc')->paginate(50)->onEachSide(1);
-    }
-
-    /**
-     * @param $userId
-     * @return Builder
-     */
-    public function getOrdersQueryByUserId($userId): Builder {
-        return Order::where('reseller_id', $userId)->orderBy('created_at', 'desc');
-    }
-
-    /**
-     * @param $userId
-     * @return mixed
-     */
-    public function getOrdersByUserId($userId) {
-        $user = User::find($userId);
-
-        // Ha admin és van irányítószáma akkor nézzük meg, hogy mik azok a megrendelések amikhez nincs viszonteladói irányítószám
-        $userZips     = array_column($user->zips->toArray(), 'zip');
-        $resellerZips = array_column(UserZip::select('zip')->whereNotIn('zip', $userZips)->get()->toArray(), 'zip');
-
-        if ($user->admin && count($user->zips) == 0) {
-            return Order::orderBy('created_at', 'desc')->get();
-        } else {
-            if ($user->admin && count($user->zips) > 0) {
-                // Kiszedjük azokat amik megfeleltek a feltételeknek
-                return Order::whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips)->orderBy('created_at', 'desc')->get();
-            } else {
-                // Kiszedjük azokat amik megfeleltek a feltételeknek
-                return Order::whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc')->get();
-            }
-        }
     }
 
     /**
@@ -204,16 +181,11 @@ class OrderService
     }
 
     /**
-     * @return mixed
+     * @param $userId
+     * @return Builder
      */
-    public function getLastUpdate() {
-        /** @var Order $lastOrder */
-        $lastOrder = Order::orderBy('updated_at')->first();
-        if (! $lastOrder) {
-            return null;
-        }
-
-        return $lastOrder->updated_at;
+    public function getOrdersQueryByUserId($userId): Builder {
+        return Order::where('reseller_id', $userId)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -228,6 +200,19 @@ class OrderService
         }
 
         return '';
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLastUpdate() {
+        /** @var Order $lastOrder */
+        $lastOrder = Order::orderBy('updated_at')->first();
+        if (! $lastOrder) {
+            return null;
+        }
+
+        return $lastOrder->updated_at;
     }
 
     /**
@@ -275,10 +260,10 @@ class OrderService
      * @return User|Builder|Model|mixed|null|object
      */
     public function getResellerByZip(string $string) {
-        /** @var UserZip $userZip */
-        $userZip = UserZip::where('zip', $string)->first();
-        if ($userZip) {
-            return $userZip->user;
+        /** @var \App\RegionZip $rZip */
+        $rZip = RegionZip::where('zip', $string)->first();
+        if ($rZip) {
+            return $rZip->reseller;
         } else {
             return User::where('email', 'hello@semmiszemet.hu')->first();
         }
@@ -343,4 +328,20 @@ class OrderService
             ['payment_method_name', '!=', ''],
         ])->whereNotIn('id', $exceptions)->get();
     }
+    
+	/**
+	 * @param int $orderID
+	 * @return \Illuminate\Database\Query\Builder
+	 * returns and order object based on the ID given
+	 */
+	public function getCommentsHTML(string $orderID) {
+		try {
+			$response['success'] = true;
+			$response['order'] = Order::find($orderID);
+		} catch (Exception $e) {
+			$response['success'] = false;
+			$response['message'] = "Nem található a kért megrendelés.";
+		}
+		return $response;
+	}
 }

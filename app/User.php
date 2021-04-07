@@ -73,6 +73,13 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany
+     */
+    public function regions(): HasMany {
+        return $this->hasMany(Region::class, 'user_id', 'id');
+    }
+
+    /**
      * Visszaadja a felhasználóhoz tartozó megrendeléseket
      *
      * @return Builder[]|Collection
@@ -160,6 +167,15 @@ class User extends Authenticatable
      */
     public function isAAM(): bool {
         return $this->vat_id == env('AAM_VAT_ID');
+    }
+
+    /**
+     * Visszaadja, hogy mennyi a marketing egyenlege az adott felhasználónak.
+     *
+     * @return double
+     */
+    public function marketingBalance(): float {
+        return (double) $this->balance;
     }
 
     /**

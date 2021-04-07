@@ -22,7 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
      */
     Route::group(['middleware' => 'admin'], function () {
         Route::get('/felhasznalok', 'UserController@index');
-        Route::get('/felhasznalok/uj', 'UserController@create');
+        Route::get('/felhasznalok/uj/fiok', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
         Route::get('/felhasznalok/{userId}/megrendelesek', 'UserController@orders');
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
@@ -84,6 +84,10 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
+
+        // Régió
+        Route::get('regiok/generalas', 'RegionController@generateByResellers');
+        Route::resource('regiok', 'RegionController');
     });
 
     // Index
@@ -118,6 +122,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
     Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
+	
+	//Javascript számára megjegyzéseket küld vissza, HTML/Text.
+	Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
 
     // Munkalapos dolgok
     Route::post('/munkalap/hozzaadas', 'WorksheetController@add');
@@ -179,13 +186,13 @@ Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
  * Runs database migrations
  */
 Route::get("/migrate/{secret}", function ($secret) {
-    if ($secret != env("MAINTENANCE_TOKEN")) {
-        abort(403, "Invalid maintenance token.");
-    }
+	if ($secret != env("MAINTENANCE_TOKEN")) {
+		abort(403, "Invalid maintenance token.");
+	}
 
-    Artisan::call('migrate', ['--force' => true]);
+	Artisan::call('migrate', ['--force' => true]);
 
-    return redirect('/')->with([
-        'success' => 'Migráció sikeresen lefuttatva!',
-    ]);
+	return redirect('/')->with([
+		'success' => 'Migráció sikeresen lefuttatva!',
+	]);
 });
