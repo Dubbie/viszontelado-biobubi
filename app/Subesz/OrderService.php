@@ -2,6 +2,7 @@
 
 namespace App\Subesz;
 
+use App\MoneyTransferOrder;
 use App\Order;
 use App\OrderProducts;
 use App\RegionZip;
@@ -312,6 +313,22 @@ class OrderService
         return $response;
     }
 
+    /**
+     * @param  int  $resellerId
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getBankcardOrdersByResellerId(int $resellerId): Collection {
+        $reseller = User::find($resellerId);
+
+        // Azokat a megrendeléseket nem mutatjuk, amik már szerepelnek az átutalások között
+        $exceptions = MoneyTransferOrder::get('order_id')->pluck('order_id')->toArray();
+
+        return $reseller->orders()->where([
+            ['payment_method_name', '!=', 'Utánvétel'],
+            ['payment_method_name', '!=', ''],
+        ])->whereNotIn('id', $exceptions)->get();
+    }
+    
 	/**
 	 * @param int $orderID
 	 * @return \Illuminate\Database\Query\Builder

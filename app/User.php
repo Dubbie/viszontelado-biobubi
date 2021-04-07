@@ -154,6 +154,13 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany
+     */
+    public function moneyTransfers(): HasMany {
+        return $this->HasMany(MoneyTransfer::class, 'user_id', 'id');
+    }
+
+    /**
      * Visszaadja, hogy a felhasználó AAM-es-e.
      *
      * @return bool
