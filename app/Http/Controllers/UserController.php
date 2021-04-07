@@ -9,6 +9,7 @@ use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
 use App\UserDetails;
+use App\UserZip;
 use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -113,8 +114,11 @@ class UserController extends Controller
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
             $active            = 'user-monthly-reports';
         } else {
-            $selectedReport    = $user->reports->last();
-            $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
+            $selectedReport = $user->reports->last();
+
+            if ($selectedReport) {
+                $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
+            }
         }
 
         return view('user.show')->with([
@@ -197,6 +201,7 @@ class UserController extends Controller
             'u-shipping-city'      => 'required_with:u-shipping-zip|nullable',
             'u-shipping-address1'  => 'required_with:u-shipping-zip|nullable',
             'u-shipping-address2'  => 'nullable',
+            'u-marketing-balance'  => 'required',
         ]);
 
         $user                   = User::find($userId);
@@ -205,6 +210,7 @@ class UserController extends Controller
         $user->vat_id           = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
         $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
         $user->block_uid        = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
+        $user->balance          = array_key_exists('u-marketing-balance', $data) ? (double) $data['u-marketing-balance'] : $user->balance;
 
         $detailsKeys       = [
             'u-billing-name',
@@ -253,7 +259,7 @@ class UserController extends Controller
 
             $ud->save();
         } else {
-            if ($user->details) {
+            if (! $shouldHaveDetails && $user->details) {
                 try {
                     $user->details->delete();
                 } catch (Exception $e) {

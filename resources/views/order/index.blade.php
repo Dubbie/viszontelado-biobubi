@@ -1,24 +1,23 @@
 @extends('layouts.app')
-
 @section('content')
-    <div class="container">
-        <div class="row align-items-baseline">
-            <div class="col">
-                <h1 class="font-weight-bold mb-4">Megrendelések</h1>
-            </div>
-            <div class="col text-right">
-                <div class="d-flex justify-content-between justify-content-md-end mb-3">
-                    @if(Auth::user()->admin)
-                        <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                           data-toggle="tooltip"
-                           title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                           data-placement="left"
-                           class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>
-                    @endif
-                    <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés leadása</a>
-                </div>
-            </div>
-        </div>
+	<div class="container">
+		<div class="row align-items-baseline">
+			<div class="col">
+				<h1 class="font-weight-bold mb-4">Megrendelések</h1>
+			</div>
+			<div class="col text-right">
+				<div class="d-flex justify-content-between justify-content-md-end mb-3">
+					@if(Auth::user()->admin)
+						<a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
+							 data-toggle="tooltip"
+							 title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
+							 data-placement="left"
+							 class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>
+					@endif
+					<a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés leadása</a>
+				</div>
+			</div>
+		</div>
 
         @if(Auth::user()->admin && count(Auth::user()->regions) == 0)
             <div class="alert alert-info">
@@ -94,6 +93,7 @@
                 </div>
             </form>
         </div>
+        @include('modal.order-comments')
         @if(count($orders) > 0)
             @foreach($orders as $order)
                 <x-order :order="$order" type="regular" :worksheet="null"></x-order>
@@ -133,92 +133,108 @@
             @endif
         @endif
 
-        <div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
-    </div>
+		<div class="paginate mt-5">{{ $orders->withQueryString()->links() }}</div>
+	</div>
 
-    @include('inc.orders-toolbar')
-    @include('modal.mass-order-status')
-    @include('modal.mass-update-reseller')
+	@include('inc.orders-toolbar')
+	@include('modal.mass-order-status')
+	@include('modal.mass-update-reseller')
 @endsection
 
 @section('scripts')
-    {{-- Szűrő --}}
-    <script>
-        $(function () {
-            $('#form-orders-filter').submit(function () {
-                var $empty_fields = $(this).find(':input').filter(function () {
-                    return $(this).val() === '';
-                });
-                $empty_fields.prop('disabled', true);
-                return true;
-            });
-        });
-    </script>
+	{{-- Szűrő --}}
+	<script>
+		$(function () {
+			$('#form-orders-filter').submit(function () {
+				var $empty_fields = $(this).find(':input').filter(function () {
+					return $(this).val() === '';
+				});
+				$empty_fields.prop('disabled', true);
+				return true;
+			});
+		});
+	</script>
 
-    {{-- Tömeges státusz változtató --}}
-    <script>
-        $(() => {
-            const chOrders = $('.ch-order-select');
-            const ordersCount = document.getElementById('toolbar-order-counter');
-            const toolbar = document.getElementById('toolbar-orders');
-            const $inputOrderIds = $('.mass-order-id-input');
+	{{-- Tömeges státusz változtató --}}
+	<script>
+		$(() => {
+			const chOrders = $('.ch-order-select');
+			const ordersCount = document.getElementById('toolbar-order-counter');
+			const toolbar = document.getElementById('toolbar-orders');
+			const $inputOrderIds = $('.mass-order-id-input');
 
-            /**
-             * Visszaállítja a checkboxokat.
-             */
-            function resetOrderCheckboxes() {
-                chOrders.each((i, el) => {
-                    el.checked = false;
-                });
-            }
+			/**
+			 * Visszaállítja a checkboxokat.
+			 */
+			function resetOrderCheckboxes() {
+				chOrders.each((i, el) => {
+					el.checked = false;
+				});
+			}
 
-            /**
-             * Visszaadja a kiválasztott megrendelések azonosítóit.
-             */
-            function getSelectedOrders() {
-                let selectedOrders = [];
-                chOrders.each((i, el) => {
-                    const orderId = el.dataset.orderId;
-                    if (el.checked) {
-                        selectedOrders.push(orderId);
-                    }
-                });
-                return selectedOrders;
-            }
+			/**
+			 * Visszaadja a kiválasztott megrendelések azonosítóit.
+			 */
+			function getSelectedOrders() {
+				let selectedOrders = [];
+				chOrders.each((i, el) => {
+					const orderId = el.dataset.orderId;
+					if (el.checked) {
+						selectedOrders.push(orderId);
+					}
+				});
+				return selectedOrders;
+			}
 
-            /**
-             * Frissíti a megrendelések toolbarját
-             */
-            function updateOrdersToolbar() {
-                const selectedOrders = getSelectedOrders();
-                if (selectedOrders.length > 0) {
-                    toolbar.classList.add('show');
-                } else {
-                    toolbar.classList.remove('show');
-                }
-                ordersCount.innerText = selectedOrders.length.toLocaleString();
-                for (const el of $inputOrderIds) {
-                    el.value = JSON.stringify(selectedOrders);
-                }
-            }
+			/**
+			 * Frissíti a megrendelések toolbarját
+			 */
+			function updateOrdersToolbar() {
+				const selectedOrders = getSelectedOrders();
+				if (selectedOrders.length > 0) {
+					toolbar.classList.add('show');
+				} else {
+					toolbar.classList.remove('show');
+				}
+				ordersCount.innerText = selectedOrders.length.toLocaleString();
+				for (const el of $inputOrderIds) {
+					el.value = JSON.stringify(selectedOrders);
+				}
+			}
 
-            /**
-             * Toolbar frissítő bigyó
-             */
-            chOrders.on('change', () => {
-                updateOrdersToolbar();
-            });
+			/**
+			 * Toolbar frissítő bigyó
+			 */
+			chOrders.on('change', () => {
+				updateOrdersToolbar();
+			});
 
-            $('.form-complete-order').on('submit', e => {
-                if (!confirm('Biztosan teljesíted a megrendelést?')) {
-                    e.preventDefault();
-                }
-            });
+			$('.form-complete-order').on('submit', e => {
+				if (!confirm('Biztosan teljesíted a megrendelést?')) {
+					e.preventDefault();
+				}
+			});
 
-            resetOrderCheckboxes();
-            $('#mur-reseller-id').select2({
-                width: '100%',
-            });
-        });
-    </script>
+			resetOrderCheckboxes();
+			$('#mur-reseller-id').select2({
+				width: '100%',
+			});
+		});
+
+		/* modal feltöltő js - megjegyzésekhez */
+		//kikukázza a linkeket
+		let commentButtons = document.getElementsByName("comments-modal-link");
+		//rárakja mindre az eventlistenert
+		commentButtons.forEach((comment) => {
+			comment.addEventListener('click', fetchModalData);
+		});
+
+		//küldi a requestet, megnézi hogy melyik linket nyomta az emberünk
+		async function fetchModalData(e) {
+			let id = e.currentTarget.getAttribute("data-order-id");
+			//feltölti a modal testét
+			let modal = document.getElementById("modal-body-content");
+			await fetch("/megrendelesek/" + id + "/megjegyzesek/html").then(res => res.text()).then(data => modal.innerHTML = data);
+		}
+	</script>
 @endsection

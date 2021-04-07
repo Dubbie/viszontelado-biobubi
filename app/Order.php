@@ -317,7 +317,7 @@ class Order extends Model
         $bs       = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
-        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller);
+        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller, $this);
     }
 
     /**
