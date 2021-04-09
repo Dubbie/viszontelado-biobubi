@@ -2,10 +2,12 @@
 
 namespace App;
 
+use App;
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StatusService;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -102,6 +104,16 @@ class Order extends Model
     }
 
     /**
+     * @return array
+     */
+    public function getReseller() {
+        return [
+            'resellers' => $this->reseller,
+            'correct'   => $this->reseller,
+        ];
+    }
+
+    /**
      * @return string
      */
     public function getFormattedAddress() {
@@ -163,20 +175,13 @@ class Order extends Model
     }
 
     /**
-     * @return array
-     */
-    public function getReseller() {
-        return [
-            'resellers' => $this->reseller,
-            'correct'   => $this->reseller,
-        ];
-    }
-
-    /**
      * @return bool
      */
     public function isPending(): bool {
-        return $this->status_text == 'Függőben lévő';
+        return in_array($this->status_text, [
+            'Függőben lévő',
+            'BK. Függőben lévő',
+        ]);
     }
 
     /**
@@ -396,5 +401,27 @@ class Order extends Model
         Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->inner_id, $this->total_gross));
 
         return $success;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeCompleted(Builder $query): Builder {
+        $ss                   = App::make(StatusService::class);
+        $completedStatusTexts = $ss->getCompletedStatusTextMap();
+
+        return $query->whereIn('status_text', $completedStatusTexts);
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePending(Builder $query): Builder {
+        $ss                   = App::make(StatusService::class);
+        $completedStatusTexts = $ss->getCompletedStatusTextMap();
+
+        return $query->whereNotIn('status_text', $completedStatusTexts);
     }
 }
