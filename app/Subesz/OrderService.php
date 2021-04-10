@@ -104,9 +104,9 @@ class OrderService
         }
 
         // Státusz
-        if (array_key_exists('completed', $filter)) {
-            if ($filter['completed'] == true) {
-                $orders = $orders->completed();
+        if (array_key_exists('delivered', $filter)) {
+            if ($filter['delivered'] == true) {
+                $orders = $orders->delivered();
             } else {
                 $orders = $orders->pending();
             }

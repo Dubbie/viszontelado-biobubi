@@ -2,16 +2,15 @@
 
 namespace App;
 
-use App;
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
 use App\Subesz\ShoprenterService;
-use App\Subesz\StatusService;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Mail;
@@ -147,6 +146,13 @@ class Order extends Model
         return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function (Builder $query) {
             $query->where('user_id', Auth::id());
         });
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function delivery(): HasOne {
+        return $this->hasOne(Delivery::class, 'order_id', 'id');
     }
 
     /**
@@ -407,11 +413,8 @@ class Order extends Model
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeCompleted(Builder $query): Builder {
-        $ss                   = App::make(StatusService::class);
-        $completedStatusTexts = $ss->getCompletedStatusTextMap();
-
-        return $query->whereIn('status_text', $completedStatusTexts);
+    public function scopeDelivered(Builder $query): Builder {
+        return $query->has('delivery');
     }
 
     /**
@@ -419,9 +422,6 @@ class Order extends Model
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function scopePending(Builder $query): Builder {
-        $ss                   = App::make(StatusService::class);
-        $completedStatusTexts = $ss->getCompletedStatusTextMap();
-
-        return $query->whereNotIn('status_text', $completedStatusTexts);
+        return $query->doesntHave('delivery');
     }
 }

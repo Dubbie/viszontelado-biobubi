@@ -6,7 +6,7 @@
                 <small>Szűrés</small>
             </p>
             <form id="form-orders-filter" class="form-row align-items-end">
-                <div class="col-xl-12">
+                <div class="col-xl-3">
                     <div class="form-group">
                         <label for="filter-query">Keresett kifejezés</label>
                         <input type="text" id="filter-query" name="filter-query"
@@ -25,19 +25,18 @@
                     </select>
                 </div>
 
-                <div id="filter-completed-container" class="form-group col-xl-2 col-lg-5 col-md-4"
-                     style="display: none">
-                    <label for="filter-completed">Lezárva</label>
-                    <select name="filter-completed" id="filter-completed" class="custom-select custom-select-sm">
+                <div id="filter-completed-container" class="form-group col-xl-2 col-lg-5 col-md-4">
+                    <label for="filter-delivered">Kiszállítva</label>
+                    <select name="filter-delivered" id="filter-delivered" class="custom-select custom-select-sm">
                         <option value="">Mindegy</option>
                         <option
                             value="true"
-                            @if(array_key_exists('completed', $filter) && $filter['completed'] == true) selected @endif>
+                            @if(array_key_exists('delivered', $filter) && $filter['delivered'] == true) selected @endif>
                             Igen
                         </option>
                         <option
                             value="false"
-                            @if(array_key_exists('completed', $filter) && $filter['completed'] == false) selected @endif>
+                            @if(array_key_exists('delivered', $filter) && $filter['delivered'] == false) selected @endif>
                             Nem
                         </option>
                     </select>
@@ -72,7 +71,7 @@
                         </select>
                     </div>
                 @endif
-                <div class="col flex-grow-1 text-right">
+                <div class="col-xl text-right">
                     <div class="form-group">
                         <button type="submit" class="btn btn-sm btn-success">Szűrés</button>
                     </div>
@@ -161,21 +160,6 @@
     {{-- Szűrő --}}
     <script>
         $(function () {
-            const selectStatus = document.getElementById('filter-status');
-            const containerCompleted = document.getElementById('filter-completed-container');
-
-            function updatedCompletedFilter(fastHide = false) {
-                if (selectStatus.options[selectStatus.selectedIndex].value === '') {
-                    $(containerCompleted).slideDown();
-                } else {
-                    if (fastHide) {
-                        $(containerCompleted).hide();
-                    } else {
-                        $(containerCompleted).slideUp();
-                    }
-                }
-            }
-
             $('#form-orders-filter').submit(function () {
                 if (selectStatus.options[selectStatus.selectedIndex].value !== '') {
                     console.log(window.location);
@@ -188,12 +172,6 @@
                 $empty_fields.prop('disabled', true);
                 return true;
             });
-
-            $(selectStatus).on('change', () => {
-                updatedCompletedFilter();
-            });
-
-            updatedCompletedFilter(true);
         });
     </script>
 
