@@ -70,6 +70,9 @@ class OrderController extends Controller
         if ($request->has('filter-region')) {
             $filter['region'] = $request->input('filter-region');
         }
+        if ($request->has('filter-delivered')) {
+            $filter['delivered'] = $request->input('filter-delivered') == 'true';
+        }
 
         $orders = $this->orderService->getOrdersFiltered($filter);
 

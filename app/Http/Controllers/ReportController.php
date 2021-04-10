@@ -94,7 +94,7 @@ class ReportController extends Controller
         Log::info('---');
 
         $rsDate = Carbon::create(2021, 2);
-        $now    = Carbon::now()->addMonth();
+        $now    = Carbon::now();
         while ($rsDate <= $now) {
             /** @var User $reseller */
             /** @var ReportService $repService */

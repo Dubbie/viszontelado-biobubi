@@ -103,6 +103,15 @@ class OrderService
             $orders = $orders->where('status_text', '=', $filter['status']);
         }
 
+        // Státusz
+        if (array_key_exists('delivered', $filter)) {
+            if ($filter['delivered'] == true) {
+                $orders = $orders->delivered();
+            } else {
+                $orders = $orders->pending();
+            }
+        }
+
         return $orders->orderBy('created_at', 'desc')->paginate(50)->onEachSide(1);
     }
 

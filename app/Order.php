@@ -10,6 +10,7 @@ use Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Mail;
@@ -102,6 +103,16 @@ class Order extends Model
     }
 
     /**
+     * @return array
+     */
+    public function getReseller() {
+        return [
+            'resellers' => $this->reseller,
+            'correct'   => $this->reseller,
+        ];
+    }
+
+    /**
      * @return string
      */
     public function getFormattedAddress() {
@@ -138,6 +149,13 @@ class Order extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function delivery(): HasOne {
+        return $this->hasOne(Delivery::class, 'order_id', 'id');
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function products() {
@@ -163,20 +181,13 @@ class Order extends Model
     }
 
     /**
-     * @return array
-     */
-    public function getReseller() {
-        return [
-            'resellers' => $this->reseller,
-            'correct'   => $this->reseller,
-        ];
-    }
-
-    /**
      * @return bool
      */
     public function isPending(): bool {
-        return $this->status_text == 'Függőben lévő';
+        return in_array($this->status_text, [
+            'Függőben lévő',
+            'BK. Függőben lévő',
+        ]);
     }
 
     /**
@@ -396,5 +407,21 @@ class Order extends Model
         Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->inner_id, $this->total_gross));
 
         return $success;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDelivered(Builder $query): Builder {
+        return $query->has('delivery');
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePending(Builder $query): Builder {
+        return $query->doesntHave('delivery');
     }
 }
