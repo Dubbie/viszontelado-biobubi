@@ -161,10 +161,10 @@
     <script>
         $(function () {
             $('#form-orders-filter').submit(function () {
-                if (selectStatus.options[selectStatus.selectedIndex].value !== '') {
-                    console.log(window.location);
-                    $(containerCompleted).find('select')[0].disabled = true;
-                }
+                // if (selectStatus.options[selectStatus.selectedIndex].value !== '') {
+                //     console.log(window.location);
+                //     $(containerCompleted).find('select')[0].disabled = true;
+                // }
 
                 var $empty_fields = $(this).find(':input').filter(function () {
                     return $(this).val() === '';
