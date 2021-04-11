@@ -107,30 +107,38 @@ class UserController extends Controller
         $selectedReport    = null;
         $selectedMarketing = null;
         $active            = 'user-details';
-        $year              = $request->input('year') ?? Carbon::now()->format('Y');
+        $year              = $request->input('year') ?? null;
         $selectedReports   = null;
 
         if ($date) {
             $carbonDate        = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
             $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
-            $active            = 'user-monthly-reports';
-        } elseif ($year) {
-            $date            = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $year.'-01-01 00:00:01');
-            $startOfYear     = $date->startOfYear()->format('Y-m-d H:i:s');
-            $endOfYear       = $date->endOfYear()->format('Y-m-d H:i:s');
-            $selectedReport  = $user->reports()->whereDate('created_at', '=', $date->format('Y-m-d'))->first();
-            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
-                $startOfYear,
-                $endOfYear,
-            ])->orderByDesc('created_at')->get();
-            $active          = 'user-yearly-reports';
+
+            $active = 'user-monthly-reports';
         } else {
             $selectedReport = $user->reports->last();
 
             if ($selectedReport) {
                 $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
             }
+        }
+        //ha van évünk megadva
+        if ($year) {
+            $carbonDate      = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $year.'-01-01 00:00:01');
+            $selectedReport  = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
+            $active          = 'user-yearly-reports';
+        } else {
+            //ha nincs év megadva, kell egy alap időt adni neki, amivel kereshet
+            $carbonDate      = Carbon::now();
+            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
         }
 
         return view('user.show')->with([
