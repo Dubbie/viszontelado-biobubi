@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+    @php /** @var \App\User $user */ @endphp
     <div class="container">
         <div class="row">
             <div class="col">
@@ -18,7 +19,7 @@
                     <th scope="col">Név</th>
                     <th scope="col">E-mail</th>
                     <th scope="col">AAM</th>
-                    <th scope="col">Ir. számok</th>
+                    <th scope="col">Régiók</th>
                     <th scope="col">Kiszállítva</th>
                     <th scope="col"></th>
                 </tr>
@@ -27,13 +28,15 @@
                 @foreach($users as $user)
                     <tr>
                         <td>{{ $user->id }}</td>
-                        <td>{{ $user->name }} @if($user->admin) <span class="badge badge-success">Admin</span> @endif</td>
+                        <td>{{ $user->name }} @if($user->admin) <span class="badge badge-success">Admin</span> @endif
+                        </td>
                         <td>{{ $user->email }}</td>
                         <td>{{ $user->vat_id == env('AAM_VAT_ID') ? 'Igen' : 'Nem' }}</td>
-                        <td>{{ $user->zips_count }} db</td>
+                        <td>{{ $user->regions_count }} db</td>
                         <td>{{ $user->deliveries_count }} db</td>
                         <td class="text-right">
-                            <a href="{{ action('UserController@show', $user) }}" class="btn btn-sm btn-outline-secondary">Részletek</a>
+                            <a href="{{ action('UserController@show', $user) }}"
+                               class="btn btn-sm btn-outline-secondary">Részletek</a>
                         </td>
                     </tr>
                 @endforeach
@@ -47,7 +50,7 @@
 
 @section('scripts')
     <script>
-        $( () => {
+        $(() => {
             const modal = document.getElementById('userDetailsModal');
             const userDetails = modal.querySelector('#user-details');
             const loading = modal.querySelector('.modal-loader');

@@ -322,7 +322,7 @@ class UserController extends Controller
 
         // Megnézzük, hogy jó-e a jelszó
         $user = User::find(Auth::id());
-        if (! Hash::check($data['old-password'], $user->password)) {
+        if (! Hash::check($data['old - password'], $user->password)) {
             return redirect(url()->previous())->with([
                 'error' => 'Helytelen jelenlegi jelszó lett megadva',
             ]);
@@ -349,7 +349,7 @@ class UserController extends Controller
         /** @var BillingoNewService $billingoService */
         $billingoService = resolve('App\Subesz\BillingoNewService');
         $data            = $request->validated();
-        $response        = $billingoService->isBillingoWorking($data['u-billingo-api-key'], $data['u-block-uid']);
+        $response        = $billingoService->isBillingoWorking($data['u - billingo - api - key'], $data['u - block - uid']);
 
         return $response;
     }

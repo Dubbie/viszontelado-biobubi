@@ -5,13 +5,12 @@ namespace App;
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
-use App\Subesz\BillingoService;
 use App\Subesz\ShoprenterService;
-use App\Subesz\StockService;
 use Auth;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Mail;
@@ -45,89 +44,48 @@ class Order extends Model
         'updated_at',
     ];
 
-    /**
-     * @return string
-     */
-    public function getFormattedAddress()
-    {
-        $out = '';
-
-        if ($this->shipping_postcode && $this->shipping_city && $this->shipping_address) {
-            $out = sprintf('%s %s, %s', $this->shipping_postcode, $this->shipping_city, $this->shipping_address);
-        }
-
-        return $out;
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function reseller()
-    {
-        return $this->hasOne(User::class, 'id', 'reseller_id');
-    }
-
-    /**
-     * @return array
-     */
-    public function getReseller()
-    {
-        return [
-            'resellers' => $this->reseller,
-            'correct'   => $this->reseller,
-        ];
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function comments()
-    {
-        return $this->hasMany(OrderComment::class, 'order_id', 'id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function todos()
-    {
-        return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function (Builder $query) {
-            $query->where('user_id', Auth::id());
+    protected static function booted() {
+        // Létrehozásnál nézzünk viszonteladót a megrendeléshez
+        static::creating(function (Order $order) {
+            /** @var \App\RegionZip $rZip */
+            $rZip = RegionZip::where('zip', $order->shipping_postcode)->first();
+            if ($rZip) {
+                $order->reseller_id = $rZip->reseller->id;
+            } else {
+                $order->reseller_id = env('ADMIN_USER_ID');
+            }
         });
-    }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function products()
-    {
-        return $this->hasMany(OrderProducts::class, 'order_id', 'id');
-    }
+        static::created(function (Order $order) {
+            Log::info('Helyi megrendelés elmentve, hozzárendelt viszonteladó: '.User::find($order->reseller_id)->name);
+        });
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
-     */
-    public function income()
-    {
-        return $this->hasOne(Income::class, 'id', 'income_id');
-    }
+        // Törléskör a termékeket kukázzuk
+        static::deleting(function ($order) {
+            /** @var Order $order */
+            if ($order->products) {
+                $baseProducts = $order->getBaseProducts();
+                foreach ($baseProducts as $baseProduct) {
+                    /** @var Product $product */ /** @var User $reseller */
+                    /** @var Stock $stockItem */
+                    $product    = $baseProduct['product'];
+                    $stockCount = $baseProduct['count'];
+                    $reseller   = $order->getReseller()['correct'];
+                    $stockItem  = $reseller->stock()->where('sku', $product->sku)->first();
 
-    /**
-     * @return array
-     */
-    public function getShoprenterOrder()
-    {
-        /** @var ShoprenterService $ss */
-        $ss = resolve('App\Subesz\ShoprenterService');
-
-        return $ss->getOrder($this->inner_resource_id);
+                    if ($stockItem && $order->status_text == 'Teljesítve') {
+                        $stockItem->inventory_on_hand += $stockCount;
+                        $stockItem->save();
+                    }
+                }
+            }
+        });
     }
 
     /**
      * @return Collection
      */
-    public function getBaseProducts()
-    {
+    public function getBaseProducts() {
         $orderBaseProducts = new Collection();
         if (count($this->products) > 0) {
             /** @var OrderProducts $orderProduct */
@@ -145,117 +103,117 @@ class Order extends Model
     }
 
     /**
-     * @return bool
+     * @return array
      */
-    public function isInvoiceSaved()
-    {
-        return $this->invoice_path !== null;
+    public function getReseller() {
+        return [
+            'resellers' => $this->reseller,
+            'correct'   => $this->reseller,
+        ];
     }
 
     /**
-     * @return bool
+     * @return string
      */
-    public function hasTrial()
-    {
-        $order = $this->getShoprenterOrder();
-        $trial = false;
+    public function getFormattedAddress() {
+        $out = '';
 
-        foreach ($order['products']->items as $product) {
-            if (in_array($product->sku, Product::where('trial_product', '=', true)->pluck('sku')->toArray())) {
-                $trial = true;
-                break;
-            }
+        if ($this->shipping_postcode && $this->shipping_city && $this->shipping_address) {
+            $out = sprintf('%s %s, %s', $this->shipping_postcode, $this->shipping_city, $this->shipping_address);
         }
 
-        return $trial;
+        return $out;
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function reseller() {
+        return $this->hasOne(User::class, 'id', 'reseller_id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments() {
+        return $this->hasMany(OrderComment::class, 'order_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function todos() {
+        return $this->hasMany(OrderTodo::class, 'order_id', 'id')->whereHas('User', function (Builder $query) {
+            $query->where('user_id', Auth::id());
+        });
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function delivery(): HasOne {
+        return $this->hasOne(Delivery::class, 'order_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function products() {
+        return $this->hasMany(OrderProducts::class, 'order_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function income() {
+        return $this->hasOne(Income::class, 'id', 'income_id');
     }
 
     /**
      * @return null|\Swagger\Client\Model\Document
      */
-    public function getDraftInvoice()
-    {
+    public function getDraftInvoice() {
         /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
+        $bs       = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
         return $bs->getInvoice($this->draft_invoice_id, $reseller);
     }
 
     /**
-     * @return null|\Swagger\Client\Model\Document
+     * @return bool
      */
-    public function createRealInvoice(): ?\Swagger\Client\Model\Document
-    {
-        if (! $this->draft_invoice_id) {
-            Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
-
-            return null;
-        }
-
-        /** @var BillingoNewService $bs */
-        $bs = resolve('App\Subesz\BillingoNewService');
-        $reseller = $this->getReseller()['correct'];
-
-        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller);
+    public function isPending(): bool {
+        return in_array($this->status_text, [
+            'Függőben lévő',
+            'BK. Függőben lévő',
+        ]);
     }
 
     /**
      * @return bool
      */
-    public function sendInvoice(): bool
-    {
-        if (! $this->isInvoiceSaved()) {
-            Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
-
-            return false;
-        }
-
-        // Elvileg megvan minden, mehet a levél
-        if (! $this->hasTrial()) {
-            Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
-        } else {
-            Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
-        }
-
-        return true;
+    public function isOverdue(): bool {
+        return ! $this->isCompleted() && (Carbon::now() > $this->getDeadline());
     }
 
     /**
      * @return bool
      */
-    public function isCompleted(): bool
-    {
+    public function isCompleted(): bool {
         return resolve('App\Subesz\StatusService')->isCompleted($this->id);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isPending(): bool
-    {
-        return $this->status_text == 'Függőben lévő';
     }
 
     /**
      * @return Carbon
      */
-    public function getDeadline(): Carbon
-    {
+    public function getDeadline(): Carbon {
         /** @var Carbon $deadline */
         /** @var Carbon $ordered_at */
         $ordered_at = $this->created_at;
-        $deadline = $ordered_at->clone()->nextWeekday();
+        $deadline   = $ordered_at->clone()->nextWeekday();
 
         return $deadline;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOverdue(): bool
-    {
-        return ! $this->isCompleted() && (Carbon::now() > $this->getDeadline());
     }
 
     /**
@@ -263,8 +221,7 @@ class Order extends Model
      *
      * @return bool
      */
-    public function onWorksheet(): bool
-    {
+    public function onWorksheet(): bool {
         return $this->getWorksheetEntry() ? true : false;
     }
 
@@ -273,8 +230,7 @@ class Order extends Model
      *
      * @return \App\Worksheet|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
-    public function getWorksheetEntry()
-    {
+    public function getWorksheetEntry() {
         return Worksheet::where([
             ['user_id', '=', Auth::id()],
             ['order_id', '=', $this->id],
@@ -284,11 +240,10 @@ class Order extends Model
     /**
      * @return float|int
      */
-    public function getProgress()
-    {
-        $start = $this->created_at->getTimestamp();
-        $end = $this->getDeadline()->getTimestamp() - $start;
-        $now = time();
+    public function getProgress() {
+        $start   = $this->created_at->getTimestamp();
+        $end     = $this->getDeadline()->getTimestamp() - $start;
+        $now     = time();
         $elapsed = $now - $start;
 
         if ($elapsed > $end) {
@@ -304,9 +259,8 @@ class Order extends Model
     /**
      * @return array
      */
-    public function createInvoice(): array
-    {
-        $bs = resolve('App\Subesz\BillingoNewService');
+    public function createInvoice(): array {
+        $bs       = resolve('App\Subesz\BillingoNewService');
         $response = [
             'success' => false,
             'message' => 'Számla létrehozásának inicalizálása',
@@ -361,67 +315,113 @@ class Order extends Model
     }
 
     /**
-     * @param null $date
+     * @return null|\Swagger\Client\Model\Document
+     */
+    public function createRealInvoice(): ?\Swagger\Client\Model\Document {
+        if (! $this->draft_invoice_id) {
+            Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+
+            return null;
+        }
+
+        /** @var BillingoNewService $bs */
+        $bs       = resolve('App\Subesz\BillingoNewService');
+        $reseller = $this->getReseller()['correct'];
+
+        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller, $this);
+    }
+
+    /**
      * @return bool
      */
-    public function updateIncome($date = null): bool
-    {
+    public function sendInvoice(): bool {
+        if (! $this->isInvoiceSaved()) {
+            Log::error(sprintf('Nincs elmentve a megrendeléshez számla... (Helyi megrendelés azonosító: %s)', $this->id));
+
+            return false;
+        }
+
+        // Elvileg megvan minden, mehet a levél
+        if (! $this->hasTrial()) {
+            Mail::to($this->email)->send(new RegularOrderCompleted($this, $this->invoice_path));
+        } else {
+            Mail::to($this->email)->send(new TrialOrderCompleted($this, $this->invoice_path));
+        }
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isInvoiceSaved() {
+        return $this->invoice_path !== null;
+    }
+
+    /**
+     * @return bool
+     */
+    public function hasTrial() {
+        $order = $this->getShoprenterOrder();
+        $trial = false;
+
+        foreach ($order['products']->items as $product) {
+            if (in_array($product->sku, Product::where('trial_product', '=', true)->pluck('sku')->toArray())) {
+                $trial = true;
+                break;
+            }
+        }
+
+        return $trial;
+    }
+
+    /**
+     * @return array
+     */
+    public function getShoprenterOrder() {
+        /** @var ShoprenterService $ss */
+        $ss = resolve('App\Subesz\ShoprenterService');
+
+        return $ss->getOrder($this->inner_resource_id);
+    }
+
+    /**
+     * @param  null  $date
+     * @return bool
+     */
+    public function updateIncome($date = null): bool {
         // Ha nincs teljesítve akkor nincs bevételünk...
         if (! $this->isCompleted()) {
             return true;
         }
 
-        $income = $this->income ?? new Income();
+        $income              = $this->income ?? new Income();
         $income->gross_value = $this->total_gross;
-        $income->name = 'Megrendelés';
-        $income->user_id = $this->reseller_id;
-        $income->comment = sprintf('#%s megrendelésszám (%s %s)', $this->inner_id, $this->firstname, $this->lastname);
-        $income->tax_value = $this->total_gross - ($this->total_gross / 1.27);
-        $income->date = $date ? $date : $this->created_at;
-        $success = $income->save();
+        $income->name        = 'Megrendelés';
+        $income->user_id     = $this->reseller_id;
+        $income->comment     = sprintf('#%s megrendelésszám (%s %s)', $this->inner_id, $this->firstname, $this->lastname);
+        $income->tax_value   = $this->total_gross - ($this->total_gross / 1.27);
+        $income->date        = $date ? $date : $this->created_at;
+        $success             = $income->save();
 
         Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->inner_id, $this->total_gross));
 
         return $success;
     }
 
-    protected static function booted()
-    {
-        // Létrehozásnál nézzünk viszonteladót a megrendeléshez
-        static::creating(function (Order $order) {
-            /** @var UserZip $uZip */
-            $uZip = UserZip::where('zip', $order->shipping_postcode)->first();
-            if ($uZip) {
-                $order->reseller_id = $uZip->user->id;
-            } else {
-                $order->reseller_id = env('ADMIN_USER_ID');
-            }
-        });
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeDelivered(Builder $query): Builder {
+        return $query->has('delivery');
+    }
 
-        static::created(function (Order $order) {
-            Log::info('Helyi megrendelés elmentve, hozzárendelt viszonteladó: '.User::find($order->reseller_id)->name);
-        });
-
-        // Törléskör a termékeket kukázzuk
-        static::deleting(function ($order) {
-            /** @var Order $order */
-            if ($order->products) {
-                $baseProducts = $order->getBaseProducts();
-                foreach ($baseProducts as $baseProduct) {
-                    /** @var Product $product */
-                    /** @var User $reseller */
-                    /** @var Stock $stockItem */
-                    $product = $baseProduct['product'];
-                    $stockCount = $baseProduct['count'];
-                    $reseller = $order->getReseller()['correct'];
-                    $stockItem = $reseller->stock()->where('sku', $product->sku)->first();
-
-                    if ($stockItem && $order->status_text == 'Teljesítve') {
-                        $stockItem->inventory_on_hand += $stockCount;
-                        $stockItem->save();
-                    }
-                }
-            }
-        });
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopePending(Builder $query): Builder {
+        return $query->doesntHave('delivery');
     }
 }

@@ -4,14 +4,12 @@ namespace App;
 
 use App\Subesz\OrderService;
 use Carbon\Carbon;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\DB;
 
 /**
  * Class User
@@ -72,6 +70,13 @@ class User extends Authenticatable
      */
     public function orders(): HasMany {
         return $this->hasMany(Order::class, 'reseller_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function regions(): HasMany {
+        return $this->hasMany(Region::class, 'user_id', 'id');
     }
 
     /**
@@ -146,6 +151,13 @@ class User extends Authenticatable
      */
     public function marketingResults(): HasMany {
         return $this->hasMany(MarketingResult::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function moneyTransfers(): HasMany {
+        return $this->HasMany(MoneyTransfer::class, 'user_id', 'id');
     }
 
     /**
