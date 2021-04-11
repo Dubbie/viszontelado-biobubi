@@ -107,7 +107,7 @@ class UserController extends Controller
         $selectedReport    = null;
         $selectedMarketing = null;
         $active            = 'user-details';
-        $year              = $request->input('year') ?? null;
+        $year              = $request->input('year') ?? Carbon::now()->format('Y');
         $selectedReports   = null;
 
         if ($date) {
