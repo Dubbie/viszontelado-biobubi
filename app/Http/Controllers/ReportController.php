@@ -20,8 +20,7 @@ class ReportController extends Controller
     /**
      * @return Factory|View
      */
-    public function showQuick()
-    {
+    public function showQuick() {
         return view('report.quick')->with([
             'deliveredCount' => Auth::user()->getDeliveryCountThisMonth(),
         ]);
@@ -31,8 +30,7 @@ class ReportController extends Controller
      * @param  Request  $request
      * @return Application|Factory|View
      */
-    public function showMonthly(Request $request)
-    {
+    public function showMonthly(Request $request) {
         $date              = $request->input('date') ?? null;
         $selectedReport    = null;
         $selectedMarketing = null;
@@ -50,11 +48,18 @@ class ReportController extends Controller
     }
 
     /**
+     * @return mixed
+     * Megadja az összes évet, melyben található report DB-ben.
+     */
+    public static function allYears() {
+        return \DB::table('reports')->selectRaw("DATE_FORMAT(created_at, '%Y') AS year, COUNT(*) AS total")->groupBy('year')->orderByDesc('year')->get();
+    }
+
+    /**
      * @param $privateKey
      * @return array|string[]
      */
-    public function generateMonthlyReports($privateKey): array
-    {
+    public function generateMonthlyReports($privateKey): array {
         Log::info('Havi riportok generálásának megkezdése...');
         $start = microtime(true);
 
@@ -81,8 +86,7 @@ class ReportController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function regenerateReports()
-    {
+    public function regenerateReports() {
         Log::info('Havi riportok újragenerálásának megkezdése...');
         $start = microtime(true);
 

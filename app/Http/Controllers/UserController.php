@@ -83,7 +83,10 @@ class UserController extends Controller
      * @return Factory|View
      */
     public function index() {
-        $users = User::withCount(['deliveries', 'zips'])->get();
+        $users = User::withCount([
+            'deliveries',
+            'zips',
+        ])->get();
 
         return view('user.index')->with([
             'users' => $users,
@@ -106,8 +109,10 @@ class UserController extends Controller
         /** @var User $user */
         $user              = User::where('id', $userId)->withCount('deliveries')->first();
         $date              = $request->input('date') ?? null;
+        $year              = $request->input('year') ?? null;
         $selectedReport    = null;
         $selectedMarketing = null;
+        $selectedReports   = null;
         $active            = 'user-details';
 
         if ($date) {
@@ -115,6 +120,16 @@ class UserController extends Controller
             $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
             $active            = 'user-monthly-reports';
+        } elseif ($year) {
+            $date            = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $year.'-01-01 00:00:01');
+            $startOfYear     = $date->startOfYear()->format('Y-m-d H:i:s');
+            $endOfYear       = $date->endOfYear()->format('Y-m-d H:i:s');
+            $selectedReport  = $user->reports()->whereDate('created_at', '=', $date->format('Y-m-d'))->first();
+            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
+                $startOfYear,
+                $endOfYear,
+            ])->orderByDesc('created_at')->get();
+            $active          = 'user-yearly-reports';
         } else {
             $selectedReport    = $user->reports->last();
             $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
@@ -125,6 +140,8 @@ class UserController extends Controller
             'selectedReport'    => $selectedReport,
             'selectedMarketing' => $selectedMarketing,
             'activeTab'         => $active,
+            'selectedReports'   => $selectedReports,
+            'selectedYear'      => $year,
         ]);
     }
 
