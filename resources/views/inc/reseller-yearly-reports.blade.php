@@ -1,4 +1,4 @@
-@if($user->reports()->count() > 0)
+@if($selectedReports->count() > 0)
     <div class="row align-items-center">
         <div class="col">
             <h1 class="font-weight-bold mb-4">Éves riportok</h1>
