@@ -2,8 +2,6 @@
 
 namespace App\Subesz;
 
-
-use App\Order;
 use App\OrderStatus;
 use App\Product;
 use Illuminate\Support\Arr;
@@ -17,11 +15,16 @@ class ShoprenterService
     /**
      * ShoprenterService constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         // Lekezeljük a csomagokat
         $this->bundleSkus = [
-            '1', 'CEM3', 'CEFSZ3', 'CEF3', 'CEFMSZB', 'CEFMSZ', '11'
+            '1',
+            'CEM3',
+            'CEFSZ3',
+            'CEF3',
+            'CEFMSZB',
+            'CEFMSZ',
+            '11',
         ];
     }
 
@@ -29,11 +32,11 @@ class ShoprenterService
         $srProducts = $this->getAllProducts()->items;
 
         foreach ($srProducts as $product) {
-            $localProduct = Product::find($product->sku) ?? new Product();
-            $localProduct->sku = $product->sku;
-            $localProduct->name = $product->productDescriptions[0]->name;
+            $localProduct              = Product::find($product->sku) ?? new Product();
+            $localProduct->sku         = $product->sku;
+            $localProduct->name        = $product->productDescriptions[0]->name;
             $localProduct->picture_url = $product->allImages->mainImage;
-            $localProduct->status = $product->status;
+            $localProduct->status      = $product->status;
             $localProduct->gross_price = round($product->price * 1.27);
             $localProduct->save();
         }
@@ -42,27 +45,23 @@ class ShoprenterService
     }
 
     /**
-     * Visszad egy oldalnyi megrendelést a megadottak alapján
-     *
-     * @param int $page
-     * @param int $limit
      * @return mixed
      */
-    public function getOrdersByPage($page = 0, $limit = 25) {
-        $apiUrl = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $page, $limit);
+    public function getAllProducts() {
+        $apiUrl = sprintf('%s/productExtend?full=1&limit=200', env('SHOPRENTER_API'));
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
             CURLOPT_RETURNTRANSFER => true,
         ]);
-        $return = curl_exec($ch);
+        $response = curl_exec($ch);
         curl_close($ch);
 
-        return json_decode($return);
+        return json_decode($response);
     }
 
     /**
@@ -74,17 +73,41 @@ class ShoprenterService
         $page = 0;
 
         $pageOrders = $this->getOrdersByPage($page, 200);
-        $orders = $pageOrders->items;
+        $orders     = $pageOrders->items;
         $page++;
 
         while ($pageOrders->next) {
             usleep(350000);
             $pageOrders = $this->getOrdersByPage($page, 200);
-            $orders = array_merge($orders, $pageOrders->items);
+            $orders     = array_merge($orders, $pageOrders->items);
             $page++;
         }
 
         return $orders;
+    }
+
+    /**
+     * Visszad egy oldalnyi megrendelést a megadottak alapján
+     *
+     * @param  int  $page
+     * @param  int  $limit
+     * @return mixed
+     */
+    public function getOrdersByPage($page = 0, $limit = 25) {
+        $apiUrl = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $page, $limit);
+
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        $return = curl_exec($ch);
+        curl_close($ch);
+
+        return json_decode($return);
     }
 
     /**
@@ -93,32 +116,33 @@ class ShoprenterService
      * @return array
      */
     public function getBatchedOrders() {
-        $apiUrl = sprintf('%s/batch', env('SHOPRENTER_API'));
-        $data = [
+        $apiUrl     = sprintf('%s/batch', env('SHOPRENTER_API'));
+        $data       = [
             'data' => [
-                'requests' => []
-            ]
+                'requests' => [],
+            ],
         ];
         $ordersData = $this->getOrdersByPage(0, 200);
-        if (!property_exists($ordersData, 'pageCount')) {
+        if (! property_exists($ordersData, 'pageCount')) {
             Log::error('Hibás adatokat adott vissza a ShopRenter API.');
+
             return null;
         }
 
         for ($i = 0; $i <= $ordersData->pageCount - 1; $i++) {
-            $url = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $i, 200);
+            $url                        = sprintf('%s/orders?excludeAbandonedCart=1&full=1&page=%s&limit=%s', env('SHOPRENTER_API'), $i, 200);
             $data['data']['requests'][] = [
                 'method' => 'GET',
-                'uri' => $url,
+                'uri'    => $url,
             ];
         }
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Accept:application/json'],
-            CURLOPT_USERPWD => sprintf( '%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
-            CURLOPT_POST => 1,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_POST           => 1,
             CURLOPT_RETURNTRANSFER => true,
         ]);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
@@ -126,17 +150,18 @@ class ShoprenterService
         curl_close($ch);
 
         // Egybefűzzük a megérkezett megrendeléseket
-        if (!$response || !property_exists($response, 'requests')) {
+        if (! $response || ! property_exists($response, 'requests')) {
             Log::error('- Hiba történt a kötegelt megrendelések lekérdezésekor -');
             Log::error('-- A visszatérési érték nem tartalmaz eredményeket --');
+
             return [];
         }
 
-        $orders = [];
+        $orders       = [];
         $pageRequests = $response->requests->request;
         foreach ($pageRequests as $split) {
             $responseData = $split->response->body;
-            $orders = array_merge($orders, $responseData->items);
+            $orders       = array_merge($orders, $responseData->items);
         }
 
         return $orders;
@@ -155,10 +180,10 @@ class ShoprenterService
         // Megrendelés lekérése
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
             CURLOPT_RETURNTRANSFER => true,
         ]);
         $result['order'] = json_decode(curl_exec($ch));
@@ -166,20 +191,20 @@ class ShoprenterService
         // Státusz lekérése
         if (property_exists($result['order'], 'orderStatus') && $result['order']->orderStatus) {
             curl_setopt_array($ch, [
-                CURLOPT_URL => $result['order']->orderStatus->href,
-                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_URL            => $result['order']->orderStatus->href,
+                CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT        => 120,
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['status'] = json_decode(curl_exec($ch));
 
             // Státusz lekérése
             curl_setopt_array($ch, [
-                CURLOPT_URL => $result['status']->orderStatusDescriptions->href . '&full=1',
-                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_URL            => $result['status']->orderStatusDescriptions->href.'&full=1',
+                CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT        => 120,
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['statusDescription'] = json_decode(curl_exec($ch))->items[0];
@@ -188,10 +213,10 @@ class ShoprenterService
         // Termékek lekérése
         if (property_exists($result['order'], 'orderProducts') && $result['order']->orderProducts) {
             curl_setopt_array($ch, [
-                CURLOPT_URL => $result['order']->orderProducts->href . '&full=1',
-                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_URL            => $result['order']->orderProducts->href.'&full=1',
+                CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT        => 120,
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['products'] = json_decode(curl_exec($ch));
@@ -200,16 +225,17 @@ class ShoprenterService
         // order gift wrappings:
         if (property_exists($result['order'], 'orderTotals') && $result['order']->orderTotals) {
             curl_setopt_array($ch, [
-                CURLOPT_URL => $result['order']->orderTotals->href . '&full=1',
-                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_URL            => $result['order']->orderTotals->href.'&full=1',
+                CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT        => 120,
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $result['totals'] = json_decode(curl_exec($ch))->items;
         }
 
         curl_close($ch);
+
         return $result;
     }
 
@@ -222,10 +248,10 @@ class ShoprenterService
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $url,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_URL            => $url,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
             CURLOPT_RETURNTRANSFER => true,
         ]);
         $response = json_decode(curl_exec($ch));
@@ -239,18 +265,17 @@ class ShoprenterService
      * @param $statusId
      * @return bool|mixed
      */
-    public function updateOrderStatusId($orderId, $statusId): bool
-    {
+    public function updateOrderStatusId($orderId, $statusId): bool {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Accept:application/json'],
-            CURLOPT_USERPWD => sprintf( '%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
-            CURLOPT_CUSTOMREQUEST => 'PUT',
-            CURLOPT_POST => 1,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_CUSTOMREQUEST  => 'PUT',
+            CURLOPT_POST           => 1,
             CURLOPT_RETURNTRANSFER => true,
         ]);
 
@@ -258,8 +283,8 @@ class ShoprenterService
             'data' => [
                 'orderStatus' => [
                     'id' => $statusId,
-                ]
-            ]
+                ],
+            ],
         ];
 
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
@@ -267,9 +292,10 @@ class ShoprenterService
         curl_close($ch);
 
         // Ellenőrizzük le a, hogy van-e státusza
-        if (!property_exists($newOrder, 'orderStatus')) {
+        if (! property_exists($newOrder, 'orderStatus')) {
             Log::error(sprintf('A státusz módosítás eredménye nem adott vissza státuszt.'));
             Log::debug(var_dump($newOrder));
+
             return false;
         }
 
@@ -296,10 +322,10 @@ class ShoprenterService
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
             CURLOPT_RETURNTRANSFER => true,
         ]);
         $response = curl_exec($ch);
@@ -312,30 +338,16 @@ class ShoprenterService
      * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      */
     public function getStatusesFiltered() {
-        return OrderStatus::where([
-            ['active','!=', 'true'],
-            ['name','!=', 'Törölt']
-        ])->get();
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getAllProducts() {
-        $apiUrl = sprintf('%s/productExtend?full=1&limit=200', env('SHOPRENTER_API'));
-
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
-            CURLOPT_RETURNTRANSFER => true,
+        $query = OrderStatus::where([
+            ['active', '!=', 'true'],
+            ['name', '!=', 'Törölt'],
         ]);
-        $response = curl_exec($ch);
-        curl_close($ch);
 
-        return json_decode($response);
+        if (! \Auth::user()->admin) {
+            $query->where('name', 'NOT LIKE', '%FOXPOST%');
+        }
+
+        return $query->get();
     }
 
     /**
@@ -345,7 +357,7 @@ class ShoprenterService
      */
     public function getBasicProducts() {
         return array_values(Arr::where($this->getAllProducts()->items, function ($item) {
-            return !in_array($item->sku, $this->bundleSkus);
+            return ! in_array($item->sku, $this->bundleSkus);
         }));
     }
 
@@ -360,33 +372,32 @@ class ShoprenterService
         }));
     }
 
-    public function getProduct($input)
-    {
+    public function getProduct($input) {
         $apiUrl = sprintf('%s/productExtend?sku=%s&limit=1&full=1', env('SHOPRENTER_API'), $input);
 
         $ch = curl_init();
         curl_setopt_array($ch, [
-            CURLOPT_URL => $apiUrl,
-            CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-            CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-            CURLOPT_TIMEOUT => 120,
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
             CURLOPT_RETURNTRANSFER => true,
         ]);
         $response = curl_exec($ch);
         curl_close($ch);
 
         // Termék megvan
-        $product = json_decode($response)->items[0];
+        $product             = json_decode($response)->items[0];
         $product->categories = [];
         foreach ($product->productCategoryRelations as $categoryRelation) {
             $apiUrl = sprintf('%s?full=1', str_replace('categories', 'categoryExtend', $categoryRelation->category->href));
 
             $ch = curl_init();
             curl_setopt_array($ch, [
-                CURLOPT_URL => $apiUrl,
-                CURLOPT_HTTPHEADER => ['Content-Type:application/json', 'Accept:application/json'],
-                CURLOPT_USERPWD => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
-                CURLOPT_TIMEOUT => 120,
+                CURLOPT_URL            => $apiUrl,
+                CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+                CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+                CURLOPT_TIMEOUT        => 120,
                 CURLOPT_RETURNTRANSFER => true,
             ]);
             $response = curl_exec($ch);
@@ -400,23 +411,23 @@ class ShoprenterService
     /**
      * It recursively converts the multi dimension (deep) array to single dimension array as it was posted from an html form
      *
-     * @param $arrays
-     * @param array $new
-     * @param null $prefix
+     * @param         $arrays
+     * @param  array  $new
+     * @param  null   $prefix
      * @return void
      * @author Mohsin Rasool
      *
      */
-    private function http_build_query_for_curl( $arrays, &$new = array(), $prefix = null ) {
+    private function http_build_query_for_curl($arrays, &$new = [], $prefix = null) {
 
-        if ( is_object( $arrays ) ) {
-            $arrays = get_object_vars( $arrays );
+        if (is_object($arrays)) {
+            $arrays = get_object_vars($arrays);
         }
 
-        foreach ( $arrays AS $key => $value ) {
-            $k = isset( $prefix ) ? $prefix . '[' . $key . ']' : $key;
-            if ( is_array( $value ) OR is_object( $value )  ) {
-                $this->http_build_query_for_curl( $value, $new, $k );
+        foreach ($arrays as $key => $value) {
+            $k = isset($prefix) ? $prefix.'['.$key.']' : $key;
+            if (is_array($value) or is_object($value)) {
+                $this->http_build_query_for_curl($value, $new, $k);
             } else {
                 $new[$k] = $value;
             }
