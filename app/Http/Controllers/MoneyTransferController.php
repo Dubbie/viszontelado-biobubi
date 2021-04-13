@@ -6,6 +6,7 @@ use App\MoneyTransfer;
 use App\Order;
 use App\Subesz\OrderService;
 use App\Subesz\TransferService;
+use App\Subesz\UserService;
 use App\User;
 use Auth;
 use Carbon\Carbon;
@@ -21,6 +22,9 @@ use Storage;
  */
 class MoneyTransferController extends Controller
 {
+    /** @var \App\Subesz\UserService */
+    private $userService;
+
     /** @var \App\Subesz\OrderService */
     private $orderService;
 
@@ -38,10 +42,16 @@ class MoneyTransferController extends Controller
      *
      * @param  \App\Subesz\OrderService     $orderService
      * @param  \App\Subesz\TransferService  $transferService
+     * @param  \App\Subesz\UserService      $userService
      */
-    public function __construct(OrderService $orderService, TransferService $transferService) {
+    public function __construct(
+        OrderService $orderService,
+        TransferService $transferService,
+        UserService $userService
+    ) {
         $this->orderService       = $orderService;
         $this->transferService    = $transferService;
+        $this->userService        = $userService;
         $this->sessionResellerKey = 'transfer-reseller-id';
         $this->sessionOrderIdsKey = 'transfer-order-ids';
     }
@@ -52,7 +62,7 @@ class MoneyTransferController extends Controller
      */
     public function index(Request $request) {
         $transfers = $this->transferService->getTransfersQueryByUser(Auth::id())->withCount('transferOrders');
-        $resellers = Auth::user()->admin ? User::whereHas('zips')->get() : [];
+        $resellers = Auth::user()->admin ? $this->userService->getResellers() : [];
         $filter    = [];
 
         // Tartalmazza
@@ -97,7 +107,7 @@ class MoneyTransferController extends Controller
      */
     public function chooseReseller() {
         return view('hq.transfers.reseller')->with([
-            'resellers' => User::whereHas('zips')->where('id', '!=', Auth::id())->get(),
+            'resellers' => $this->userService->getResellers(),
         ]);
     }
 
