@@ -77,9 +77,9 @@
     </div>
     <div class="col-12 mt-3">
         <div class="row no-gutters align-items-center">
-            @if(Auth::user()->admin)
-                <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
-                    <div class="d-flex align-items-center mb-2">
+            <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
+                <div class="d-flex align-items-center mb-2">
+                    @if(Auth::user()->admin)
                         <span class="icon text-muted">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                  class="bi bi-file-person" viewBox="0 0 16 16">
@@ -95,21 +95,21 @@
                                 <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
                             </svg>
                         </span>
-                        {{--megjegyzés gomb--}}
-                        <span class="text-muted mr-2">
+                    @endif
+                    {{--megjegyzés gomb--}}
+                    <span class="text-muted mr-2">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                  class="bi bi-chat-right" viewBox="0 0 16 16">
                                 <path
                                     d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
                             </svg>
                         </span>
-                        <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
-                           data-order-id="{{ $order->id }}" class="text-muted">
-                            {{ $order->comments()->count() }} megjegyzés.
-                        </a>
-                    </div>
+                    <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
+                       data-order-id="{{ $order->id }}" class="text-muted">
+                        {{ $order->comments()->count() }} megjegyzés.
+                    </a>
                 </div>
-            @endif
+            </div>
             <div class="col">
                 <div class="d-flex justify-content-end">
                     {{-- Nem jó a számla - TODO --}}
