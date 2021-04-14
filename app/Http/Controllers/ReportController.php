@@ -45,7 +45,6 @@ class ReportController extends Controller
             $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
 
-            $active     = 'user-reports';
             $reportView = 'monthly-reports';
         } else {
             $selectedReport = $user->reports->last();
@@ -62,7 +61,6 @@ class ReportController extends Controller
                 $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
                 $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
             ])->orderByDesc('created_at')->get();
-            $active          = 'user-reports';
             $reportView      = 'yearly-reports';
         } else {
             //ha nincs év megadva, kell egy alap időt adni neki, amivel kereshet
