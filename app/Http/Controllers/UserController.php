@@ -109,13 +109,16 @@ class UserController extends Controller
         $active            = 'user-details';
         $year              = $request->input('year') ?? null;
         $selectedReports   = null;
+        $reportView        = 'monthly-reports';
+        //alapból havi nézetet jelenítsünk meg ^
 
         if ($date) {
             $carbonDate        = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
             $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
 
-            $active = 'user-monthly-reports';
+            $active     = 'user-reports';
+            $reportView = 'monthly-reports';
         } else {
             $selectedReport = $user->reports->last();
 
@@ -131,7 +134,8 @@ class UserController extends Controller
                 $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
                 $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
             ])->orderByDesc('created_at')->get();
-            $active          = 'user-yearly-reports';
+            $active          = 'user-reports';
+            $reportView      = 'yearly-reports';
         } else {
             //ha nincs év megadva, kell egy alap időt adni neki, amivel kereshet
             $carbonDate      = Carbon::now();
@@ -148,6 +152,7 @@ class UserController extends Controller
             'activeTab'         => $active,
             'selectedReports'   => $selectedReports,
             'selectedYear'      => $year,
+            'reportView'        => $reportView,
         ]);
     }
 

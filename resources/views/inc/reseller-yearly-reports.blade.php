@@ -15,6 +15,7 @@
                     </select>
                 </div>
             </form>
+            <button class="btn btn-primary btn-block" id="btn-monthly-view">Havi nézet</button>
         </div>
     </div>
     <div class="row">

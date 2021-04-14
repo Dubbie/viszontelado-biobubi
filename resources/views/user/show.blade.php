@@ -36,10 +36,7 @@
                         <a class="nav-link" data-toggle="tab" href="#user-stock">Készlet</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#user-monthly-reports">Havi riportok</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#user-yearly-reports">Éves riport</a>
+                        <a href="#user-reports" data-toggle="tab" class="nav-link">Riportok</a>
                     </li>
                 </ul>
                 <div class="card card-body tab-content">
@@ -52,11 +49,8 @@
                     <div id="user-stock" class="tab-pane fade">
                         @include('inc.reseller-stock')
                     </div>
-                    <div id="user-monthly-reports" class="tab-pane fade">
-                        @include('inc.reseller-monthly-reports')
-                    </div>
-                    <div id="user-yearly-reports" class="tab-pane fade">
-                        @include('inc.reseller-yearly-reports')
+                    <div id="user-reports" class="tab-pane fade">
+                        @include('inc.reseller-report-chooser')
                     </div>
                 </div>
             </div>
@@ -88,6 +82,31 @@
                 });
 
                 // Riport választó
+                let reportType = `{{$reportView}}`;
+                const monthlyCont = $("#report-monthly-view");
+                const monthlyBtn = $("#btn-monthly-view");
+                const yearlyCont = $("#report-yearly-view");
+                const yearlyBtn = $("#btn-yearly-view");
+
+                monthlyBtn.on('click', showMonthly);
+                yearlyBtn.on('click', showYearly);
+
+                function showMonthly() {
+                    monthlyCont[0].classList.remove('d-none');
+                    yearlyCont[0].classList.add('d-none');
+                }
+
+                function showYearly() {
+                    yearlyCont[0].classList.remove('d-none');
+                    monthlyCont[0].classList.add('d-none');
+                }
+
+                if (reportType == 'monthly-reports')
+                    showMonthly();
+                if (reportType == 'yearly-reports')
+                    showYearly();
+
+                //riport formok
                 $('#date').on('change', e => {
                     $(e.currentTarget).closest('form').submit();
                 });
