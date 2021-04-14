@@ -34,16 +34,53 @@ class ReportController extends Controller
         $date              = $request->input('date') ?? null;
         $selectedReport    = null;
         $selectedMarketing = null;
+        $year              = $request->input('year') ?? null;
+        $user              = Auth::user();
+        $selectedReports   = null;
+
+        $reportView = 'monthly-reports';
 
         if ($date) {
             $carbonDate        = Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
-            $selectedReport    = Auth::user()->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
-            $selectedMarketing = Auth::user()->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
+
+            $active     = 'user-reports';
+            $reportView = 'monthly-reports';
+        } else {
+            $selectedReport = $user->reports->last();
+
+            if ($selectedReport) {
+                $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
+            }
+        }
+        //ha van évünk megadva
+        if ($year) {
+            $carbonDate      = Carbon::createFromFormat('Y-m-d H:i:s', $year.'-01-01 00:00:01');
+            $selectedReport  = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedReports = $user->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
+            $active          = 'user-reports';
+            $reportView      = 'yearly-reports';
+        } else {
+            //ha nincs év megadva, kell egy alap időt adni neki, amivel kereshet
+            $carbonDate      = Carbon::now();
+            $selectedReports = $user->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
         }
 
         return view('report.monthly')->with([
             'selectedReport'    => $selectedReport,
             'selectedMarketing' => $selectedMarketing,
+            'selectedReports'   => $selectedReports,
+            'reportView'        => $reportView,
+            'selectedYear'      => $year,
+            'user'              => $user,
+
         ]);
     }
 
