@@ -98,12 +98,12 @@
                     @endif
                     {{--megjegyzés gomb--}}
                     <span class="text-muted mr-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                 class="bi bi-chat-right" viewBox="0 0 16 16">
-                                <path
-                                    d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
-                            </svg>
-                        </span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                             class="bi bi-chat-right" viewBox="0 0 16 16">
+                            <path
+                                d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+                        </svg>
+                    </span>
                     <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
                        data-order-id="{{ $order->id }}" class="text-muted">
                         {{ $order->comments()->count() }} megjegyzés.
@@ -113,8 +113,9 @@
             <div class="col">
                 <div class="d-flex justify-content-end">
                     {{-- Nem jó a számla - TODO --}}
-                    @if(Auth::user()->admin && $order->isCompleted() && !$order->invoice_id)
-                        <span class="icon icon-lg">
+                    @if($order->isCompleted() && !$order->invoice_id)
+                        <span class="icon icon-lg has-tooltip" data-toggle="tooltip"
+                              title="Hiba történt a végszámla kiállításakor">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                                  class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
                                 <path
