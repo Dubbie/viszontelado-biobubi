@@ -78,7 +78,7 @@ class BillingoNewService
                 'block_id'         => $draft->getBlockId(),
                 'type'             => DocumentType::INVOICE,
                 'fulfillment_date' => date('Y-m-d'),
-                'due_date'         => $draft->getDueDate(),
+                'due_date'         => $draft->getDueDate()->format('Y-m-d'),
                 'payment_method'   => $draft->getPaymentMethod(),
                 'language'         => $draft->getLanguage(),
                 'currency'         => $draft->getCurrency(),
