@@ -64,9 +64,15 @@ class BillingoNewService
      * @param  int              $invoiceId
      * @param  User             $user
      * @param  \App\Order|null  $localOrder
+     * @param  bool             $retry
      * @return null|Document
      */
-    public function getRealInvoiceFromDraft(int $invoiceId, User $user, Order $localOrder = null): ?Document {
+    public function getRealInvoiceFromDraft(
+        int $invoiceId,
+        User $user,
+        Order $localOrder,
+        $retry = false
+    ): ?Document {
         $api         = $this->getDocumentApi($user);
         $realInvoice = null;
 
@@ -89,6 +95,16 @@ class BillingoNewService
                 'settings'         => $draft->getSettings(),
             ];
 
+            if ($draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD && $localOrder->advance_invoice_id) {
+                if ($localOrder->advance_invoice_id) {
+                    $documentInsertData['advance_invoice'] = [$localOrder->advance_invoice_id];
+                } else {
+                    Log::error('Hiba a végszámla kiállításakor! Bankkártyás megrendelés, de nincs előlegszámla.');
+
+                    return null;
+                }
+            }
+
             $documentInsert = new DocumentInsert($documentInsertData);
             $realInvoice    = $api->createDocument($documentInsert);
         } catch (ApiException $e) {
@@ -96,7 +112,7 @@ class BillingoNewService
             Log::error(sprintf('Hiba történt a piszkozat számla átalakításkor éles számlává: %s %s', $e->getMessage(), PHP_EOL));
 
             // 403-Nincs joga (Valószínű, hogy megváltozott a piszkozat számla létrehozása óta a tulajdonosa a megrendelésnek
-            if ($e->getCode() == 403 && $localOrder) {
+            if ($e->getCode() == 403 && $retry) {
                 Log::info('Újrapróbálkozunk egy új piszkozat számlával...');
                 $srOrder = $localOrder->getShoprenterOrder();
 
@@ -119,7 +135,7 @@ class BillingoNewService
                 Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
 
                 // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
-                $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller);
+                $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller, $localOrder);
             }
         }
 
@@ -145,17 +161,25 @@ class BillingoNewService
     /**
      * Átalakítja a Billingo által visszaadott elemeket
      *
-     * @param $invoiceId
-     * @param $reseller
+     * @param        $invoiceId
+     * @param        $reseller
+     * @param  bool  $advance
      * @return array
      */
-    public function convertInvoiceItemsToInserts($invoiceId, $reseller): array {
+    public function convertInvoiceItemsToInserts($invoiceId, $reseller, $advance = false): array {
         $invoice     = $this->getInvoice($invoiceId, $reseller);
         $insertItems = [];
 
         foreach ($invoice->getItems() as $item) {
+            // Előleg számlához kinyerendő elemek esetén hozzácsatoljuk az előlege szót
+            $itemName = $item->getName();
+            if ($advance) {
+                $itemName .= ' előlege';
+            }
+
+            // Feltöltjük a tömböt
             $insertItems[] = [
-                'name'            => $item->getName(),
+                'name'            => $itemName,
                 'unit_price'      => $item->getNetUnitAmount(),
                 'unit_price_type' => UnitPriceType::NET,
                 'quantity'        => $item->getQuantity(),
@@ -343,6 +367,77 @@ class BillingoNewService
         }
 
         return $items;
+    }
+
+    /**
+     * @param  int              $invoiceId
+     * @param  User             $user
+     * @param  \App\Order|null  $localOrder
+     * @param  bool             $advance
+     * @return null|Document
+     */
+    public function getAdvanceInvoiceFromDraft(
+        int $invoiceId,
+        User $user,
+        Order $localOrder = null
+    ): ?Document {
+        $api         = $this->getDocumentApi($user);
+        $realInvoice = null;
+
+        try {
+            $draft = $api->getDocument($invoiceId);
+
+            $documentInsertData = [
+                'partner_id'       => $draft->getPartner()->getId(),
+                'block_id'         => $draft->getBlockId(),
+                'type'             => DocumentType::ADVANCE,
+                'fulfillment_date' => date('Y-m-d'),
+                'due_date'         => $draft->getDueDate()->format('Y-m-d'),
+                'payment_method'   => $draft->getPaymentMethod(),
+                'language'         => $draft->getLanguage(),
+                'currency'         => $draft->getCurrency(),
+                'conversion_rate'  => $draft->getConversionRate(),
+                'electronic'       => true,
+                'paid'             => $draft->getPaidDate() ? true : false,
+                'items'            => $this->convertInvoiceItemsToInserts($invoiceId, $user, true),
+                'settings'         => $draft->getSettings(),
+            ];
+
+            $documentInsert = new DocumentInsert($documentInsertData);
+            $realInvoice    = $api->createDocument($documentInsert);
+        } catch (ApiException $e) {
+            // Hibára futott a gyári számlával, megpróbáljuk újra 0-ról
+            Log::error(sprintf('Hiba történt a piszkozat számla átalakításkor előlegszámlává: %s %s', $e->getMessage(), PHP_EOL));
+
+            // 403-Nincs joga (Valószínű, hogy megváltozott a piszkozat számla létrehozása óta a tulajdonosa a megrendelésnek
+            if ($e->getCode() == 403 && $localOrder) {
+                Log::info('Újrapróbálkozunk egy új piszkozat számlával...');
+                $srOrder = $localOrder->getShoprenterOrder();
+
+                // 1. Partner
+                $partner = $this->createPartner($srOrder, $localOrder->reseller);
+                if (! $partner) {
+                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+                }
+
+                // 2. Számla
+                $invoice = $this->createDraftInvoice($srOrder, $partner, $localOrder->reseller);
+                if (! $invoice) {
+                    Log::error('Hiba történt a számla létrehozásakor.');
+                }
+                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
+
+                // 3. Elmentjük a piszkozatot
+                $localOrder->draft_invoice_id = $invoice->getId();
+                $localOrder->save();
+                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
+                $this->getAdvanceInvoiceFromDraft($invoice->getId(), $localOrder->reseller);
+            }
+        }
+
+        return $realInvoice;
     }
 
     /**

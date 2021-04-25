@@ -10,13 +10,9 @@ use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StockService;
 use Carbon\Carbon;
-use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Mail;
-use Swagger\Client\Api\DocumentApi;
-use Swagger\Client\ApiException;
-use Swagger\Client\Configuration;
 
 class ShoprenterController extends Controller
 {
@@ -258,14 +254,7 @@ class ShoprenterController extends Controller
      * @return bool
      */
     public function testBillingo(): bool {
-        $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', env('BILLINGO_V3_API'));
 
-        $docu = new DocumentApi(new Client(), $config);
-        try {
-            dd($docu->listDocument());
-        } catch (ApiException $e) {
-            dd($e->getMessage());
-        }
     }
 
     /**
