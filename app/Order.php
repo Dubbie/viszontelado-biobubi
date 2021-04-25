@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Mail\OrderAdvanceInvoiceSent;
 use App\Mail\RegularOrderCompleted;
 use App\Mail\TrialOrderCompleted;
 use App\Subesz\BillingoNewService;
@@ -259,6 +260,105 @@ class Order extends Model
     /**
      * @return array
      */
+    public function createAdvanceInvoice(): array {
+        $bs       = resolve('App\Subesz\BillingoNewService');
+        $response = [
+            'success' => false,
+            'message' => 'Előlegszámla létrehozásának inicalizálása',
+        ];
+
+        if (! $bs->isBillingoConnected($this->reseller)) {
+            Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül előlegszámla.');
+        } else {
+            // Ha még nem jött létre előlegszámla, sem pedig éles számla, akkor létrehozzuk
+            // - Éles számlát azért ellenőrizzük, mert jelenleg előleg számla hiányában éles számlát küldene a rendszer
+            if ($this->draft_invoice_id && (! $this->advance_invoice_path && ! $this->advance_invoice_id) && (! $this->invoice_path && ! $this->invoice_id)) {
+                // 1. Létrehozzuk az előleg számlát, ha sikerül
+                $advanceInvoice = $this->generateAdvanceInvoice();
+                if (! $advanceInvoice) {
+                    Log::error(sprintf('Nem sikerült létrehozni az előlegszámlát. (Piszkozat: %s, Megr. Azonosító: %s)', $this->draft_invoice_id, $this->id));
+                    $response['message'] = 'Hiba történt a piszkozat számla átalakításakor';
+
+                    return $response;
+                } else {
+                    // Jók vagyunk
+                    $this->advance_invoice_id = $advanceInvoice->getId();
+                    $this->save();
+                    $this->refresh();
+                    $path = $bs->downloadInvoice($advanceInvoice->getId(), $this, $this->reseller);
+                    if (! $path) {
+                        Log::error('Hiba történt az előlegszámla letöltésekor');
+                        $response['message'] = 'Hiba történt az előlegszámla letöltésekor';
+
+                        return $response;
+                    }
+
+                    // Elmentjük a számlát helyileg
+                    $this->advance_invoice_path = $path;
+                    $this->save();
+                    $this->sendAdvanceInvoice();
+                    $response['success'] = true;
+                    $response['message'] = 'Előlegszámla sikeresen létrehozva és elküldve az ügyfélnek';
+                }
+            } else {
+                if ($this->draft_invoice_id && $this->advance_invoice_id && $this->advance_invoice_path) {
+                    Log::info(sprintf('A megrendeléshez már létrejött előlegszámla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id));
+                    $response['success'] = true;
+                    $response['message'] = sprintf('A megrendeléshez már létrejött előlegszámla ezért nem hozunk létre újabbat. (Megr. Azonosító: %s)', $this->id);
+                } else {
+                    Log::error('Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)');
+                    $response['success'] = true;
+                    $response['message'] = 'Nincs se régi se új számla azonosító, nem lehet létrehozni számlát automatikusan (Régi megrendelés)';
+                }
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * @return null|\Swagger\Client\Model\Document
+     */
+    public function generateAdvanceInvoice(): ?\Swagger\Client\Model\Document {
+        if (! $this->draft_invoice_id) {
+            Log::error(sprintf('Hiba történt az átalakításkor, nincs kitöltve piszkozat számla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+
+            return null;
+        }
+
+        /** @var BillingoNewService $bs */
+        $bs       = resolve('App\Subesz\BillingoNewService');
+        $reseller = $this->getReseller()['correct'];
+
+        return $bs->getAdvanceInvoiceFromDraft($this->draft_invoice_id, $reseller, $this);
+    }
+
+    /**
+     * @return bool
+     */
+    public function sendAdvanceInvoice(): bool {
+        if (! $this->isAdvanceInvoiceSaved()) {
+            Log::error(sprintf('Nincs elmentve a megrendeléshez előlegszámla... (Helyi megrendelés azonosító: %s)', $this->id));
+
+            return false;
+        }
+
+        // Elvileg megvan minden, mehet a levél
+        Mail::to($this->email)->send(new OrderAdvanceInvoiceSent($this, $this->advance_invoice_path));
+
+        return true;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isAdvanceInvoiceSaved(): bool {
+        return $this->advance_invoice_path !== null;
+    }
+
+    /**
+     * @return array
+     */
     public function createInvoice(): array {
         $bs       = resolve('App\Subesz\BillingoNewService');
         $response = [
@@ -324,11 +424,19 @@ class Order extends Model
             return null;
         }
 
+        if ($this->payment_method_name == 'Online bankkártyás fizetés' && ! $this->advance_invoice_id) {
+            Log::error(sprintf('Hiba történt az átalakításkor, nincs elmentve előlegszámla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
+
+            Log::info('Erőltetett előlegszámla legyártás kéne ide');
+
+            return null;
+        }
+
         /** @var BillingoNewService $bs */
         $bs       = resolve('App\Subesz\BillingoNewService');
         $reseller = $this->getReseller()['correct'];
 
-        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller, $this);
+        return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller, $this, true);
     }
 
     /**
@@ -354,14 +462,14 @@ class Order extends Model
     /**
      * @return bool
      */
-    public function isInvoiceSaved() {
+    public function isInvoiceSaved(): bool {
         return $this->invoice_path !== null;
     }
 
     /**
      * @return bool
      */
-    public function hasTrial() {
+    public function hasTrial(): bool {
         $order = $this->getShoprenterOrder();
         $trial = false;
 
