@@ -78,36 +78,66 @@
     <div class="col-12 mt-3">
         <div class="row no-gutters align-items-center">
             <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
-                <div class="d-flex align-items-center mb-2">
+                <div class="d-flex flex-column flex-md-row align-items-md-center mb-2">
                     @if(Auth::user()->admin)
-                        <span class="icon text-muted">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                 class="bi bi-file-person" viewBox="0 0 16 16">
-                                <path
-                                    d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
-                                <path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
-                            </svg>
-                        </span>
-                        <p class="mb-0 font-weight-bold">{{ $order->reseller->name }}</p>
-                        <span class="ml-1 mr-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                                 class="bi bi-dot" viewBox="0 0 16 16">
-                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
-                            </svg>
-                        </span>
+                        <div class="d-flex overflow-hidden">
+                            <span class="icon text-muted mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-file-person" viewBox="0 0 16 16">
+                                    <path
+                                        d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                    <path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                            </span>
+                            <p class="d-block overflow-hidden mb-0">
+                                <span
+                                    class="d-block font-weight-bold text-truncate mb-0 has-tooltip"
+                                    data-toggle="tooltip"
+                                    title="{{ $order->reseller->name }}">{{ $order->reseller->name }}</span>
+                            </p>
+                            <span class="d-md-block d-none ml-1 mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-dot" viewBox="0 0 16 16">
+                                    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                                </svg>
+                            </span>
+                        </div>
                     @endif
                     {{--megjegyzés gomb--}}
-                    <span class="text-muted mr-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
-                             class="bi bi-chat-right" viewBox="0 0 16 16">
-                            <path
-                                d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
-                        </svg>
-                    </span>
-                    <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
-                       data-order-id="{{ $order->id }}" class="text-muted">
-                        {{ $order->comments()->count() }} megjegyzés.
-                    </a>
+                    <div class="d-flex">
+                        <span class="icon text-muted mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-chat-right" viewBox="0 0 16 16">
+                                <path
+                                    d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
+                            </svg>
+                        </span>
+                        <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
+                           data-order-id="{{ $order->id }}" class="text-muted d-block text-nowrap">
+                            {{ $order->comments()->count() }} megjegyzés
+                        </a>
+                        @if($order->isBankkcard())
+                            <span class="d-md-block d-none ml-1 mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-dot" viewBox="0 0 16 16">
+                                    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                                </svg>
+                            </span>
+                        @endif
+                    </div>
+                    @if($order->isBankkcard())
+                        <div class="d-flex">
+                            <span class="icon text-info-pastel mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-credit-card" viewBox="0 0 16 16">
+                                    <path
+                                        d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
+                                    <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
+                                </svg>
+                            </span>
+                            <p class="mb-0 text-info-pastel">Bankkártyás</p>
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="col">

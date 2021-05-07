@@ -218,6 +218,13 @@ class Order extends Model
     }
 
     /**
+     * @return bool
+     */
+    public function isBankkcard(): bool {
+        return $this->payment_method_name == 'Online bankkártyás fizetés';
+    }
+
+    /**
      * Visszaadja, hogy a megrendelés a bejelentkezett felhasználó munkalapján szerepel-e.
      *
      * @return bool
