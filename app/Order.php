@@ -514,12 +514,18 @@ class Order extends Model
         $income->gross_value = $this->total_gross;
         $income->name        = 'Megrendelés';
         $income->user_id     = $this->reseller_id;
-        $income->comment     = sprintf('#%s megrendelésszám (%s %s)', $this->inner_id, $this->firstname, $this->lastname);
+        $income->comment     = sprintf('#%s megrendelésszám (%s %s)', $this->id, $this->firstname, $this->lastname);
         $income->tax_value   = $this->total_gross - ($this->total_gross / 1.27);
         $income->date        = $date ? $date : $this->created_at;
         $success             = $income->save();
 
-        Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->inner_id, $this->total_gross));
+        if (! $this->income) {
+            $this->income_id = $income->id;
+            $this->save();
+            $this->refresh();
+        }
+
+        Log::info(sprintf('A #%s megrendelésszámhoz tartozó bevétel elmentve. (%s Ft)', $this->id, $this->total_gross));
 
         return $success;
     }
