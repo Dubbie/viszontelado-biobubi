@@ -182,6 +182,8 @@
             const ordersCount = document.getElementById('toolbar-order-counter');
             const toolbar = document.getElementById('toolbar-orders');
             const $inputOrderIds = $('.mass-order-id-input');
+            const statusSelect = document.getElementById('order-status-href');
+            const paymentMethodgroup = document.getElementById('payment-method-group');
 
             /**
              * Visszaállítja a checkboxokat.
@@ -232,6 +234,16 @@
             $('.form-complete-order').on('submit', e => {
                 if (!confirm('Biztosan teljesíted a megrendelést?')) {
                     e.preventDefault();
+                }
+            });
+
+            $(statusSelect).on('change', e => {
+                if (statusSelect.options[statusSelect.selectedIndex].value === 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=') {
+                    $(paymentMethodgroup).slideDown();
+                    $(paymentMethodgroup).find('select')[0].required = true;
+                } else {
+                    $(paymentMethodgroup).slideUp();
+                    $(paymentMethodgroup).find('select')[0].required = false;
                 }
             });
 

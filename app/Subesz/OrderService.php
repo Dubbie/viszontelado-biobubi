@@ -225,14 +225,6 @@ class OrderService
     }
 
     /**
-     * @param $resourceId
-     * @return mixed
-     */
-    public function getLocalOrderByResourceId($resourceId) {
-        return Order::where('inner_resource_id', $resourceId)->first();
-    }
-
-    /**
      * Visszaadja a megrendelésből a megrendelt termékeket és darabszámukat.
      *
      * @param  array  $order
@@ -350,5 +342,26 @@ class OrderService
         }
 
         return $response;
+    }
+
+    /**
+     * @param  string  $orderResourceId
+     * @param  string  $paymentMethod
+     */
+    public function updatePaymentMethod(string $orderResourceId, string $paymentMethod) {
+        /** @var Order $lo */
+        $lo                       = $this->getLocalOrderByResourceId($orderResourceId);
+        $lo->final_payment_method = $paymentMethod;
+        $lo->save();
+
+        Log::info(sprintf('Új fizetési mód elmentve a megrendeléshez! (ID: %s, %s)', $lo->id, $paymentMethod));
+    }
+
+    /**
+     * @param $resourceId
+     * @return mixed
+     */
+    public function getLocalOrderByResourceId($resourceId) {
+        return Order::where('inner_resource_id', $resourceId)->first();
     }
 }

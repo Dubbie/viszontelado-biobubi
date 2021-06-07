@@ -173,6 +173,11 @@ class ShoprenterController extends Controller
             $localOrder->status_color         = '#ff00ff';
             $localOrder->created_at           = date('Y-m-d H:i:s');
 
+            // Eldöntjük, hogy kapjon-e online fizetéses végső fizetés típust
+            if ($localOrder->isBankkcard()) {
+                $localOrder->final_payment_method = 'Online Bankkártya';
+            }
+
             if (! $localOrder->save()) {
                 return ['success' => false];
             }

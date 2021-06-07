@@ -45,18 +45,19 @@
         @yield('content')
 
         <footer id="footer">
-           <div class="container py-3">
-               <p class="mb-0">
-                   <small>
-                       <span class="ml-4">&copy;{{ date('Y') }} SemmiSzemét Viszonteladó Portál</span>
-                       <span class="px-2 text-muted">•</span>
-                       <span><a href="https://dubbie.github.io">@mihodaniel</a></span>
-                   </small>
-               </p>
-           </div>
+            <div class="container py-3">
+                <p class="mb-0">
+                    <small>
+                        <span class="ml-4">&copy;{{ date('Y') }} SemmiSzemét Viszonteladó Portál</span>
+                        <span class="px-2 text-muted">•</span>
+                        <span><a href="https://dubbie.github.io">@mihodaniel</a></span>
+                    </small>
+                </p>
+            </div>
         </footer>
 
         @include('modal.worksheet')
+        @include('modal.payment-method')
     </div>
 </div>
 
@@ -69,17 +70,19 @@
 
 {{-- Tooltipek a sidebarnak --}}
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         function showSidebar() {
             body.classList.add('sidebar-on');
             sidebar.classList.add('show');
             pageOverlay.show();
         }
+
         function hideSidebar() {
             body.classList.remove('sidebar-on');
             sidebar.classList.remove('show');
             pageOverlay.hide();
         }
+
         var body = $('body')[0];
         var sidebar = $('.sidebar')[0];
         var btnMobileToggle = $('.btn-mobile-nav');
@@ -97,6 +100,11 @@
 
         $('.has-tooltip[data-toggle="tooltip"]').tooltip();
 
+        // Kifizetés módja gomb
+        const pmOrderId = document.getElementById('payment-method-order-id');
+        $('.btn-payment-method-chooser').on('click', e => {
+            pmOrderId.value = e.currentTarget.dataset.orderId;
+        });
         // Inicializálja a custom file inputot.
         // bsCustomFileInput.init();
     });

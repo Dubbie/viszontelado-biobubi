@@ -170,8 +170,9 @@ class OrderController extends Controller
      */
     public function massUpdateStatus(Request $request) {
         $data = $request->validate([
-            'mos-order-ids'     => 'required',
-            'order-status-href' => 'required',
+            'mos-order-ids'      => 'required',
+            'order-status-href'  => 'required',
+            'mos-payment-method' => 'required_if:order-status-href,b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=',
         ]);
 
         // Átalakítjuk a bemenetet
@@ -183,6 +184,11 @@ class OrderController extends Controller
         // Végigmegyünk a kijelölésen
         $successCount = 0;
         foreach ($orderIds as $orderId) {
+            // Ha Teljesítve a státusz, akkor kérjük el, hogy mi is volt a fizetés módja
+            if (array_key_exists('mos-payment-method', $data) && $statusId == 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=') {
+                $this->orderService->updatePaymentMethod($orderId, $data['mos-payment-method']);
+            }
+
             // Frissítjük az új státuszra
             $result = $this->orderService->updateStatus($orderId, $statusId);
             if ($result['success']) {
@@ -208,8 +214,12 @@ class OrderController extends Controller
      */
     public function completeOrder(Request $request) {
         $data = $request->validate([
-            'order-id' => 'required',
+            'order-id'       => 'required',
+            'payment-method' => 'required',
         ]);
+
+        // Frissítjük, a kifizetés módját
+        $this->orderService->updatePaymentMethod($data['order-id'], $data['payment-method']);
 
         // Teljesítve státusz azonosítója
         $statusId  = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=';
