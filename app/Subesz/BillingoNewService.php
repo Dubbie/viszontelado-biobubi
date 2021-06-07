@@ -106,18 +106,20 @@ class BillingoNewService
             }
 
             // Leellenőrizzük, hogy végül mi lett a kifizetés módja
-            if ($localOrder->final_payment_method == 'Készpénz') {
-                $documentInsertData['payment_method'] = PaymentMethod::CASH_ON_DELIVERY;
-                Log::info('A kifizetés módja Készpénz volt');
-            } else {
-                if ($localOrder->final_payment_method == 'Bankkártya') {
-                    $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
-                    Log::info('A kifizetés módja Bankkártya volt');
+            if (! $draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD) {
+                if ($localOrder->final_payment_method == 'Készpénz') {
+                    $documentInsertData['payment_method'] = PaymentMethod::CASH_ON_DELIVERY;
+                    Log::info('A kifizetés módja Készpénz volt');
                 } else {
-                    if ($localOrder->final_payment_method == 'Online Bankkártya') {
-                        Log::info('A kifizetés módja Online Bankkártya volt');
+                    if ($localOrder->final_payment_method == 'Bankkártya') {
+                        $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
+                        Log::info('A kifizetés módja Bankkártya volt');
                     } else {
-                        Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
+                        if ($localOrder->final_payment_method == 'Online Bankkártya') {
+                            Log::info('A kifizetés módja Online Bankkártya volt');
+                        } else {
+                            Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
+                        }
                     }
                 }
             }
