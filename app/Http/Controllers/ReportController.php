@@ -87,6 +87,8 @@ class ReportController extends Controller
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function regenerateReports() {
+        /** @var ReportService $repService */
+        $repService = resolve('App\Subesz\ReportService');
         Log::info('Havi riportok újragenerálásának megkezdése...');
         $start = microtime(true);
 
@@ -105,8 +107,6 @@ class ReportController extends Controller
         $now    = Carbon::now();
         while ($rsDate <= $now) {
             /** @var User $reseller */
-            /** @var ReportService $repService */
-            $repService = resolve('App\Subesz\ReportService');
             foreach ($this->userService->getResellers() as $reseller) {
                 $repService->generateReportByDate($reseller, $rsDate);
             }

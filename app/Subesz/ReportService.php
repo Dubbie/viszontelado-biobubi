@@ -68,6 +68,7 @@ class ReportService
         $report->gross_income     = $incomes->gross_income ?? 0;
         $report->delivered_orders = $deliveries->count;
         $report->created_at       = $startDate;
+
         $report->save();
         foreach ($products as $product) {
             $rp              = new ReportProducts();

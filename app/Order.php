@@ -510,13 +510,20 @@ class Order extends Model
             return true;
         }
 
+        $realDate = $this->created_at;
+        if (! $date) {
+            if ($this->delivery) {
+                $realDate = $this->delivery->delivered_at;
+            }
+        }
+
         $income              = $this->income ?? new Income();
         $income->gross_value = $this->total_gross;
         $income->name        = 'Megrendelés';
         $income->user_id     = $this->reseller_id;
         $income->comment     = sprintf('#%s megrendelésszám (%s %s)', $this->id, $this->firstname, $this->lastname);
         $income->tax_value   = $this->total_gross - ($this->total_gross / 1.27);
-        $income->date        = $date ? $date : $this->created_at;
+        $income->date        = $realDate;
         $success             = $income->save();
 
         if (! $this->income) {
