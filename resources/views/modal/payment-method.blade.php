@@ -21,6 +21,7 @@
                             <option value="">Kérlek válassz fizetési módot...</option>
                             <option value="Készpénz">Készpénz</option>
                             <option value="Bankkártya">Bankkártya (Terminál)</option>
+                            <option value="Átutalás">Átutalás</option>
                         </select>
                     </div>
                 </div>
