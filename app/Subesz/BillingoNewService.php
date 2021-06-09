@@ -109,7 +109,7 @@ class BillingoNewService
             if (! $draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD) {
                 switch ($localOrder->final_payment_method) {
                     case 'Készpénz':
-                        $documentInsertData['payment_method'] = PaymentMethod::CASH_ON_DELIVERY;
+                        $documentInsertData['payment_method'] = PaymentMethod::CASH;
                         Log::info('A kifizetés módja Készpénz volt');
                         break;
                     case 'Bankkártya':
