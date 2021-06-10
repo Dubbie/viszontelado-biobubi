@@ -106,26 +106,19 @@ class BillingoNewService
             }
 
             // Leellenőrizzük, hogy végül mi lett a kifizetés módja
-            if (! $draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD) {
-                switch ($localOrder->final_payment_method) {
-                    case 'Készpénz':
-                        $documentInsertData['payment_method'] = PaymentMethod::CASH;
-                        Log::info('A kifizetés módja Készpénz volt');
-                        break;
-                    case 'Bankkártya':
-                        $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
-                        Log::info('A kifizetés módja Bankkártya volt');
-                        break;
-                    case 'Átutalás':
-                        $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
-                        Log::info('A kifizetés módja Átutalás volt');
-                        break;
-                    case 'Online Bankkártya':
-                        Log::info('A kifizetés módja Online Bankkártya volt');
-                        break;
-                    default:
-                        Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
-                        break;
+            Log::info('Fizetési mód eldöntése...');
+            if ($localOrder->payment_method_name == 'Utánvétel') {
+                if ($localOrder->final_payment_method == 'Készpénz') {
+                    $documentInsertData['payment_method'] = PaymentMethod::CASH;
+                    Log::info('A kifizetés módja Készpénz volt');
+                } elseif ($localOrder->final_payment_method == 'Bankkártya') {
+                    $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
+                    Log::info('A kifizetés módja Bankkártya volt');
+                } elseif ($localOrder->final_payment_method == 'Átutalás') {
+                    $documenstInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
+                    Log::info('A kifizetés módja Átutalás volt');
+                } else {
+                    Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
                 }
             }
 
@@ -159,7 +152,7 @@ class BillingoNewService
                 Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
 
                 // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
-                $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller, $localOrder);
+                return $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller, $localOrder);
             }
         }
 
