@@ -115,7 +115,7 @@ class BillingoNewService
                     $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
                     Log::info('A kifizetés módja Bankkártya volt');
                 } elseif ($localOrder->final_payment_method == 'Átutalás') {
-                    $documenstInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
+                    $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
                     Log::info('A kifizetés módja Átutalás volt');
                 } else {
                     Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);

@@ -344,7 +344,7 @@ class ShoprenterService
         ]);
 
         if (! \Auth::user()->admin) {
-            $query->where('name', 'NOT LIKE', '%FOXPOST%');
+            $query->where('name', 'NOT LIKE', '%FOXPOST%')->where('name', 'NOT LIKE', 'GLS%');
         }
 
         return $query->get();
