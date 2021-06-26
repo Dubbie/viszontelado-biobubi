@@ -110,6 +110,7 @@ class BillingoNewService
             if ($localOrder->payment_method_name == 'Utánvétel') {
                 if ($localOrder->final_payment_method == 'Készpénz') {
                     $documentInsertData['payment_method'] = PaymentMethod::CASH;
+                    $documentInsertData['due_date']       = date('Y-m-d');
                     Log::info('A kifizetés módja Készpénz volt');
                 } elseif ($localOrder->final_payment_method == 'Bankkártya') {
                     $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
