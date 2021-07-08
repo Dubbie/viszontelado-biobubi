@@ -203,6 +203,10 @@
                                         <p class="mb-0"><b>{{ $to->order->firstname }} {{ $to->order->lastname }}</b>
                                         </p>
                                         <p class="mb-0">{{ $to->order->getFormattedAddress() }}</p>
+                                        @if($to->order->invoice_id)
+                                            <a href="{{ action('OrderController@downloadInvoice', ['orderId' => $to->order->invoice_id]) }}"
+                                               class="btn btn-sm btn-success mt-2">Számla letöltése</a>
+                                        @endif
                                     </div>
                                     <div class="col-12 col-md-5 text-md-right">
                                         <p class="h3 font-weight-semibold mb-0">@money($to->order->total_gross)<small
