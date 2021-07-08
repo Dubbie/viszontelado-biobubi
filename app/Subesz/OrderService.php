@@ -100,15 +100,10 @@ class OrderService
 
         // Státusz
         if (array_key_exists('status', $filter)) {
-            $orders = $orders->where('status_text', '=', $filter['status']);
-        }
-
-        // Státusz
-        if (array_key_exists('delivered', $filter)) {
-            if ($filter['delivered'] == true) {
-                $orders = $orders->delivered();
-            } else {
+            if ($filter['status'] == 'ONGOING') {
                 $orders = $orders->pending();
+            } else {
+                $orders = $orders->where('status_text', '=', $filter['status']);
             }
         }
 
