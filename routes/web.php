@@ -119,12 +119,13 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
     Route::post('/megrendelesek/tomeges/allapot/frissites', 'OrderController@massUpdateStatus');
+    Route::get('/megrendelesek/{orderId}/szamla-letoltese', 'OrderController@downloadInvoice');
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
     Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
-	
-	//Javascript számára megjegyzéseket küld vissza, HTML/Text.
-	Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
+
+    //Javascript számára megjegyzéseket küld vissza, HTML/Text.
+    Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
 
     // Munkalapos dolgok
     Route::post('/munkalap/hozzaadas', 'WorksheetController@add');
@@ -186,13 +187,13 @@ Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
  * Runs database migrations
  */
 Route::get("/migrate/{secret}", function ($secret) {
-	if ($secret != env("MAINTENANCE_TOKEN")) {
-		abort(403, "Invalid maintenance token.");
-	}
+    if ($secret != env("MAINTENANCE_TOKEN")) {
+        abort(403, "Invalid maintenance token.");
+    }
 
-	Artisan::call('migrate', ['--force' => true]);
+    Artisan::call('migrate', ['--force' => true]);
 
-	return redirect('/')->with([
-		'success' => 'Migráció sikeresen lefuttatva!',
-	]);
+    return redirect('/')->with([
+        'success' => 'Migráció sikeresen lefuttatva!',
+    ]);
 });

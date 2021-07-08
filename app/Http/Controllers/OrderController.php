@@ -331,6 +331,23 @@ class OrderController extends Controller
         ]);
     }
 
+    public function downloadInvoice($localOrderId) {
+        $order = Auth::user()->orders->find($localOrderId);
+        if (Auth::user()->admin) {
+            $order = Order::find($localOrderId);
+        }
+
+        if (! $order) {
+            return redirect(action('OrderController@index'))->with([
+                'error' => 'A fiókodhoz nem tartozik ilyen azonosítójú megrendelés.',
+            ]);
+        }
+
+        $bs = resolve('App\Subesz\BillingoNewService');
+
+        return $bs->downloadInvoiceWithoutSaving($order->invoice_id, $order->reseller);
+    }
+
     /***
      * @param  Request  $request
      * @param           $orderID
