@@ -174,7 +174,6 @@
             <div class="form-group mt-4 mb-0 text-right">
                 @if($localOrder->invoice_id)
                     <a href="{{ action('OrderController@downloadInvoice', ['orderId' => $localOrder->id]) }}"
-                       target="_blank"
                        class="btn btn-sm btn-primary">Számla letöltése</a>
                 @endif
                 <button type="button" class="btn btn-sm btn-outline-success btn-order-status-details"
