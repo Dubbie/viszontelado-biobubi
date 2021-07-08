@@ -129,6 +129,7 @@ Route::group(['middleware' => 'auth'], function () {
 
     // Munkalapos dolgok
     Route::post('/munkalap/hozzaadas', 'WorksheetController@add');
+    Route::post('/munkalap/hozzaadas/tomeges', 'WorksheetController@addMultiple');
     Route::post('/munkalap/torles', 'WorksheetController@remove');
 
     // Szállítólevél

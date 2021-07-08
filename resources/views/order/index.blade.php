@@ -30,23 +30,6 @@
                     </select>
                 </div>
 
-                {{--                <div id="filter-completed-container" class="form-group col-xl-2 col-lg-5 col-md-4">--}}
-                {{--                    <label for="filter-delivered">Kiszállítva</label>--}}
-                {{--                    <select name="filter-delivered" id="filter-delivered" class="custom-select custom-select-sm">--}}
-                {{--                        <option value="">Mindegy</option>--}}
-                {{--                        <option--}}
-                {{--                            value="true"--}}
-                {{--                            @if(array_key_exists('delivered', $filter) && $filter['delivered'] == true) selected @endif>--}}
-                {{--                            Igen--}}
-                {{--                        </option>--}}
-                {{--                        <option--}}
-                {{--                            value="false"--}}
-                {{--                            @if(array_key_exists('delivered', $filter) && $filter['delivered'] == false) selected @endif>--}}
-                {{--                            Nem--}}
-                {{--                        </option>--}}
-                {{--                    </select>--}}
-                {{--                </div>--}}
-
                 @if(Auth::user()->regions()->count() > 0)
                     <div class="form-group col-xl-3 col-lg-5 col-md-4">
                         <label for="filter-region">Régió</label>
