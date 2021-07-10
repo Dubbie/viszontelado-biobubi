@@ -107,12 +107,18 @@ class UserController extends Controller
         $selectedReport    = null;
         $selectedMarketing = null;
         $active            = 'user-details';
+        $year              = $request->input('year') ?? null;
+        $selectedReports   = null;
+        $reportView        = 'monthly-reports';
+        //alapból havi nézetet jelenítsünk meg ^
 
         if ($date) {
             $carbonDate        = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $date.'-01 00:00:01');
             $selectedReport    = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
             $selectedMarketing = $user->marketingResults()->whereDate('date', '=', $carbonDate->format('Y-m-d'))->first();
-            $active            = 'user-monthly-reports';
+
+            $active     = 'user-reports';
+            $reportView = 'monthly-reports';
         } else {
             $selectedReport = $user->reports->last();
 
@@ -120,12 +126,33 @@ class UserController extends Controller
                 $selectedMarketing = $user->marketingResults()->where('date', '=', $selectedReport->created_at->format('Y-m-d'))->first();
             }
         }
+        //ha van évünk megadva
+        if ($year) {
+            $carbonDate      = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $year.'-01-01 00:00:01');
+            $selectedReport  = $user->reports()->whereDate('created_at', '=', $carbonDate->format('Y-m-d'))->first();
+            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
+            $active          = 'user-reports';
+            $reportView      = 'yearly-reports';
+        } else {
+            //ha nincs év megadva, kell egy alap időt adni neki, amivel kereshet
+            $carbonDate      = Carbon::now();
+            $selectedReports = User::find($userId)->reports()->whereBetween('created_at', [
+                $carbonDate->startOfYear()->format('Y-m-d H:i:s'),
+                $carbonDate->endOfYear()->format('Y-m-d H:i:s'),
+            ])->orderByDesc('created_at')->get();
+        }
 
         return view('user.show')->with([
             'user'              => $user,
             'selectedReport'    => $selectedReport,
             'selectedMarketing' => $selectedMarketing,
             'activeTab'         => $active,
+            'selectedReports'   => $selectedReports,
+            'selectedYear'      => $year,
+            'reportView'        => $reportView,
         ]);
     }
 
@@ -183,26 +210,26 @@ class UserController extends Controller
      */
     public function update($userId, Request $request) {
         $data = $request->validate([
-            'u-name'               => 'required',
-            'u-email'              => 'required|email|unique:users,email,'.$userId,
-            'u-aam'                => 'nullable',
-            'u-billingo-api-key'   => 'nullable',
-            'u-block-uid'          => 'nullable',
-            'u-billing-name'       => 'nullable',
-            'u-billing-zip'        => 'nullable',
-            'u-billing-city'       => 'required_with:u-billing-zip|nullable',
-            'u-billing-address1'   => 'required_with:u-billing-zip|nullable',
-            'u-billing-address2'   => 'nullable',
-            'u-billing-tax-number' => 'nullable',
+            'u-name'                   => 'required',
+            'u-email'                  => 'required|email|unique:users,email,'.$userId,
+            'u-aam'                    => 'nullable',
+            'u-billingo-api-key'       => 'nullable',
+            'u-block-uid'              => 'nullable',
+            'u-billing-name'           => 'nullable',
+            'u-billing-zip'            => 'nullable',
+            'u-billing-city'           => 'required_with:u-billing-zip|nullable',
+            'u-billing-address1'       => 'required_with:u-billing-zip|nullable',
+            'u-billing-address2'       => 'nullable',
+            'u-billing-tax-number'     => 'nullable',
             'u-billing-account-number' => 'nullable',
-            'u-shipping-name' => 'nullable',
-            'u-shipping-email' => 'nullable',
-            'u-shipping-phone' => 'nullable',
-            'u-shipping-zip' => 'nullable',
-            'u-shipping-city' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address1' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address2' => 'nullable',
-            'u-marketing-balance'  => 'required',
+            'u-shipping-name'          => 'nullable',
+            'u-shipping-email'         => 'nullable',
+            'u-shipping-phone'         => 'nullable',
+            'u-shipping-zip'           => 'nullable',
+            'u-shipping-city'          => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address1'      => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address2'      => 'nullable',
+            'u-marketing-balance'      => 'required',
         ]);
 
         $user                   = User::find($userId);
@@ -252,13 +279,13 @@ class UserController extends Controller
             $shippingAddress = $as->storeAddress($data['u-shipping-zip'], $data['u-shipping-city'], $data['u-shipping-address1'], $data['u-shipping-address2']);
 
             // Mentsük el az egyéb adatokat
-            $ud->billing_name = $data['u-billing-name'];
-            $ud->billing_tax_number = $data['u-billing-tax-number'];
+            $ud->billing_name           = $data['u-billing-name'];
+            $ud->billing_tax_number     = $data['u-billing-tax-number'];
             $ud->billing_account_number = $data['u-billing-account-number'];
-            $ud->shipping_email = $data['u-shipping-email'];
-            $ud->shipping_phone = $data['u-shipping-phone'];
-            $ud->billing_address_id = $billingAddress ? $billingAddress->id : null;
-            $ud->shipping_address_id = $shippingAddress ? $shippingAddress->id : null;
+            $ud->shipping_email         = $data['u-shipping-email'];
+            $ud->shipping_phone         = $data['u-shipping-phone'];
+            $ud->billing_address_id     = $billingAddress ? $billingAddress->id : null;
+            $ud->shipping_address_id    = $shippingAddress ? $shippingAddress->id : null;
 
             $ud->save();
         } else {

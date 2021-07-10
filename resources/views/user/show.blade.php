@@ -36,7 +36,7 @@
                         <a class="nav-link" data-toggle="tab" href="#user-stock">Készlet</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#user-monthly-reports">Havi riportok</a>
+                        <a href="#user-reports" data-toggle="tab" class="nav-link">Riportok</a>
                     </li>
                 </ul>
                 <div class="card card-body tab-content">
@@ -49,8 +49,8 @@
                     <div id="user-stock" class="tab-pane fade">
                         @include('inc.reseller-stock')
                     </div>
-                    <div id="user-monthly-reports" class="tab-pane fade">
-                        @include('inc.reseller-monthly-reports')
+                    <div id="user-reports" class="tab-pane fade">
+                        @include('inc.reseller-report-chooser')
                     </div>
                 </div>
             </div>
@@ -79,11 +79,6 @@
                 $('.btn-toggle-rs-add-modal').on('click', e => {
                     $(rsAddForm).find('input[name="rs-add-reseller-id"]')[0].value = e.currentTarget.dataset.resellerId;
                     updateRsAddDynamicElements();
-                });
-
-                // Riport választó
-                $('#date').on('change', e => {
-                    $(e.currentTarget).closest('form').submit();
                 });
 
                 $(document).on('click', '.btn-remove-cs-row', e => {
@@ -199,8 +194,8 @@
                 for (const el of $('#newCentralStock').find('.cs-row')) {
                     const grossPrice = $(el).find('select[name="cs-new-product[]"] option:selected')[0].dataset.grossPrice;
                     const qty = $(el).find('input[name="cs-new-product-qty[]"]')[0].value;
-                    $(el).find('.cs-gross-price')[0].innerText = grossPrice.toLocaleString()  + ' Ft';
-                    $(el).find('.cs-total-price')[0].innerText = (grossPrice * qty).toLocaleString()  + ' Ft';
+                    $(el).find('.cs-gross-price')[0].innerText = grossPrice.toLocaleString() + ' Ft';
+                    $(el).find('.cs-total-price')[0].innerText = (grossPrice * qty).toLocaleString() + ' Ft';
                 }
             }
 
@@ -209,8 +204,8 @@
                 for (const el of $(rsAddForm).find('.rs-row')) {
                     const grossPrice = $(el).find('select[name="rs-add-stock[]"] option:selected')[0].dataset.grossPrice;
                     const qty = $(el).find('input[name="rs-add-stock-qty[]"]')[0].value;
-                    $(el).find('.rs-gross-price')[0].innerText = grossPrice.toLocaleString()  + ' Ft';
-                    $(el).find('.rs-total-price')[0].innerText = (grossPrice * qty).toLocaleString()  + ' Ft';
+                    $(el).find('.rs-gross-price')[0].innerText = grossPrice.toLocaleString() + ' Ft';
+                    $(el).find('.rs-total-price')[0].innerText = (grossPrice * qty).toLocaleString() + ' Ft';
                 }
             }
 
