@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -12,6 +11,7 @@ class RegularOrderCompleted extends Mailable
     use Queueable, SerializesModels;
 
     private $order;
+
     private $invoicePath;
 
     /**
@@ -20,9 +20,8 @@ class RegularOrderCompleted extends Mailable
      * @param $order
      * @param $invoicePath
      */
-    public function __construct($order, $invoicePath)
-    {
-        $this->order = $order;
+    public function __construct($order, $invoicePath) {
+        $this->order       = $order;
         $this->invoicePath = $invoicePath;
     }
 
@@ -31,11 +30,11 @@ class RegularOrderCompleted extends Mailable
      *
      * @return $this
      */
-    public function build()
-    {
-        \Log::info(storage_path('app/' . $this->invoicePath));
-        return $this->markdown('emails.orders.regular-completed')->subject('Fontos infók a levélben')->with([
+    public function build() {
+        \Log::info(storage_path('app/'.$this->invoicePath));
+
+        return $this->markdown('emails.orders.regular-completed')->subject('BioBubi Számla')->with([
             'order' => $this->order,
-        ])->attach(storage_path('app/' . $this->invoicePath));
+        ])->attach(storage_path('app/'.$this->invoicePath));
     }
 }

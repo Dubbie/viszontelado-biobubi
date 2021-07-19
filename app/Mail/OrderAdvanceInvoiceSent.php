@@ -34,7 +34,7 @@ class OrderAdvanceInvoiceSent extends Mailable
     public function build() {
         Log::info(storage_path('app/'.$this->advanceInvoicePath));
 
-        return $this->markdown('emails.orders.advance')->subject('Fontos infók a levélben')->with([
+        return $this->markdown('emails.orders.advance')->subject('BioBubi Előlegszámla')->with([
             'order' => $this->order,
         ])->attach(storage_path('app/'.$this->advanceInvoicePath));
     }
