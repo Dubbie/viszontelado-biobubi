@@ -142,35 +142,99 @@ class OrderService
             return false;
         }
 
-        $local->fill([
-            'inner_id'             => $order->innerId,
-            'inner_resource_id'    => $order->id,
-            'total'                => $total,
-            'total_gross'          => $totalGross,
-            'tax_price'            => $taxPrice,
-            'firstname'            => $order->firstname,
-            'lastname'             => $order->lastname,
-            'email'                => $order->email,
-            'phone'                => $order->phone,
-            'status_text'          => $this->statusMap[$orderStatusId]['name'],
-            'status_color'         => $this->statusMap[$orderStatusId]['color'],
-            'shipping_method_name' => $order->shippingMethodName,
-            'payment_method_name'  => $order->paymentMethodName,
-            'shipping_postcode'    => $order->shippingPostcode,
-            'shipping_city'        => $order->shippingCity,
-            'shipping_address'     => sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2),
-            'created_at'           => date('Y-m-d H:i:s', strtotime($order->dateCreated)),
-            'updated_at'           => date('Y-m-d H:i:s'),
-        ]);
+        // Változások...
+        $changed = false;
+        //if ($local->total != $total) {
+        //    Log::info('A teljes összeg nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->total_gross != $totalGross) {
+        //    Log::info('A teljes bruttó összeg nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->tax_price != $taxPrice) {
+        //    Log::info('Az áfa összeg nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->firstname != $order->firstname) {
+        //    Log::info('A first name nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->lastname != $order->lastname) {
+        //    Log::info('A last name nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->email != $order->email) {
+        //    Log::info('Az email nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->phone != $order->phone) {
+        //    Log::info('Az email nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->status_text != $this->statusMap[$orderStatusId]['name']) {
+        //    Log::info('A státusz nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->shipping_method_name != $order->shippingMethodName) {
+        //    Log::info('A szállítás módja nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->payment_method_name != $order->paymentMethodName) {
+        //    Log::info('A kifizetés módja nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->shipping_postcode != $order->shippingPostcode) {
+        //    Log::info('A szállítási irányítószám nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->shipping_city != $order->shippingCity) {
+        //    Log::info('A szállítási irányítószám módja nem ugyanaz.');
+        //    $changes++;
+        //}
+        //if ($local->shipping_address != sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2)) {
+        //    Log::info('A szállítási cím nem ugyanaz.');
+        //    $changes++;
+        //}
+        if ($local->total != $total || $local->total_gross != $totalGross || $local->tax_price != $taxPrice || $local->firstname != $order->firstname || $local->lastname != $order->lastname || $local->email != $order->email || $local->phone != $order->phone || $local->status_text != $this->statusMap[$orderStatusId]['name'] || $local->shipping_method_name != $order->shippingMethodName || $local->payment_method_name != $order->paymentMethodName || $local->shipping_postcode != $order->shippingPostcode || $local->shipping_city != $order->shippingCity || $local->shipping_address != sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2)) {
+            $changed = true;
+        }
 
-        if ($local->save()) {
-            if (! $muted) {
-                Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+        if ($changed) {
+            Log::info('Változott');
+
+            $local->fill([
+                'inner_id'             => $order->innerId,
+                'inner_resource_id'    => $order->id,
+                'total'                => $total,
+                'total_gross'          => $totalGross,
+                'tax_price'            => $taxPrice,
+                'firstname'            => $order->firstname,
+                'lastname'             => $order->lastname,
+                'email'                => $order->email,
+                'phone'                => $order->phone,
+                'status_text'          => $this->statusMap[$orderStatusId]['name'],
+                'status_color'         => $this->statusMap[$orderStatusId]['color'],
+                'shipping_method_name' => $order->shippingMethodName,
+                'payment_method_name'  => $order->paymentMethodName,
+                'shipping_postcode'    => $order->shippingPostcode,
+                'shipping_city'        => $order->shippingCity,
+                'shipping_address'     => sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2),
+                'created_at'           => date('Y-m-d H:i:s', strtotime($order->dateCreated)),
+                'updated_at'           => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($local->save()) {
+                if (! $muted) {
+                    Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+                }
+
+                return $local;
+            } else {
+                return false;
             }
-
-            return $local;
         } else {
-            return false;
+            return $local;
         }
     }
 

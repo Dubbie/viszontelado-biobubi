@@ -47,6 +47,8 @@ class ShoprenterController extends Controller
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
     public function updateOrders($privateKey) {
+        set_time_limit(0);
+
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
             Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
@@ -57,6 +59,7 @@ class ShoprenterController extends Controller
         }
 
         Log::info('-- Shoprenter API-ból frissítés megkezdése --');
+
         $start = Carbon::now();
         $osds  = $this->shoprenterApi->getAllStatuses();
         if (! $osds || ! property_exists($osds, 'items')) {
@@ -65,16 +68,6 @@ class ShoprenterController extends Controller
             return redirect(action('UserController@home'))->with([
                 'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
             ]);
-        }
-
-        $statusMap = [];
-        foreach ($osds->items as $osd) {
-            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
-
-            $statusMap[$orderStatusId] = [
-                'name'  => $osd->name,
-                'color' => $osd->color,
-            ];
         }
 
         $orders = $this->shoprenterApi->getBatchedOrders();
@@ -86,50 +79,41 @@ class ShoprenterController extends Controller
             ]);
         }
 
-        $successCount   = 0;
-        $orderResources = [];
+        $successCount       = 0;
+        $ordersByResourceId = [];
+        $muted              = true;
         foreach ($orders as $order) {
-            $orderResources[] = $order->id;
-
-            $muted = true;
-            if (env('APP_ENV') != 'local') {
-                if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
-                    $successCount++;
-                }
-            } else {
-                if (! $this->orderService->getLocalOrderByResourceId($order->id)) {
-                    if ($local = $this->orderService->updateLocalOrder($order, $muted)) {
-                        $successCount++;
-                    }
-                }
-            }
+            $ordersByResourceId[$order->id] = $order;
         }
 
         // Töröljük ki azokat amik már nincsenek a rendszerbe
-        $notFound = Order::whereNotIn('inner_resource_id', $orderResources)->where('created_at', '<', $start)->get();
+        $notFound = Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->get();
         if (count($notFound) > 0) {
             Log::debug('- Nem talált inner resource ID: -');
             /** @var Order $order */
             foreach ($notFound as $order) {
                 Log::debug($order->inner_resource_id);
+                $successCount++;
             }
             Log::debug('- Nem talált inner resource ID vége -');
         }
-        Order::whereNotIn('inner_resource_id', $orderResources)->where('created_at', '<', $start)->delete();
+        Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->delete();
 
-        if ($successCount == count($orders)) {
-            $elapsed = $start->floatDiffInSeconds();
-            Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
-            Log::info('-- Shoprenter API-ból frissítés vége --');
-
-            return redirect(action('OrderController@index'))->with([
-                'success' => sprintf('%s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed),
-            ]);
-        } else {
-            return redirect(action('OrderController@index'))->with([
-                'error' => 'Hiba történt a megrendelések frissítésekor',
-            ]);
+        // Létrehozzuk az újakat
+        $localOrderIds = Order::select('inner_resource_id')->pluck('inner_resource_id')->toArray();
+        $missing       = array_diff(array_keys($ordersByResourceId), $localOrderIds);
+        foreach ($missing as $newInnerResourceId) {
+            Log::warning('Mi hoztuk létre, lehet hogy itt furcsaságok lesznek mivel nem webhookból jött!!!');
+            $newOrder = $ordersByResourceId[$newInnerResourceId];
+            $this->orderService->updateLocalOrder($newOrder, $muted);
         }
+        $elapsed = $start->floatDiffInSeconds();
+        Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
+        Log::info('-- Shoprenter API-ból frissítés vége --');
+
+        return redirect(action('OrderController@index'))->with([
+            'success' => sprintf('%s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed),
+        ]);
     }
 
     /**
