@@ -116,6 +116,7 @@ class BillingoNewService
                     $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
                     Log::info('A kifizetés módja Bankkártya volt');
                 } elseif ($localOrder->final_payment_method == 'Átutalás') {
+                    $documentInsertData['due_date']       = Carbon::now()->addDays(2);
                     $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
                     Log::info('A kifizetés módja Átutalás volt');
                 } else {
