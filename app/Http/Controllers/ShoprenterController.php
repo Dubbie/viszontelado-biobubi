@@ -105,7 +105,9 @@ class ShoprenterController extends Controller
         foreach ($missing as $newInnerResourceId) {
             Log::warning('Mi hoztuk létre, lehet hogy itt furcsaságok lesznek mivel nem webhookból jött!!!');
             $newOrder = $ordersByResourceId[$newInnerResourceId];
-            $this->orderService->updateLocalOrder($newOrder, $muted);
+            if ($local = $this->orderService->updateLocalOrder($newOrder, $muted)) {
+                $successCount++;
+            }
         }
         $elapsed = $start->floatDiffInSeconds();
         Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
