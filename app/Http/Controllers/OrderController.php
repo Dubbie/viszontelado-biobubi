@@ -6,6 +6,7 @@ use App\Order;
 use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use App\Subesz\WorksheetService;
 use App\User;
@@ -28,27 +29,38 @@ class OrderController extends Controller
     /** @var StockService */
     private $stockService;
 
+    /** @var StatusService */
+    private $statusService;
+
     /** @var WorksheetService */
     private $worksheetService;
+
+    /** @var string */
+    private $creditCardPaidStatus;
 
     /**
      * OrderController constructor.
      *
-     * @param  ShoprenterService  $shoprenterService
-     * @param  OrderService       $orderService
-     * @param  StockService       $stockService
-     * @param  WorksheetService   $worksheetService
+     * @param  ShoprenterService          $shoprenterService
+     * @param  OrderService               $orderService
+     * @param  StockService               $stockService
+     * @param  WorksheetService           $worksheetService
+     * @param  \App\Subesz\StatusService  $statusService
      */
     public function __construct(
         ShoprenterService $shoprenterService,
         OrderService $orderService,
         StockService $stockService,
-        WorksheetService $worksheetService
+        WorksheetService $worksheetService,
+        StatusService $statusService
     ) {
         $this->shoprenterApi    = $shoprenterService;
         $this->orderService     = $orderService;
         $this->stockService     = $stockService;
         $this->worksheetService = $worksheetService;
+        $this->statusService    = $statusService;
+
+        $this->creditCardPaidStatus = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4'; // BK. Függőben lévő
     }
 
     /**
@@ -299,6 +311,11 @@ class OrderController extends Controller
                 $localOrder->draft_invoice_id = $invoice->getId();
                 $localOrder->save();
                 Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // (4.) Ha már ki van fizetve online bankkártyával, akkor küldjünk róla egy új előlegszámlát.
+                if ($this->statusService->getOrderStatusByName($localOrder->status_text)->id == $this->creditCardPaidStatus) {
+                    $localOrder->createAdvanceInvoice();
+                }
             }
 
             $successCount++;

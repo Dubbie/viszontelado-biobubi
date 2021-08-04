@@ -306,6 +306,7 @@ class Order extends Model
                     $this->sendAdvanceInvoice();
                     $response['success'] = true;
                     $response['message'] = 'Előlegszámla sikeresen létrehozva és elküldve az ügyfélnek';
+                    Log::info('Előlegszámla sikeresen létrehozva és elküldve az ügyfélnek');
                 }
             } else {
                 if ($this->draft_invoice_id && $this->advance_invoice_id && $this->advance_invoice_path) {
