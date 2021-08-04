@@ -32,11 +32,15 @@ class BillingoNewService
     /** @var string */
     private $creditCardStatusHref;
 
+    /** @var string */
+    private $creditCardPaidStatusHref;
+
     /**
      * BillingoNewService constructor.
      */
     public function __construct() {
-        $this->creditCardStatusHref = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTEw';
+        $this->creditCardStatusHref     = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTEw';
+        $this->creditCardPaidStatusHref = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4';
     }
 
     /**
@@ -317,7 +321,7 @@ class BillingoNewService
             'type'             => DocumentType::DRAFT,
             'fulfillment_date' => $createdAt->format('Y-m-d'),
             'due_date'         => $due->format('Y-m-d'),
-            'payment_method'   => $statusHref == $this->creditCardStatusHref ? PaymentMethod::ONLINE_BANKCARD : PaymentMethod::CASH_ON_DELIVERY,
+            'payment_method'   => ($statusHref == $this->creditCardStatusHref || $statusHref == $this->creditCardPaidStatusHref) ? PaymentMethod::ONLINE_BANKCARD : PaymentMethod::CASH_ON_DELIVERY,
             'language'         => DocumentLanguage::HU,
             'currency'         => Currency::HUF,
             'conversion_rate'  => 1,
