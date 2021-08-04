@@ -154,4 +154,22 @@ class StatusService
 
         return $response;
     }
+
+    /**
+     * Visszaadja a státuszhoz tartozó színt név alapján.
+     *
+     * @param  string  $string
+     * @return \Illuminate\Database\Eloquent\HigherOrderBuilderProxy|mixed|string
+     */
+    public function getColorByStatusName(string $string) {
+        $os = OrderStatus::where('name', $string)->first();
+
+        if (! $os) {
+            Log::warning(sprintf('Nincs ilyen státusz név (%s)', $string));
+
+            return '#000000';
+        } else {
+            return $os->color;
+        }
+    }
 }

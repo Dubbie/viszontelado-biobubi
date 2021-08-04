@@ -8,6 +8,7 @@ use App\RegionZip;
 use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -25,21 +26,27 @@ class ShoprenterController extends Controller
     /** @var BillingoNewService */
     private $billingoNewService;
 
+    /** @var \App\Subesz\StatusService */
+    private $statusService;
+
     /**
      * ShoprenterController constructor.
      *
-     * @param  OrderService        $orderService
-     * @param  ShoprenterService   $shoprenterService
-     * @param  BillingoNewService  $billingoNewService
+     * @param  OrderService               $orderService
+     * @param  ShoprenterService          $shoprenterService
+     * @param  BillingoNewService         $billingoNewService
+     * @param  \App\Subesz\StatusService  $statusService
      */
     public function __construct(
         OrderService $orderService,
         ShoprenterService $shoprenterService,
-        BillingoNewService $billingoNewService
+        BillingoNewService $billingoNewService,
+        StatusService $statusService
     ) {
         $this->orderService       = $orderService;
         $this->shoprenterApi      = $shoprenterService;
         $this->billingoNewService = $billingoNewService;
+        $this->statusService      = $statusService;
     }
 
     /**
@@ -156,7 +163,7 @@ class ShoprenterController extends Controller
             $localOrder->shipping_method_name = $_order['shippingMethodName'];
             $localOrder->payment_method_name  = $_order['paymentMethodName'];
             $localOrder->status_text          = $_order['orderHistory']['statusText'];
-            $localOrder->status_color         = '#ff00ff';
+            $localOrder->status_color         = $this->statusService->getColorByStatusName($_order['orderHistory']['statusText']);
             $localOrder->created_at           = date('Y-m-d H:i:s');
 
             // Eldöntjük, hogy kapjon-e online fizetéses végső fizetés típust
@@ -236,7 +243,6 @@ class ShoprenterController extends Controller
      *
      */
     public function testShoprenter() {
-
     }
 
     /**
