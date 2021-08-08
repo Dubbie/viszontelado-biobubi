@@ -8,7 +8,7 @@
             </div>
             @if(Auth::user()->admin)
                 <div class="col-12 col-md-auto text-md-right">
-                    <a href="{{ action('MoneyTransferController@chooseReseller') }}" class="btn btn-teal">Átutalás
+                    <a href="{{ action('MoneyTransferController@create') }}" class="btn btn-teal">Átutalás
                         rögzítése</a>
                 </div>
             @endif
@@ -102,7 +102,7 @@
                     @else
                         <p class="lead font-weight-bold">Új átutalás rögzítéséhez kattints az alábbi gombra.</p>
                         <p class="mb-0">
-                            <a href="{{ action('MoneyTransferController@chooseReseller') }}"
+                            <a href="{{ action('MoneyTransferController@create') }}"
                                class="btn btn-sm btn-teal">Átutalás rögzítése</a>
                         </p>
                     @endif

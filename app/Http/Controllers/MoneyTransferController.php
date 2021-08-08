@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\MoneyTransfer;
-use App\Order;
 use App\Subesz\OrderService;
 use App\Subesz\TransferService;
 use App\Subesz\UserService;
-use App\User;
 use Auth;
 use Carbon\Carbon;
 use Exception;
@@ -93,7 +91,7 @@ class MoneyTransferController extends Controller
             }
         }
 
-        $transfers = $transfers->orderBy('completed_at')->orderBy('created_at')->paginate(25);
+        $transfers = $transfers->orderBy('completed_at')->orderByDesc('created_at')->paginate(25);
 
         return view('hq.transfers.index')->with([
             'transfers' => $transfers,
@@ -105,124 +103,46 @@ class MoneyTransferController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function chooseReseller() {
-        return view('hq.transfers.reseller')->with([
-            'resellers' => $this->userService->getResellers(),
-        ]);
-    }
-
-    /**
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function storeReseller(Request $request) {
-        $data = $request->validate([
-            'mt-reseller-id' => 'required|numeric',
-        ]);
-
-        // Elrakjuk sessionbe
-        session()->put($this->sessionResellerKey, intval($data['mt-reseller-id']));
-
-        return redirect(action('MoneyTransferController@chooseOrders'));
-    }
-
-    /**
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|\Illuminate\View\View
-     */
-    public function chooseOrders() {
-        $resellerId = session()->has($this->sessionResellerKey) ? intval(session()->get($this->sessionResellerKey)) : null;
-
-        if ($resellerId === null) {
-            return redirect(action('MoneyTransferController@chooseReseller'))->with([
-                'error' => 'Kérlek válassz egy viszonteladót',
-            ]);
-        }
-
-        return view('hq.transfers.orders')->with([
-            'reseller' => User::find($resellerId),
-            'orders'   => $this->orderService->getBankcardOrdersByResellerId($resellerId),
-        ]);
-    }
-
-    /**
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function storeOrders(Request $request) {
-        $data = $request->validate([
-            'mt-order-id' => 'required|array',
-        ]);
-
-        // Elrakjuk sessionbe
-        session()->put($this->sessionOrderIdsKey, $data['mt-order-id']);
-
-        return redirect(action('MoneyTransferController@create'));
-    }
-
-    /**
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
     public function create() {
-        if (session()->get($this->sessionResellerKey) === null) {
-            return redirect(action('MoneyTransferController@chooseReseller'))->with([
-                'error' => 'Kérlek válassz egy viszonteladót',
-            ]);
-        }
-
-        if (session()->get($this->sessionOrderIdsKey) === null) {
-            return redirect(action('MoneyTransferController@chooseOrders'))->with([
-                'error' => 'Kérlek válassz megrendeléseket',
-            ]);
-        }
-
-        $sum = Order::whereIn('id', session()->get($this->sessionOrderIdsKey))->sum('total_gross');
-
-        return view('hq.transfers.create')->with([
-            'reseller' => User::find(session()->get($this->sessionResellerKey)),
-            'orders'   => Order::whereIn('id', session()->get($this->sessionOrderIdsKey))->get(),
-            'sum'      => $sum,
-        ]);
+        return view('hq.transfers.create');
     }
 
     /**
+     * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function store() {
-        $resellerId = session()->get($this->sessionResellerKey) ?? null;
-        $orderIds   = session()->get($this->sessionOrderIdsKey) ?? null;
-        $sum        = null;
+    public function store(Request $request) {
+        $data = $request->validate([
+            'mt-csv-export' => 'required|file',
+        ]);
 
-        if ($resellerId === null) {
-            return redirect(action('MoneyTransferController@chooseReseller'))->with([
-                'error' => 'Kérlek válassz egy viszonteladót',
-            ]);
+        /** @var \Illuminate\Http\UploadedFile $file */
+        $csvData    = $this->transferService->getDataFromCsv($data['mt-csv-export']);
+        $errorCount = 0;
+        foreach ($csvData as $reseller_id => $transfers) {
+            $sum           = 0;
+            $orderIds      = [];
+            $reducedValues = [];
+            foreach ($transfers as $transfer) {
+                $reducedValue                               = round(floatval($transfer['Jutalékkal csökkentett összeg']));
+                $sum                                        += $reducedValue;
+                $orderIds[]                                 = $transfer['localOrder']->id;
+                $reducedValues[$transfer['localOrder']->id] = $reducedValue;
+            }
+
+            // Elmentjük szervíz segítségével az átutalást
+            $response   = $this->transferService->storeTransfer(intval($reseller_id), $orderIds, $reducedValues, $sum);
+            $errorCount += $response['errors'];
         }
 
-        if ($orderIds === null) {
-            return redirect(action('MoneyTransferController@chooseOrders'))->with([
-                'error' => 'Kérlek válassz megrendeléseket',
-            ]);
-        } else {
-            $sum = Order::whereIn('id', $orderIds)->sum('total_gross');
+        // Végeztünk, visszadobjuk az Átutalások oldalra
+        $message = 'Átutalások sikeresen elmentve.';
+        if ($errorCount > 0) {
+            $message .= sprintf(' (%d megrendelés nem lett rögzítve, mert már létezik hozzá átutalás.)', $errorCount);
         }
 
-        // Voltak megrendelések, számíthatunk összegre, majd elmentjük az átutalást
-        $response = $this->transferService->storeTransfer($resellerId, $orderIds, $sum);
-
-        // Hiba esetén visszairányítjuk valahova, jó esetben az előző URL-re, de egyébként az első lépésre
-        if (! $response['success']) {
-            return redirect(url()->previous(action('MoneyTransferController@chooseReseller')))->with([
-                'errors' => $response['message'],
-            ]);
-        }
-
-        // Kitöröljük session-ből amiket elmentettünk
-        session()->remove($this->sessionResellerKey);
-        session()->remove($this->sessionOrderIdsKey);
-
-        // Végeztünk
         return redirect(action('MoneyTransferController@index'))->with([
-            'success' => $response['message'],
+            'success' => $message,
         ]);
     }
 

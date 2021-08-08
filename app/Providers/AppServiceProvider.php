@@ -32,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Blade kiegészítés
         Blade::directive('money', function ($expression) {
-            return "<?php echo resolve('App\Subesz\MoneyService')->getFormattedMoney({$expression}); ?>";
+            return "<?php echo '<span>' . resolve('App\Subesz\MoneyService')->getFormattedMoney({$expression}) . '</span>'; ?>";
         });
 
         Schema::defaultStringLength(191);

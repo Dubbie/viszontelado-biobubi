@@ -209,8 +209,11 @@
                                         @endif
                                     </div>
                                     <div class="col-12 col-md-5 text-md-right">
-                                        <p class="h3 font-weight-semibold mb-0">@money($to->order->total_gross)<small
-                                                class="font-weight-bold ml-1">Ft</small></p>
+                                        @if($to->reduced_value)
+                                        <p class="h3 font-weight-semibold mb-0">@money($to->reduced_value)<small class="font-weight-bold">Ft</small><p class="mb-0"><small class="text-muted">@money($to->order->total_gross) Ft</small></p></p>
+                                        @else
+                                        <p class="h3 font-weight-semibold mb-0">@money($to->order->total_gross)<small class="font-weight-bold">Ft</small></p>
+                                        @endif
                                     </div>
                                 </div>
                             @endforeach
