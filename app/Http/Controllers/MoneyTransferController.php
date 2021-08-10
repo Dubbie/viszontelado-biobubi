@@ -91,7 +91,7 @@ class MoneyTransferController extends Controller
             }
         }
 
-        $transfers = $transfers->orderBy('completed_at')->orderByDesc('created_at')->paginate(25);
+        $transfers = $transfers->orderBy('completed_at')->orderByDesc('id')->paginate(25);
 
         return view('hq.transfers.index')->with([
             'transfers' => $transfers,
