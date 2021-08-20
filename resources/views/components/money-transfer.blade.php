@@ -14,7 +14,7 @@
             <p class="font-weight-semibold mb-0">@money($transfer->amount) Ft</p>
         </div>
         <div class="col-12 col-md-1 text-md-right">
-            @if(($transfer->transferOrders()->first())->reduced_value !== null)
+            @if($transfer->hasCommissionFee())
                 <p class="font-weight-semibold mb-0">@money($transfer->getCommissionFee()) Ft</p>
             @else
                 <p class="font-weight-semibold mb-0 text-muted">-</p>

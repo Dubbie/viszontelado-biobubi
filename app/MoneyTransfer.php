@@ -67,6 +67,15 @@ class MoneyTransfer extends Model
     }
 
     /**
+     * Visszaadja, hogy van-e jutalék.
+     *
+     * @return bool
+     */
+    public function hasCommissionFee(): bool {
+        return $this->getCommissionFee() !== false;
+    }
+
+    /**
      * Visszaadja a jutalék összegét.
      *
      * @return false|float|int

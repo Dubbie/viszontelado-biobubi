@@ -219,7 +219,7 @@
                             @endforeach
                             <hr>
 
-                            @if(($transfer->transferOrders()->first())->reduced_value !== null)
+                            @if($transfer->hasCommissionFee())
                                 <div class="row align-items-baseline">
                                     <div class="col-12 col-md-7">
                                         <p class="text-muted mb-0"><small>Jutalék:</small></p>
