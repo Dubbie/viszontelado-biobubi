@@ -76,7 +76,7 @@
             <div class="col">
                 <div class="card card-body">
                     @if(count($transfers) > 0)
-                        <div class="row align-items-center d-none d-md-flex">
+                        <div class="row align-items-center d-none d-md-flex no-gutters">
                             <div class="col-12 col-md-2">
                                 <p class="mb-0"><small>Azonosító</small></p>
                             </div>
@@ -86,10 +86,13 @@
                             <div class="col-12 col-md-2 text-md-right">
                                 <p class="mb-0"><small>Összeg</small></p>
                             </div>
+                            <div class="col-12 col-md-1 text-md-right">
+                                <p class="mb-0"><small>Jutalék</small></p>
+                            </div>
                             <div class="col-12 col-md-2 text-md-center">
                                 <p class="mb-0"><small>Létrehozva</small></p>
                             </div>
-                            <div class="col-12 col-md-2 text-md-center">
+                            <div class="col-12 col-md-1 text-md-center">
                                 <p class="mb-0"><small>Állapot</small></p>
                             </div>
                         </div>

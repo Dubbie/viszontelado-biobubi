@@ -1,6 +1,6 @@
 @php /** @var \App\MoneyTransfer $transfer */ @endphp
 <div {{ $attributes->merge() }}>
-    <div class="row align-items-center">
+    <div class="row align-items-center no-gutters">
         <div class="col-12 col-md-2">
             <p class="mb-0"><b>{{ $transfer->getId() }}</b></p>
         </div>
@@ -13,12 +13,19 @@
         <div class="col-12 col-md-2 text-md-right">
             <p class="font-weight-semibold mb-0">@money($transfer->amount) Ft</p>
         </div>
-        <div class="col-12 col-md-2 text-md-center">
-            <p class="mb-0">{{ $transfer->created_at->format('Y.m.d H:i') }}</p>
+        <div class="col-12 col-md-1 text-md-right">
+            @if(($transfer->transferOrders()->first())->reduced_value !== null)
+                <p class="font-weight-semibold mb-0">@money($transfer->getCommissionFee()) Ft</p>
+            @else
+                <p class="font-weight-semibold mb-0 text-muted">-</p>
+            @endif
         </div>
         <div class="col-12 col-md-2 text-md-center">
-            <span
-                class="font-weight-semibold {{ $transfer->getTextColorClass() }}">{{ $transfer->getStatusText() }}</span>
+            <p class="mb-0">{{ $transfer->created_at->format('Y.m.d') }}</p>
+        </div>
+        <div class="col-12 col-md-1 text-md-center">
+            <small
+                class="font-weight-bold {{ $transfer->getTextColorClass() }}">{{ $transfer->getStatusText() }}</small>
         </div>
         <div class="col-12 col-md-1 text-md-right">
             <div class="d-flex justify-content-md-end">

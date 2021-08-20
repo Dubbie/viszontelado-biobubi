@@ -67,6 +67,26 @@ class MoneyTransfer extends Model
     }
 
     /**
+     * Visszaadja a jutalék összegét.
+     *
+     * @return false|float|int
+     */
+    public function getCommissionFee() {
+        $grossSum = -1;
+        foreach ($this->transferOrders as $mto) {
+            if ($mto->reduced_value) {
+                $grossSum += $mto->order->total_gross;
+            }
+        }
+
+        if ($grossSum != -1) {
+            return $grossSum - $this->amount;
+        } else {
+            return false;
+        }
+    }
+
+    /**
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @param  mixed                                  $containsQuery
      * @return mixed

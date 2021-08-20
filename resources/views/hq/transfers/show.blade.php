@@ -218,11 +218,25 @@
                                 </div>
                             @endforeach
                             <hr>
+
+                            @if(($transfer->transferOrders()->first())->reduced_value !== null)
+                                <div class="row align-items-baseline">
+                                    <div class="col-12 col-md-7">
+                                        <p class="text-muted mb-0"><small>Jutalék:</small></p>
+                                    </div>
+                                    <div class="col-12 col-md-5 text-md-right">
+
+                                        <p class="h5 font-weight-bold mb-0">@money($transfer->getCommissionFee())<small
+                                                class="font-weight-bold ml-1">Ft</small></p>
+                                    </div>
+                                </div>
+                            @endif
                             <div class="row align-items-baseline">
                                 <div class="col-12 col-md-7">
                                     <p class="text-muted mb-0">Összesen:</p>
                                 </div>
                                 <div class="col-12 col-md-5 text-md-right">
+
                                     <p class="h3 font-weight-semibold mb-0">@money($transfer->amount)<small
                                             class="font-weight-bold ml-1">Ft</small></p>
                                 </div>
