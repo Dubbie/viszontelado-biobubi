@@ -99,20 +99,19 @@ class BillingoNewService
                 'settings'         => $draft->getSettings(),
             ];
 
-            if ($draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD && $localOrder->advance_invoice_id) {
+            $onlineBankcardPaid = $draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD && $localOrder->advance_invoice_id;
+            if ($onlineBankcardPaid) {
                 if ($localOrder->advance_invoice_id) {
                     $documentInsertData['due_date']        = date('Y-m-d');
                     $documentInsertData['advance_invoice'] = [$localOrder->advance_invoice_id];
                 } else {
-                    Log::error('Hiba a végszámla kiállításakor! Bankkártyás megrendelés, de nincs előlegszámla.');
-
-                    return null;
+                    Log::warning('Hiba a végszámla kiállításakor! Bankkártyás megrendelés, de nincs előlegszámla.');
                 }
             }
 
             // Leellenőrizzük, hogy végül mi lett a kifizetés módja
             Log::info('Fizetési mód eldöntése...');
-            if ($localOrder->payment_method_name == 'Utánvétel') {
+            if ($localOrder->payment_method_name == 'Utánvétel' || ! $onlineBankcardPaid) {
                 if ($localOrder->final_payment_method == 'Készpénz') {
                     $documentInsertData['payment_method'] = PaymentMethod::CASH;
                     Log::info('A kifizetés módja Készpénz volt');
