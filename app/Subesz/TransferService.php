@@ -89,7 +89,7 @@ class TransferService
      * @return array
      */
     public function getDataFromCsv(UploadedFile $uploadedFile): array {
-        $data      = str_getcsv($uploadedFile->getContent(), "\n");
+        $data      = str_getcsv($uploadedFile->get(), "\n");
         $i         = 0;
         $errCount  = 0;
         $headers   = [];
