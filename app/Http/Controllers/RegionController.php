@@ -160,6 +160,8 @@ class RegionController extends Controller
         }
 
         if ($zipSuccess = count($regionZips)) {
+            $region->save();
+
             return redirect(url()->previous(action('RegionController@index')))->with([
                 'success' => 'Régió sikeresen frissítve',
             ]);
