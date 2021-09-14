@@ -119,6 +119,10 @@ class OrderService
         if (! $muted) {
             Log::info('-- Megrendelés frissítése --');
         }
+
+        if (! $order || property_exists($order, 'id')) {
+            return false;
+        }
         $local = Order::where('inner_resource_id', $order->id)->first();
         if (! $local) {
             if (! $muted) {

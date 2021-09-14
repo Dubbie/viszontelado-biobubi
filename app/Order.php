@@ -221,8 +221,7 @@ class Order extends Model
      * @return bool
      */
     public function isBankkcard(): bool {
-        //return $this->final_payment_method == 'Online bankkártya';
-        return $this->payment_method_name == 'Online bankkártyás fizetés';
+        return $this->final_payment_method == 'Online bankkártya';
     }
 
     /**
@@ -433,9 +432,8 @@ class Order extends Model
             return null;
         }
 
-        if ($this->payment_method_name == 'Online bankkártyás fizetés' && ! $this->advance_invoice_id) {
+        if ($this->payment_method_name == 'Online bankkártyás fizetés' && ! $this->advance_invoice_id && $this->final_payment_method == 'Online Bankkártya') {
             Log::error(sprintf('Hiba történt az átalakításkor, nincs elmentve előlegszámla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
-
             Log::info('Erőltetett előlegszámla legyártás kéne ide');
 
             return null;
