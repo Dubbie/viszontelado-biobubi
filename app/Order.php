@@ -221,6 +221,7 @@ class Order extends Model
      * @return bool
      */
     public function isBankkcard(): bool {
+        //return $this->final_payment_method == 'Online bankkártya';
         return $this->payment_method_name == 'Online bankkártyás fizetés';
     }
 
