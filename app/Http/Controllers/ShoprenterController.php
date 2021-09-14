@@ -167,7 +167,7 @@ class ShoprenterController extends Controller
             $localOrder->created_at           = date('Y-m-d H:i:s');
 
             // Eldöntjük, hogy kapjon-e online fizetéses végső fizetés típust
-            if ($localOrder->isBankkcard()) {
+            if ($localOrder->payment_method_name == 'Online bankkártyás fizetés') {
                 $localOrder->final_payment_method = 'Online Bankkártya';
             }
 
