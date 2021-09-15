@@ -114,11 +114,23 @@
                         {{--                                <span>Teljesítés</span>--}}
                         {{--                            </button>--}}
                         {{--                        </form>--}}
-                        <button type="button" data-toggle="modal" data-target="#paymentMethodModal"
-                                data-dismiss="modal"
-                                class="btn btn-outline-success btn-payment-method-chooser"
-                                data-order-id="{{ $order->inner_resource_id }}">Teljesítés
-                        </button>
+                        @if($order->status_text == 'BK. Függőben lévő')
+                            <form action="{{ action('OrderController@completeOrder') }}"
+                                  class="form-complete-order d-inline-block ml-2" method="POST">
+                                @csrf
+                                {{-- Rejtett mező a megrendelésnek--}}
+                                <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
+                                <input type="hidden" name="payment-method" value="Online Bankkártya">
+                                <button type="submit" class="btn btn-success font-weight-semibold h-100">
+                                    <span>Teljesítés</span>
+                                </button>
+                            </form>
+                        @else
+                            <button type="button" class="btn btn-outline-success btn-payment-method-chooser"
+                                    data-toggle="modal" data-target="#paymentMethodModal"
+                                    data-order-id="{{ $order->inner_resource_id }}">Teljesítés
+                            </button>
+                        @endif
                     @else
                         <button type="button" class="disabled btn btn-success ml-2" disabled style="opacity: 0.33">
                             Teljesítés
