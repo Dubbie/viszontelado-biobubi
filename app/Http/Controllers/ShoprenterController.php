@@ -66,7 +66,6 @@ class ShoprenterController extends Controller
         }
 
         Log::info('-- Shoprenter API-ból frissítés megkezdése --');
-
         $start = Carbon::now();
         $osds  = $this->shoprenterApi->getAllStatuses();
         if (! $osds || ! property_exists($osds, 'items')) {
@@ -88,34 +87,43 @@ class ShoprenterController extends Controller
 
         $successCount       = 0;
         $ordersByResourceId = [];
-        $muted              = true;
+        $muted              = false;
         foreach ($orders as $order) {
             $ordersByResourceId[$order->id] = $order;
         }
 
-        // Töröljük ki azokat amik már nincsenek a rendszerbe
-        $notFound = Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->get();
+        // 1. Töröljük azokat amiket a Shoprenter nem ad vissza, de helyileg még meg van.
+        $notFound         = Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->get();
+        $startOrdersCount = Order::count();
         if (count($notFound) > 0) {
-            Log::debug('- Nem talált inner resource ID: -');
+            Log::debug('- Az alábbi megrendelések nem szerepelnek már a ShopRenter-ben: -');
             /** @var Order $order */
             foreach ($notFound as $order) {
-                Log::debug($order->inner_resource_id);
+                Log::debug(sprintf('Belső ID: %s', $order->inner_resource_id));
+                Log::debug(sprintf('Helyi ID: %s', $order->id));
+                Log::debug(sprintf('Megrendelő: %s %s', $order->firstname, $order->lastname));
+                Log::debug(sprintf('Állapot: %s', $order->status_text));
+                Log::debug(sprintf("Létrehozva: %s\r\n", $order->created_at->format('Y.m.d H:i:s')));
                 $successCount++;
             }
-            Log::debug('- Nem talált inner resource ID vége -');
+            Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->delete();
+            Log::debug('- A megrendelések törölve lettek. -');
+            if (Order::count() >= $startOrdersCount) {
+                Log::warning('NEM KERÜLTEK TÖRLÉSRE A MEGRENDELÉSEK HALÓ???');
+            }
+        } else {
+            Log::debug('- Nincs olyan megrendelés amit törölni kéne -');
         }
-        Order::whereNotIn('inner_resource_id', array_keys($ordersByResourceId))->where('created_at', '<', $start)->delete();
 
-        // Létrehozzuk az újakat
-        $localOrderIds = Order::select('inner_resource_id')->pluck('inner_resource_id')->toArray();
-        $missing       = array_diff(array_keys($ordersByResourceId), $localOrderIds);
-        foreach ($missing as $newInnerResourceId) {
-            Log::warning('Mi hoztuk létre, lehet hogy itt furcsaságok lesznek mivel nem webhookból jött!!!');
-            $newOrder = $ordersByResourceId[$newInnerResourceId];
-            if ($local = $this->orderService->updateLocalOrder($newOrder, $muted)) {
-                $successCount++;
+        // Létrehozzuk az újakat, amik szerepelnek ShopRenter-ben, de nálunk viszont még nem.
+        foreach ($ordersByResourceId as $shoprenterResourceId => $srOrder) {
+            if (! $this->orderService->getLocalOrderByResourceId($shoprenterResourceId)) {
+                if ($local = $this->orderService->updateLocalOrder($srOrder, $muted)) {
+                    $successCount++;
+                }
             }
         }
+
         $elapsed = $start->floatDiffInSeconds();
         Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
         Log::info('-- Shoprenter API-ból frissítés vége --');

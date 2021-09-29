@@ -120,9 +120,9 @@ class OrderService
             Log::info('-- Megrendelés frissítése --');
         }
 
-        if (! $order || property_exists($order, 'id')) {
-            return false;
-        }
+        //if (! $order || property_exists($order, 'id')) {
+        //    return false;
+        //}
         $local = Order::where('inner_resource_id', $order->id)->first();
         if (! $local) {
             if (! $muted) {
@@ -230,7 +230,7 @@ class OrderService
 
             if ($local->save()) {
                 if (! $muted) {
-                    Log::info(sprintf('Megrendelés mentve (Azonosító : %s)', $local->id));
+                    Log::info(sprintf('Megrendelés mentve (Azonosító: %s, inner resource id: %s)', $local->id, $local->inner_resource_id));
                 }
 
                 return $local;
