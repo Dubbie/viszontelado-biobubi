@@ -51,7 +51,7 @@ class ShoprenterController extends Controller
 
     /**
      * @param $privateKey
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @return bool
      */
     public function updateOrders($privateKey) {
         set_time_limit(0);
@@ -60,9 +60,7 @@ class ShoprenterController extends Controller
         if (env('PRIVATE_KEY') != $privateKey) {
             Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
 
-            return redirect(action('OrderController@index'))->with([
-                'error' => 'Hibás privát kulcs lett megadva',
-            ]);
+            return false;
         }
 
         Log::info('-- Shoprenter API-ból frissítés megkezdése --');
@@ -71,20 +69,17 @@ class ShoprenterController extends Controller
         if (! $osds || ! property_exists($osds, 'items')) {
             Log::error('A Shoprenter API nem tért vissza eredményekkel');
 
-            return redirect(action('UserController@home'))->with([
-                'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
-            ]);
+            return false;
         }
 
         $orders = $this->shoprenterApi->getBatchedOrders();
         if (count($orders) == 0) {
             Log::info('- Nem voltak megrendelések a visszatérési értékben -');
 
-            return redirect(action('OrderController@index'))->with([
-                'error' => 'Hiba történt a megrendelések frissítésekor',
-            ]);
+            return false;
         }
 
+        Log::debug('Összesen '.count($orders).'db megrendelés érkezett a Shoprenterből.');
         $successCount       = 0;
         $ordersByResourceId = [];
         $muted              = false;
@@ -116,21 +111,19 @@ class ShoprenterController extends Controller
         }
 
         // Létrehozzuk az újakat, amik szerepelnek ShopRenter-ben, de nálunk viszont még nem.
-        foreach ($ordersByResourceId as $shoprenterResourceId => $srOrder) {
-            if (! $this->orderService->getLocalOrderByResourceId($shoprenterResourceId)) {
-                if ($local = $this->orderService->updateLocalOrder($srOrder, $muted)) {
-                    $successCount++;
-                }
-            }
-        }
+        //foreach ($ordersByResourceId as $shoprenterResourceId => $srOrder) {
+        //    if (! $this->orderService->getLocalOrderByResourceId($shoprenterResourceId)) {
+        //        if ($local = $this->orderService->updateLocalOrder($srOrder, $muted)) {
+        //            $successCount++;
+        //        }
+        //    }
+        //}
 
         $elapsed = $start->floatDiffInSeconds();
         Log::info(sprintf('--- %s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed));
         Log::info('-- Shoprenter API-ból frissítés vége --');
 
-        return redirect(action('OrderController@index'))->with([
-            'success' => sprintf('%s db megrendelés sikeresen frissítve (Eltelt idő: %ss)', $successCount, $elapsed),
-        ]);
+        return true;
     }
 
     /**
