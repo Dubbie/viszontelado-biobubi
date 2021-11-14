@@ -367,6 +367,42 @@ class BillingoNewService
         }
 
         foreach ($order['totals'] as $total) {
+            //switch ($total->type) {
+            //    case 'COUPON':
+            //        $items[] = [
+            //            'name'            => 'Kupon kedvezmény',
+            //            'quantity'        => 1,
+            //            'unit'            => 'db',
+            //            'vat'             => $vat,
+            //            'unit_price'      => round(floatval($total->value)),
+            //            'unit_price_type' => UnitPriceType::GROSS,
+            //        ];
+            //        break;
+            //    case 'SHIPPING':
+            //        if (intval($total->value) > 0) {
+            //            $items[] = [
+            //                'name'            => 'Szállítási költség',
+            //                'quantity'        => 1,
+            //                'unit'            => 'db',
+            //                'vat'             => $vat,
+            //                'unit_price'      => round(floatval($total->value)),
+            //                'unit_price_type' => UnitPriceType::GROSS,
+            //            ];
+            //        }
+            //        break;
+            //    case 'LOYALTYPOINTS_TO_USE':
+            //        $items[] = [
+            //            'name'            => 'Beváltandó hűségpontok',
+            //            'quantity'        => 1,
+            //            'unit'            => 'db',
+            //            'vat'             => $vat,
+            //            'unit_price'      => round(floatval($total->value)),
+            //            'unit_price_type' => UnitPriceType::GROSS,
+            //        ];
+            //        break;
+            //    default:
+            //        break;
+            //}
             if ($total->type == 'COUPON') {
                 $items[] = [
                     'name'            => 'Kupon kedvezmény',
@@ -380,6 +416,16 @@ class BillingoNewService
                 if ($total->type == 'SHIPPING' && intval($total->value) > 0) {
                     $items[] = [
                         'name'            => 'Szállítási költség',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total->value)),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
+                if ($total->type == 'LOYALTYPOINTS_TO_USE' && intval($total->value) < 0) {
+                    $items[] = [
+                        'name'            => 'Beváltandó hűségpontok',
                         'quantity'        => 1,
                         'unit'            => 'db',
                         'vat'             => $vat,

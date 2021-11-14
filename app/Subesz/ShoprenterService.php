@@ -344,10 +344,11 @@ class ShoprenterService
         ]);
 
         if (! \Auth::user()->admin) {
-            $query->where('name', 'NOT LIKE', '%FOXPOST%')->where('name', 'NOT LIKE', 'GLS%');
+            $query->where('name', 'LIKE', 'Bk.%')->orWhere('name', 'LIKE', 'Függőben%')->orWhere('name', 'LIKE', 'Teljesítve')->orWhere('name', 'LIKE', 'MyGls Függőben%');
+            //$query->where('name', 'NOT LIKE', '%FOXPOST%')->where('name', 'NOT LIKE', 'GLS%');
         }
 
-        return $query->get();
+        return $query->orderBy('name')->get();
     }
 
     /**
