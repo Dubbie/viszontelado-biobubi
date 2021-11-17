@@ -425,7 +425,7 @@ class BillingoNewService
                 }
                 if ($total->type == 'LOYALTYPOINTS_TO_USE' && intval($total->value) < 0) {
                     $items[] = [
-                        'name'            => 'Beváltandó hűségpontok',
+                        'name'            => 'Hűségpont kedvezmény',
                         'quantity'        => 1,
                         'unit'            => 'db',
                         'vat'             => $vat,
