@@ -344,7 +344,7 @@ class ShoprenterService
         ]);
 
         if (! \Auth::user()->admin) {
-            $query->where('name', 'LIKE', 'Bk.%')->orWhere('name', 'LIKE', 'Függőben%')->orWhere('name', 'LIKE', 'Teljesítve')->orWhere('name', 'LIKE', 'MyGls Függőben%');
+            $query->where('name', 'LIKE', 'Bk.%')->orWhere('name', 'LIKE', 'Függőben%')->orWhere('name', 'LIKE', 'Teljesítve')->orWhere('name', 'LIKE', 'MyGls Függőben%')->orWhere('name', 'LIKE', 'Értesítve Függőben%')->orWhere('name', 'LIKE', 'Értesítve függőben%')->orWhere('name', 'LIKE', 'Törölve');
             //$query->where('name', 'NOT LIKE', '%FOXPOST%')->where('name', 'NOT LIKE', 'GLS%');
         }
 
