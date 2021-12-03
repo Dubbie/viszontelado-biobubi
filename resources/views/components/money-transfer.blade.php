@@ -2,7 +2,17 @@
 <div {{ $attributes->merge() }}>
     <div class="row align-items-center no-gutters">
         <div class="col-12 col-md-2">
-            <p class="mb-0"><b>{{ $transfer->getId() }}</b></p>
+            <div class="d-flex">
+                <div class="custom-control custom-checkbox mr-2">
+                    <input type="checkbox" class="custom-control-input ch-transfer-select mr-2"
+                           name="ch-transfer-select[]"
+                           id="ch-transfer-select-{{ $transfer->id }}"
+                           data-transfer-id="{{ $transfer->id }}">
+                    <label class="custom-control-label"
+                           for="ch-transfer-select-{{ $transfer->id }}"></label>
+                </div>
+                <p class="mb-0"><b>{{ $transfer->getId() }}</b></p>
+            </div>
         </div>
         <div class="col-12 col-md-3">
             <p class="mb-0" style="line-height: 1.25">

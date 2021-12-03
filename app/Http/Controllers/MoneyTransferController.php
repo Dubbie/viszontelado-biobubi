@@ -11,7 +11,10 @@ use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
 use Log;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Class MoneyTransferController
@@ -91,7 +94,7 @@ class MoneyTransferController extends Controller
             }
         }
 
-        $transfers = $transfers->orderBy('completed_at')->orderByDesc('id')->paginate(25);
+        $transfers = $transfers->orderByDesc('created_at')->orderBy('completed_at')->orderByDesc('id')->paginate(25);
 
         return view('hq.transfers.index')->with([
             'transfers' => $transfers,
@@ -232,5 +235,65 @@ class MoneyTransferController extends Controller
         Log::error('A felhasználó rossz azonosítóval próbált letölteni átutalási csatolmányt');
 
         return false;
+    }
+
+    public function generateExcel(Request $request) {
+        $data = $request->validate([
+            'dl-transfer-ids' => 'required|json',
+        ]);
+
+        $transferIds = json_decode($data['dl-transfer-ids']);
+        $transfers   = MoneyTransfer::whereIn('id', $transferIds)->get()->groupBy('user_id');
+
+        // Létrehozzuk a táblázatot
+        $spreadsheet = new Spreadsheet();
+        $ws          = $spreadsheet->getActiveSheet();
+        $row         = 2;
+        $lastName    = '';
+
+        $ws->setCellValue('A1', 'Viszonteladó');
+        $ws->setCellValue('B1', 'Létrehozva');
+        $ws->setCellValue('C1', 'Vásárló');
+        $ws->setCellValue('D1', 'Összeg');
+
+        foreach ($transfers as $resellerTransfers) {
+            /** @var MoneyTransfer $moneyTransfer */
+            //->getCellByColumnAndRow(2, 5)->getValue();
+            foreach ($resellerTransfers as $moneyTransfer) {
+                if ($lastName != $moneyTransfer->reseller->name) {
+                    $ws->setCellValueByColumnAndRow(1, $row, $moneyTransfer->reseller->name);
+                    $ws->setCellValueByColumnAndRow(2, $row, $moneyTransfer->created_at->format('Y.m.d'));
+
+                    $lastName = $moneyTransfer->reseller->name;
+                }
+
+                /** @var \App\MoneyTransferOrder $to */
+                foreach ($moneyTransfer->transferOrders as $to) {
+                    $ws->setCellValueByColumnAndRow(3, $row, $to->order->firstname.' '.$to->order->lastname);
+                    $ws->setCellValueByColumnAndRow(4, $row, number_format($to->order->total_gross, 0, '.', ' ').' Ft');
+                    $row++;
+                }
+            }
+        }
+
+        // Formázás
+        for ($i = 1; $i <= 4; $i++) {
+            $ws->getColumnDimensionByColumn($i)->setAutoSize(true);
+        }
+
+        $writer = new Xlsx($spreadsheet);
+        try {
+            $response = new StreamedResponse(function () use ($writer) {
+                $writer->save('php://output');
+            });
+            $response->headers->set('Content-Type', 'application/vnd.ms-excel');
+            $response->headers->set('Content-Disposition', 'attachment;filename="atutalasok_'.date('Ymd_his').'.xlsx"');
+            $response->headers->set('Cache-Control', 'max-age=0');
+
+            return $response;
+        } catch (\PhpOffice\PhpSpreadsheet\Writer\Exception $e) {
+            Log::error('Nem sikerült létrehozni a táblázatot.');
+            Log::error($e->getMessage());
+        }
     }
 }

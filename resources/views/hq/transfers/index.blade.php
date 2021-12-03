@@ -78,7 +78,7 @@
                     @if(count($transfers) > 0)
                         <div class="row align-items-center d-none d-md-flex no-gutters">
                             <div class="col-12 col-md-2">
-                                <p class="mb-0"><small>Azonosító</small></p>
+                                <p class="mb-0 ml-4 pl-2"><small>Azonosító</small></p>
                             </div>
                             <div class="col-12 col-md-3">
                                 <p class="mb-0"><small>Viszonteladó</small></p>
@@ -101,7 +101,7 @@
                                               class="{{ $transfers->last() != $mt ? 'mb-3' : '' }}"></x-money-transfer>
                         @endforeach
 
-                        <div class="paginate">{{ $transfers->withQueryString()->links() }}</div>
+                        <div class="paginate mt-4">{{ $transfers->withQueryString()->links() }}</div>
                     @else
                         <p class="lead font-weight-bold">Új átutalás rögzítéséhez kattints az alábbi gombra.</p>
                         <p class="mb-0">
@@ -113,11 +113,66 @@
             </div>
         </div>
     </div>
+
+    @include('inc.transfers-toolbar')
 @endsection
 
 @section('scripts')
     <script>
         $(() => {
+            const $chTransfers = $('.ch-transfer-select');
+            const ordersCount = document.getElementById('toolbar-order-counter');
+            const toolbar = document.getElementById('toolbar-transfers');
+            const $inputTransferIds = $('.mass-transfer-id-input');
+
+            /**
+             * Visszaállítja a checkboxokat.
+             */
+            function resetTransferCheckboxes() {
+                $chTransfers.each((i, el) => {
+                    el.checked = false;
+                });
+            }
+
+            /**
+             * Visszaadja a kiválasztott megrendelések azonosítóit.
+             */
+            function getSelectedTransfers() {
+                let selectedTransfers = [];
+                $chTransfers.each((i, el) => {
+                    const orderId = el.dataset.transferId;
+                    if (el.checked) {
+                        selectedTransfers.push(orderId);
+                    }
+                });
+                return selectedTransfers;
+            }
+
+            /**
+             * Frissíti a megrendelések toolbarját
+             */
+            function updateTransfersToolbar() {
+                const selectedTransfers = getSelectedTransfers();
+                if (selectedTransfers.length > 0) {
+                    toolbar.classList.add('show');
+                } else {
+                    toolbar.classList.remove('show');
+                }
+                ordersCount.innerText = selectedTransfers.length.toLocaleString();
+                for (const el of $inputTransferIds) {
+                    el.value = JSON.stringify(selectedTransfers);
+                }
+            }
+
+            /**
+             * Toolbar frissítő bigyó
+             */
+            $chTransfers.on('change', () => {
+                updateTransfersToolbar();
+            });
+
+            updateTransfersToolbar();
+
             $('.form-delete-transfer').on('submit', e => {
                 if (!confirm('Biztosan törölni szeretnéd az átutalásról szóló rögzítést? Ez a folyamat nem visszafordítható')) {
                     e.preventDefault();
