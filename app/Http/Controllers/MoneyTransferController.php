@@ -277,7 +277,10 @@ class MoneyTransferController extends Controller
                     // Kiszedjük a számláját
                     $localOrder = $to->order;
                     if ($localOrder->invoice_id) {
-                        $ws->setCellValueByColumnAndRow(3, $row, $bs->getInvoice($localOrder->invoice_id, $moneyTransfer->reseller)->getInvoiceNumber());
+                        $invoice = $bs->getInvoice($localOrder->invoice_id, $moneyTransfer->reseller);
+                        if ($invoice) {
+                            $ws->setCellValueByColumnAndRow(3, $row, $invoice->getInvoiceNumber());
+                        }
                     }
                     if ($localOrder->advance_invoice_id) {
                         $advanceInvoice = $bs->getInvoice($localOrder->advance_invoice_id, $moneyTransfer->reseller);
