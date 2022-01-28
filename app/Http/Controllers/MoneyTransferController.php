@@ -244,6 +244,8 @@ class MoneyTransferController extends Controller
 
         $transferIds = json_decode($data['dl-transfer-ids']);
         $transfers   = MoneyTransfer::whereIn('id', $transferIds)->get()->groupBy('user_id');
+        /** @var \App\Subesz\BillingoNewService $bs */
+        $bs = resolve('App\Subesz\BillingoNewService');
 
         // Létrehozzuk a táblázatot
         $spreadsheet = new Spreadsheet();
@@ -253,8 +255,11 @@ class MoneyTransferController extends Controller
 
         $ws->setCellValue('A1', 'Viszonteladó');
         $ws->setCellValue('B1', 'Létrehozva');
-        $ws->setCellValue('C1', 'Vásárló');
-        $ws->setCellValue('D1', 'Összeg');
+        $ws->setCellValue('C1', 'Végszámla');
+        $ws->setCellValue('D1', 'Előlegszámla');
+        $ws->setCellValue('E1', 'Fizetett Összeg');
+        $ws->setCellValue('F1', 'Jutalékkal csökkentett Összeg');
+        $ws->setCellValue('G1', 'Vásárló');
 
         foreach ($transfers as $resellerTransfers) {
             /** @var MoneyTransfer $moneyTransfer */
@@ -269,15 +274,31 @@ class MoneyTransferController extends Controller
 
                 /** @var \App\MoneyTransferOrder $to */
                 foreach ($moneyTransfer->transferOrders as $to) {
-                    $ws->setCellValueByColumnAndRow(3, $row, $to->order->firstname.' '.$to->order->lastname);
-                    $ws->setCellValueByColumnAndRow(4, $row, number_format($to->order->total_gross, 0, '.', ' ').' Ft');
+                    // Kiszedjük a számláját
+                    $localOrder = $to->order;
+                    if ($localOrder->invoice_id) {
+                        $ws->setCellValueByColumnAndRow(3, $row, $bs->getInvoice($localOrder->invoice_id, $moneyTransfer->reseller)->getInvoiceNumber());
+                    }
+                    if ($localOrder->advance_invoice_id) {
+                        $advanceInvoice = $bs->getInvoice($localOrder->advance_invoice_id, $moneyTransfer->reseller);
+                        if ($advanceInvoice) {
+                            $ws->setCellValueByColumnAndRow(4, $row, $advanceInvoice->getInvoiceNumber());
+                        }
+                    }
+                    $ws->setCellValueByColumnAndRow(5, $row, number_format($to->order->total_gross, 0, '.', ' ').' Ft');
+                    if ($to->reduced_value) {
+                        $ws->setCellValueByColumnAndRow(6, $row, number_format($to->reduced_value, 0, '.', ' ').' Ft');
+                    } else {
+                        $ws->setCellValueByColumnAndRow(6, $row, '-');
+                    }
+                    $ws->setCellValueByColumnAndRow(7, $row, $to->order->firstname.' '.$to->order->lastname);
                     $row++;
                 }
             }
         }
 
         // Formázás
-        for ($i = 1; $i <= 4; $i++) {
+        for ($i = 1; $i <= 10; $i++) {
             $ws->getColumnDimensionByColumn($i)->setAutoSize(true);
         }
 
