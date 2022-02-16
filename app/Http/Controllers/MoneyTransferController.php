@@ -288,9 +288,12 @@ class MoneyTransferController extends Controller
                             $ws->setCellValueByColumnAndRow(4, $row, $advanceInvoice->getInvoiceNumber());
                         }
                     }
-                    $ws->setCellValueByColumnAndRow(5, $row, number_format($to->order->total_gross, 0, '.', ' ').' Ft');
+                    //$ws->setCellValueByColumnAndRow(5, $row, number_format($to->order->total_gross, 0, '.', ' ').' Ft');
+                    $ws->setCellValueByColumnAndRow(5, $row, $to->order->total_gross);
+                    $ws->getCellByColumnAndRow(5, $row)->getStyle()->getNumberFormat()->setFormatCode('# ##0 Ft');
                     if ($to->reduced_value) {
-                        $ws->setCellValueByColumnAndRow(6, $row, number_format($to->reduced_value, 0, '.', ' ').' Ft');
+                        $ws->setCellValueByColumnAndRow(6, $row, $to->reduced_value);
+                        $ws->getCellByColumnAndRow(6, $row)->getStyle()->getNumberFormat()->setFormatCode('# ##0 Ft');
                     } else {
                         $ws->setCellValueByColumnAndRow(6, $row, '-');
                     }
