@@ -224,6 +224,45 @@ class MoneyTransferController extends Controller
     }
 
     /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function multiDestroy(Request $request) {
+        $data = $request->validate([
+            'destroy-transfer-ids' => 'required|json',
+        ]);
+        $mts  = $this->transferService->getTransfersQueryByUser(Auth::id())->whereIn('id', json_decode($data['destroy-transfer-ids']))->get();
+
+        foreach ($mts as $mt) {
+            if ($mt->attachment_path) {
+                Storage::delete($mt->attachment_path);
+            }
+        }
+
+        try {
+            // Kitöröljük egyesével a hozzá tartozó adatokat
+            foreach ($mts as $mt) {
+                foreach ($mt->transferOrders as $mto) {
+                    $mto->delete();
+                }
+
+                // Kitöröljük magát az átutalást is
+                $mt->delete();
+            }
+        } catch (Exception $e) {
+            Log::error('Hiba történt az átutalás törlésekor.');
+
+            return redirect(url()->previous(action('MoneyTransferController@index')))->with([
+                'error' => 'Hiba történt az átutalások törlésekor',
+            ]);
+        }
+
+        return redirect(action('MoneyTransferController@index'))->with([
+            'success' => 'Átutalások sikeresen törölve',
+        ]);
+    }
+
+    /**
      * @param $transferId
      * @return false|\Symfony\Component\HttpFoundation\StreamedResponse
      */

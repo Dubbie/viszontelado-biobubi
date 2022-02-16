@@ -79,6 +79,7 @@ Route::group(['middleware' => 'auth'], function () {
         //Route::post('kozpont/atutalasok/viszontelado/mentes', 'MoneyTransferController@storeReseller');
         //Route::get('kozpont/atutalasok/megrendelesek', 'MoneyTransferController@chooseOrders');
         //Route::post('kozpont/atutalasok/megrendelesek/mentes', 'MoneyTransferController@storeOrders');
+        Route::post('kozpont/atutalasok/multi-torles', 'MoneyTransferController@multiDestroy');
         Route::delete('kozpont/atutalasok/{transferId}/torles', 'MoneyTransferController@destroy');
         Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
         Route::post('kozpont/atutalasok/excel', 'MoneyTransferController@generateExcel');

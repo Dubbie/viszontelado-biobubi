@@ -19,6 +19,19 @@
                     </button>
                 </form>
             </div>
+            <div class="col-lg-auto">
+                <form action="{{ action('MoneyTransferController@multiDestroy') }}" method="POST">
+                    @csrf
+                    <input type="hidden" id="destroy-transfer-ids" name="destroy-transfer-ids" class="mass-transfer-id-input" value="">
+                    <button type="submit" class="btn btn-muted has-tooltip" data-toggle="tooltip"
+                            title="Átutalások törlése">
+                        <span class="icon text-dark">
+                            <i class="fas fa-trash"></i>
+                        </span>
+                        <span class="d-inline-block">Átutalások törlése</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
