@@ -186,13 +186,18 @@ class ShoprenterController extends Controller
             }
 
             // Mentsük el a számlát
+            /** @var \App\User $reseller */
             $reseller = $localOrder->getReseller()['correct'];
             Log::info('Hozzátartozó számlázó fiók neve: '.$reseller->name);
 
             // Elküldjük róla a levelet is
             if ($reseller->email != 'hello@semmiszemet.hu') {
-                Mail::to($reseller)->send(new NewOrder($order, $reseller));
-                Log::info('Levél elküldve az alábbi e-mail címre: '.$reseller->email);
+                if ($reseller->emailNotificationsEnabled()) {
+                    Mail::to($reseller)->send(new NewOrder($order, $reseller));
+                    Log::info('Levél elküldve az alábbi e-mail címre: '.$reseller->email);
+                } else {
+                    Log::info('A felhasználó nem kért e-mail értesítéseket, ezért nem küldünk. ('.$reseller->email.')');
+                }
             }
 
             // Ha nincs billing összekötés ne hozzunk létre semmit

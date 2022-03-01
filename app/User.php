@@ -170,6 +170,13 @@ class User extends Authenticatable
     }
 
     /**
+     * @return bool
+     */
+    public function emailNotificationsEnabled() {
+        return $this->email_notifications == 1;
+    }
+
+    /**
      * Visszaadja, hogy mennyi a marketing egyenlege az adott felhasználónak.
      *
      * @return double

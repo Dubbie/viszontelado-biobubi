@@ -45,6 +45,13 @@
                                     </small>
                                 </div>
                                 <div class="form-group">
+                                    <div class="custom-control custom-checkbox">
+                                        <input type="checkbox" class="custom-control-input" id="u-email-notifications" name="u-email-notifications"
+                                               @if($user->emailNotificationsEnabled()) checked @endif>
+                                        <label class="custom-control-label" for="u-email-notifications">E-mail értesítések küldése új megrendelésekről</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <label for="u-zip">Hozzárendelt régiók</label>
 
                                     @if(count($user->regions) > 0)

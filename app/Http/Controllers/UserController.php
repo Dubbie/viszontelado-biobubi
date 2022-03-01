@@ -9,7 +9,6 @@ use App\Subesz\OrderService;
 use App\Subesz\RevenueService;
 use App\User;
 use App\UserDetails;
-use App\UserZip;
 use Exception;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -183,35 +182,37 @@ class UserController extends Controller
      */
     public function update($userId, Request $request) {
         $data = $request->validate([
-            'u-name'               => 'required',
-            'u-email'              => 'required|email|unique:users,email,'.$userId,
-            'u-aam'                => 'nullable',
-            'u-billingo-api-key'   => 'nullable',
-            'u-block-uid'          => 'nullable',
-            'u-billing-name'       => 'nullable',
-            'u-billing-zip'        => 'nullable',
-            'u-billing-city'       => 'required_with:u-billing-zip|nullable',
-            'u-billing-address1'   => 'required_with:u-billing-zip|nullable',
-            'u-billing-address2'   => 'nullable',
-            'u-billing-tax-number' => 'nullable',
+            'u-name'                   => 'required',
+            'u-email'                  => 'required|email|unique:users,email,'.$userId,
+            'u-aam'                    => 'nullable',
+            'u-billingo-api-key'       => 'nullable',
+            'u-block-uid'              => 'nullable',
+            'u-billing-name'           => 'nullable',
+            'u-billing-zip'            => 'nullable',
+            'u-billing-city'           => 'required_with:u-billing-zip|nullable',
+            'u-billing-address1'       => 'required_with:u-billing-zip|nullable',
+            'u-billing-address2'       => 'nullable',
+            'u-billing-tax-number'     => 'nullable',
             'u-billing-account-number' => 'nullable',
-            'u-shipping-name' => 'nullable',
-            'u-shipping-email' => 'nullable',
-            'u-shipping-phone' => 'nullable',
-            'u-shipping-zip' => 'nullable',
-            'u-shipping-city' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address1' => 'required_with:u-shipping-zip|nullable',
-            'u-shipping-address2' => 'nullable',
-            'u-marketing-balance'  => 'required',
+            'u-shipping-name'          => 'nullable',
+            'u-shipping-email'         => 'nullable',
+            'u-shipping-phone'         => 'nullable',
+            'u-shipping-zip'           => 'nullable',
+            'u-shipping-city'          => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address1'      => 'required_with:u-shipping-zip|nullable',
+            'u-shipping-address2'      => 'nullable',
+            'u-marketing-balance'      => 'required',
+            'u-email-notifications'    => 'nullable',
         ]);
 
-        $user                   = User::find($userId);
-        $user->name             = $data['u-name'];
-        $user->email            = $data['u-email'];
-        $user->vat_id           = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
-        $user->billingo_api_key = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
-        $user->block_uid        = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
-        $user->balance          = array_key_exists('u-marketing-balance', $data) ? (double) $data['u-marketing-balance'] : $user->balance;
+        $user                      = User::find($userId);
+        $user->name                = $data['u-name'];
+        $user->email               = $data['u-email'];
+        $user->vat_id              = array_key_exists('u-aam', $data) ? env('AAM_VAT_ID') : 1;
+        $user->billingo_api_key    = array_key_exists('u-billingo-api-key', $data) ? $data['u-billingo-api-key'] : $user->billingo_api_key;
+        $user->block_uid           = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
+        $user->balance             = array_key_exists('u-marketing-balance', $data) ? (double) $data['u-marketing-balance'] : $user->balance;
+        $user->email_notifications = array_key_exists('u-email-notifications', $data) && $data['u-email-notifications'] == 'on';
 
         $detailsKeys       = [
             'u-billing-name',
@@ -252,17 +253,17 @@ class UserController extends Controller
             $shippingAddress = $as->storeAddress($data['u-shipping-zip'], $data['u-shipping-city'], $data['u-shipping-address1'], $data['u-shipping-address2']);
 
             // Mentsük el az egyéb adatokat
-            $ud->billing_name = $data['u-billing-name'];
-            $ud->billing_tax_number = $data['u-billing-tax-number'];
+            $ud->billing_name           = $data['u-billing-name'];
+            $ud->billing_tax_number     = $data['u-billing-tax-number'];
             $ud->billing_account_number = $data['u-billing-account-number'];
-            $ud->shipping_email = $data['u-shipping-email'];
-            $ud->shipping_phone = $data['u-shipping-phone'];
-            $ud->billing_address_id = $billingAddress ? $billingAddress->id : null;
-            $ud->shipping_address_id = $shippingAddress ? $shippingAddress->id : null;
+            $ud->shipping_email         = $data['u-shipping-email'];
+            $ud->shipping_phone         = $data['u-shipping-phone'];
+            $ud->billing_address_id     = $billingAddress ? $billingAddress->id : null;
+            $ud->shipping_address_id    = $shippingAddress ? $shippingAddress->id : null;
 
             $ud->save();
         } else {
-            if (! $shouldHaveDetails && $user->details) {
+            if ($user->details) {
                 try {
                     $user->details->delete();
                 } catch (Exception $e) {
