@@ -26,55 +26,211 @@ use Swagger\Client\Model\PaymentMethod;
 use Swagger\Client\Model\Round;
 use Swagger\Client\Model\UnitPriceType;
 use Swagger\Client\Model\Vat;
-use Symfony\Component\Translation\LoggingTranslator;
 
 class BillingoNewService
 {
     /** @var string */
     private $creditCardStatusHref;
 
+    /** @var string */
+    private $creditCardPaidStatusHref;
+
     /**
      * BillingoNewService constructor.
      */
-    public function __construct()
-    {
-        $this->creditCardStatusHref = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTEw';
+    public function __construct() {
+        $this->creditCardStatusHref     = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTEw';
+        $this->creditCardPaidStatusHref = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4';
     }
 
     /**
-     * @param User $user
-     * @return Configuration
+     * Elmenti a piszkozat számla azonosítóját a megrendeléshez
+     *
+     * @param  Document  $invoice
+     * @param  array     $order
+     * @return bool
      */
-    public function getBillingoConfig(User $user): Configuration
-    {
-        return Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $user->billingo_api_key);
+    public function saveDraftInvoice(Document $invoice, array $order): bool {
+        /** @var OrderService $os */
+        $os                           = resolve('App\Subesz\OrderService');
+        $localOrder                   = $os->getLocalOrderByResourceId($order['order']->id);
+        $localOrder->draft_invoice_id = $invoice->getId();
+        if (! $localOrder->save()) {
+            Log::error(sprintf('Hiba történt a piszkozat számla rögzítésekor! (Helyi megrendelés azonosító: %s)', $localOrder->id));
+
+            return false;
+        }
+
+        return true;
     }
 
     /**
-     * @param User $user
-     * @return PartnerApi
+     * @param  int              $invoiceId
+     * @param  User             $user
+     * @param  \App\Order|null  $localOrder
+     * @param  bool             $retry
+     * @return null|Document
      */
-    public function getPartnerApi(User $user): PartnerApi
-    {
-        return new PartnerApi(new Client(), $this->getBillingoConfig($user));
+    public function getRealInvoiceFromDraft(
+        int $invoiceId,
+        User $user,
+        Order $localOrder,
+        $retry = false
+    ): ?Document {
+        $api         = $this->getDocumentApi($user);
+        $realInvoice = null;
+
+        try {
+            $draft = $api->getDocument($invoiceId);
+
+            $documentInsertData = [
+                'partner_id'       => $draft->getPartner()->getId(),
+                'block_id'         => $draft->getBlockId(),
+                'type'             => DocumentType::INVOICE,
+                'fulfillment_date' => date('Y-m-d'),
+                'due_date'         => $draft->getDueDate()->format('Y-m-d'),
+                'payment_method'   => $draft->getPaymentMethod(),
+                'language'         => $draft->getLanguage(),
+                'currency'         => $draft->getCurrency(),
+                'conversion_rate'  => $draft->getConversionRate(),
+                'electronic'       => true,
+                'paid'             => $draft->getPaidDate() ? true : false,
+                'items'            => $this->convertInvoiceItemsToInserts($invoiceId, $user),
+                'settings'         => $draft->getSettings(),
+            ];
+
+            $onlineBankcardPaid = $draft->getPaymentMethod() == PaymentMethod::ONLINE_BANKCARD && $localOrder->advance_invoice_id;
+            if ($onlineBankcardPaid) {
+                if ($localOrder->advance_invoice_id) {
+                    $documentInsertData['due_date']        = date('Y-m-d');
+                    $documentInsertData['advance_invoice'] = [$localOrder->advance_invoice_id];
+                } else {
+                    Log::warning('Hiba a végszámla kiállításakor! Bankkártyás megrendelés, de nincs előlegszámla.');
+                }
+            }
+
+            // Leellenőrizzük, hogy végül mi lett a kifizetés módja
+            Log::info('Fizetési mód eldöntése...');
+            if ($localOrder->payment_method_name == 'Utánvétel' || ! $onlineBankcardPaid) {
+                if ($localOrder->final_payment_method == 'Készpénz') {
+                    $documentInsertData['payment_method'] = PaymentMethod::CASH;
+                    $documentInsertData['due_date']       = date('Y-m-d');
+                    Log::info('A kifizetés módja Készpénz volt');
+                } elseif ($localOrder->final_payment_method == 'Bankkártya') {
+                    $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
+                    $documentInsertData['due_date']       = date('Y-m-d');
+                    Log::info('A kifizetés módja Bankkártya volt');
+                } elseif ($localOrder->final_payment_method == 'Átutalás') {
+                    $documentInsertData['due_date']       = Carbon::now()->addDays(2)->format('Y-m-d');
+                    $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
+                    Log::info('A kifizetés módja Átutalás volt');
+                } else {
+                    Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
+                }
+            }
+
+            $documentInsert = new DocumentInsert($documentInsertData);
+            $realInvoice    = $api->createDocument($documentInsert);
+        } catch (ApiException $e) {
+            // Hibára futott a gyári számlával, megpróbáljuk újra 0-ról
+            Log::error(sprintf('Hiba történt a piszkozat számla átalakításkor éles számlává: %s %s', $e->getMessage(), PHP_EOL));
+
+            // 403-Nincs joga (Valószínű, hogy megváltozott a piszkozat számla létrehozása óta a tulajdonosa a megrendelésnek
+            if ($e->getCode() == 403 && $retry) {
+                Log::info('Újrapróbálkozunk egy új piszkozat számlával...');
+                $srOrder = $localOrder->getShoprenterOrder();
+
+                // 1. Partner
+                $partner = $this->createPartner($srOrder, $localOrder->reseller);
+                if (! $partner) {
+                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+                }
+
+                // 2. Számla
+                $invoice = $this->createDraftInvoice($srOrder, $partner, $localOrder->reseller);
+                if (! $invoice) {
+                    Log::error('Hiba történt a számla létrehozásakor.');
+                }
+                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
+
+                // 3. Elmentjük a piszkozatot
+                $localOrder->draft_invoice_id = $invoice->getId();
+                $localOrder->save();
+                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
+                return $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller, $localOrder);
+            }
+        }
+
+        return $realInvoice;
     }
 
     /**
-     * @param User $user
+     * @param  User  $user
      * @return DocumentApi
      */
-    public function getDocumentApi(User $user): DocumentApi
-    {
+    public function getDocumentApi(User $user): DocumentApi {
         return new DocumentApi(new Client(), $this->getBillingoConfig($user));
     }
 
     /**
-     * @param User $user
-     * @return DocumentBlockApi
+     * @param  User  $user
+     * @return Configuration
      */
-    public function getDocumentBlockApi(User $user): DocumentBlockApi
-    {
-        return new DocumentBlockApi(new Client(), $this->getBillingoConfig($user));
+    public function getBillingoConfig(User $user): Configuration {
+        return Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $user->billingo_api_key);
+    }
+
+    /**
+     * Átalakítja a Billingo által visszaadott elemeket
+     *
+     * @param        $invoiceId
+     * @param        $reseller
+     * @param  bool  $advance
+     * @return array
+     */
+    public function convertInvoiceItemsToInserts($invoiceId, $reseller, $advance = false): array {
+        $invoice     = $this->getInvoice($invoiceId, $reseller);
+        $insertItems = [];
+
+        foreach ($invoice->getItems() as $item) {
+            // Előleg számlához kinyerendő elemek esetén hozzácsatoljuk az előlege szót
+            $itemName = $item->getName();
+            if ($advance) {
+                $itemName .= ' előlege';
+            }
+
+            // Feltöltjük a tömböt
+            $insertItems[] = [
+                'name'            => $itemName,
+                'unit_price'      => $item->getNetUnitAmount(),
+                'unit_price_type' => UnitPriceType::NET,
+                'quantity'        => $item->getQuantity(),
+                'unit'            => 'db',
+                'vat'             => $item->getVat(),
+            ];
+        }
+
+        return $insertItems;
+    }
+
+    /**
+     * @param        $invoiceId
+     * @param  User  $user
+     * @return null|Document
+     */
+    public function getInvoice($invoiceId, User $user): ?Document {
+        $documentApi = $this->getDocumentApi($user);
+        $invoice     = null;
+
+        try {
+            $invoice = $documentApi->getDocument(intval($invoiceId));
+        } catch (ApiException $e) {
+            Log::error(sprintf('Exception when calling DocumentApi->getDocument: %s %s', $e->getMessage(), PHP_EOL));
+        }
+
+        return $invoice;
     }
 
     /**
@@ -82,8 +238,7 @@ class BillingoNewService
      * @param $user
      * @return bool|null|Partner
      */
-    public function createPartner($order, $user)
-    {
+    public function createPartner($order, $user) {
         if ($order['order']->paymentCountryName != 'Magyarország') {
             Log::error('A megrendelés nem magyarországról jött, nincs támogatva!');
 
@@ -91,7 +246,7 @@ class BillingoNewService
         }
 
         $partnerApi = $this->getPartnerApi($user);
-        $partner = null;
+        $partner    = null;
 
         // 1. Generálunk partner upsertet
         $partnerUpsert = $this->getPartnerUpsertFromOrder($order);
@@ -106,18 +261,25 @@ class BillingoNewService
     }
 
     /**
+     * @param  User  $user
+     * @return PartnerApi
+     */
+    public function getPartnerApi(User $user): PartnerApi {
+        return new PartnerApi(new Client(), $this->getBillingoConfig($user));
+    }
+
+    /**
      * @param $order
      * @return PartnerUpsert|null
      */
-    public function getPartnerUpsertFromOrder($order): ?PartnerUpsert
-    {
+    public function getPartnerUpsertFromOrder($order): ?PartnerUpsert {
         // Céget kezelünk
         $taxType = PartnerTaxType::NO_TAX_NUMBER;
-        $name = sprintf('%s %s', $order['order']->firstname, $order['order']->lastname);
+        $name    = sprintf('%s %s', $order['order']->firstname, $order['order']->lastname);
         $taxCode = null;
         if (strlen($order['order']->taxNumber) > 0 && strlen($order['order']->paymentCompany) > 0) {
             $taxType = PartnerTaxType::HAS_TAX_NUMBER;
-            $name = $order['order']->paymentCompany;
+            $name    = $order['order']->paymentCompany;
             $taxCode = $order['order']->taxNumber;
         }
 
@@ -139,37 +301,17 @@ class BillingoNewService
     }
 
     /**
-     * @param      $invoiceId
-     * @param User $user
+     * @param  array    $order
+     * @param  Partner  $partner
+     * @param  User     $user
      * @return null|Document
      */
-    public function getInvoice($invoiceId, User $user): ?Document
-    {
-        $documentApi = $this->getDocumentApi($user);
-        $invoice = null;
-
-        try {
-            $invoice = $documentApi->getDocument(intval($invoiceId));
-        } catch (ApiException $e) {
-            Log::error(sprintf('Exception when calling DocumentApi->getDocument: %s %s', $e->getMessage(), PHP_EOL));
-        }
-
-        return $invoice;
-    }
-
-    /**
-     * @param array   $order
-     * @param Partner $partner
-     * @param User    $user
-     * @return null|Document
-     */
-    public function createDraftInvoice(array $order, Partner $partner, User $user): ?Document
-    {
+    public function createDraftInvoice(array $order, Partner $partner, User $user): ?Document {
         $documentApi = $this->getDocumentApi($user);
 
-        $createdAt = Carbon::parse($order['order']->dateCreated);
-        $due = $createdAt->copy()->addDays(8);
-        $invoice = null;
+        $createdAt  = Carbon::parse($order['order']->dateCreated);
+        $due        = $createdAt->copy()->addDays(8);
+        $invoice    = null;
         $statusHref = str_replace(env('SHOPRENTER_API').'/orderStatuses/', '', $order['order']->orderStatus->href);
 
         $items = $this->getOrderItems($order, $user);
@@ -180,7 +322,7 @@ class BillingoNewService
             'type'             => DocumentType::DRAFT,
             'fulfillment_date' => $createdAt->format('Y-m-d'),
             'due_date'         => $due->format('Y-m-d'),
-            'payment_method'   => $statusHref == $this->creditCardStatusHref ? PaymentMethod::ONLINE_BANKCARD : PaymentMethod::CASH_ON_DELIVERY,
+            'payment_method'   => ($statusHref == $this->creditCardStatusHref || $statusHref == $this->creditCardPaidStatusHref) ? PaymentMethod::ONLINE_BANKCARD : PaymentMethod::CASH_ON_DELIVERY,
             'language'         => DocumentLanguage::HU,
             'currency'         => Currency::HUF,
             'conversion_rate'  => 1,
@@ -203,14 +345,13 @@ class BillingoNewService
     }
 
     /**
-     * @param array $order
-     * @param       $user
+     * @param  array  $order
+     * @param         $user
      * @return array
      */
-    public function getOrderItems(array $order, $user): array
-    {
+    public function getOrderItems(array $order, $user): array {
         $items = [];
-        $vat = $user->vat_id == 992 ? Vat::AAM : Vat::_27;
+        $vat   = $user->vat_id == 992 ? Vat::AAM : Vat::_27;
 
         foreach ($order['products']->items as $item) {
             $netUnitPrice = $vat == Vat::AAM ? round($item->price * ((100 + floatval($item->taxRate)) / 100)) : floatval($item->price);
@@ -226,6 +367,42 @@ class BillingoNewService
         }
 
         foreach ($order['totals'] as $total) {
+            //switch ($total->type) {
+            //    case 'COUPON':
+            //        $items[] = [
+            //            'name'            => 'Kupon kedvezmény',
+            //            'quantity'        => 1,
+            //            'unit'            => 'db',
+            //            'vat'             => $vat,
+            //            'unit_price'      => round(floatval($total->value)),
+            //            'unit_price_type' => UnitPriceType::GROSS,
+            //        ];
+            //        break;
+            //    case 'SHIPPING':
+            //        if (intval($total->value) > 0) {
+            //            $items[] = [
+            //                'name'            => 'Szállítási költség',
+            //                'quantity'        => 1,
+            //                'unit'            => 'db',
+            //                'vat'             => $vat,
+            //                'unit_price'      => round(floatval($total->value)),
+            //                'unit_price_type' => UnitPriceType::GROSS,
+            //            ];
+            //        }
+            //        break;
+            //    case 'LOYALTYPOINTS_TO_USE':
+            //        $items[] = [
+            //            'name'            => 'Beváltandó hűségpontok',
+            //            'quantity'        => 1,
+            //            'unit'            => 'db',
+            //            'vat'             => $vat,
+            //            'unit_price'      => round(floatval($total->value)),
+            //            'unit_price_type' => UnitPriceType::GROSS,
+            //        ];
+            //        break;
+            //    default:
+            //        break;
+            //}
             if ($total->type == 'COUPON') {
                 $items[] = [
                     'name'            => 'Kupon kedvezmény',
@@ -246,6 +423,16 @@ class BillingoNewService
                         'unit_price_type' => UnitPriceType::GROSS,
                     ];
                 }
+                if ($total->type == 'LOYALTYPOINTS_TO_USE' && intval($total->value) < 0) {
+                    $items[] = [
+                        'name'            => 'Hűségpont kedvezmény',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total->value)),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
             }
         }
 
@@ -253,35 +440,18 @@ class BillingoNewService
     }
 
     /**
-     * Elmenti a piszkozat számla azonosítóját a megrendeléshez
-     *
-     * @param Document $invoice
-     * @param array    $order
-     * @return bool
-     */
-    public function saveDraftInvoice(Document $invoice, array $order): bool
-    {
-        /** @var OrderService $os */
-        $os = resolve('App\Subesz\OrderService');
-        $localOrder = $os->getLocalOrderByResourceId($order['order']->id);
-        $localOrder->draft_invoice_id = $invoice->getId();
-        if (! $localOrder->save()) {
-            Log::error(sprintf('Hiba történt a piszkozat számla rögzítésekor! (Helyi megrendelés azonosító: %s)', $localOrder->id));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param int  $invoiceId
-     * @param User $user
+     * @param  int              $invoiceId
+     * @param  User             $user
+     * @param  \App\Order|null  $localOrder
+     * @param  bool             $advance
      * @return null|Document
      */
-    public function getRealInvoiceFromDraft(int $invoiceId, User $user): ?Document
-    {
-        $api = $this->getDocumentApi($user);
+    public function getAdvanceInvoiceFromDraft(
+        int $invoiceId,
+        User $user,
+        Order $localOrder = null
+    ): ?Document {
+        $api         = $this->getDocumentApi($user);
         $realInvoice = null;
 
         try {
@@ -290,42 +460,69 @@ class BillingoNewService
             $documentInsertData = [
                 'partner_id'       => $draft->getPartner()->getId(),
                 'block_id'         => $draft->getBlockId(),
-                'type'             => DocumentType::INVOICE,
+                'type'             => DocumentType::ADVANCE,
                 'fulfillment_date' => date('Y-m-d'),
-                'due_date'         => $draft->getDueDate(),
+                'due_date'         => date('Y-m-d'),
                 'payment_method'   => $draft->getPaymentMethod(),
                 'language'         => $draft->getLanguage(),
                 'currency'         => $draft->getCurrency(),
                 'conversion_rate'  => $draft->getConversionRate(),
                 'electronic'       => true,
                 'paid'             => $draft->getPaidDate() ? true : false,
-                'items'            => $this->convertInvoiceItemsToInserts($invoiceId, $user),
+                'items'            => $this->convertInvoiceItemsToInserts($invoiceId, $user, true),
                 'settings'         => $draft->getSettings(),
             ];
 
             $documentInsert = new DocumentInsert($documentInsertData);
-            $realInvoice = $api->createDocument($documentInsert);
+            $realInvoice    = $api->createDocument($documentInsert);
         } catch (ApiException $e) {
-            Log::error(sprintf('Exception when converting invoice: %s %s', $e->getMessage(), PHP_EOL));
+            // Hibára futott a gyári számlával, megpróbáljuk újra 0-ról
+            Log::error(sprintf('Hiba történt a piszkozat számla átalakításkor előlegszámlává: %s %s', $e->getMessage(), PHP_EOL));
+
+            // 403-Nincs joga (Valószínű, hogy megváltozott a piszkozat számla létrehozása óta a tulajdonosa a megrendelésnek
+            if ($e->getCode() == 403 && $localOrder) {
+                Log::info('Újrapróbálkozunk egy új piszkozat számlával...');
+                $srOrder = $localOrder->getShoprenterOrder();
+
+                // 1. Partner
+                $partner = $this->createPartner($srOrder, $localOrder->reseller);
+                if (! $partner) {
+                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+                }
+
+                // 2. Számla
+                $invoice = $this->createDraftInvoice($srOrder, $partner, $localOrder->reseller);
+                if (! $invoice) {
+                    Log::error('Hiba történt a számla létrehozásakor.');
+                }
+                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
+
+                // 3. Elmentjük a piszkozatot
+                $localOrder->draft_invoice_id = $invoice->getId();
+                $localOrder->save();
+                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
+                $this->getAdvanceInvoiceFromDraft($invoice->getId(), $localOrder->reseller);
+            }
         }
 
         return $realInvoice;
     }
 
     /**
-     * @param int  $invoiceId
-     * @param int  $orderId
-     * @param User $user
+     * @param  int   $invoiceId
+     * @param  int   $orderId
+     * @param  User  $user
      * @return bool|string
      */
-    public function saveInvoice(int $invoiceId, int $orderId, User $user)
-    {
+    public function saveInvoice(int $invoiceId, int $orderId, User $user) {
         $api = $this->getDocumentApi($user);
 
         try {
             $fname = 'ssz-szamla-'.date('Ymd_His').'.pdf';
-            $path = sprintf('invoices/%s/%s', $orderId, $fname);
-            $data = $api->downloadDocument($invoiceId);
+            $path  = sprintf('invoices/%s/%s', $orderId, $fname);
+            $data  = $api->downloadDocument($invoiceId);
 
             if (Storage::put($path, $data)) {
                 Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
@@ -344,13 +541,12 @@ class BillingoNewService
     }
 
     /**
-     * @param       $invoiceId
-     * @param Order $order
-     * @param User  $user
+     * @param         $invoiceId
+     * @param  Order  $order
+     * @param  User   $user
      * @return bool|string
      */
-    public function downloadInvoice($invoiceId, Order $order, User $user)
-    {
+    public function downloadInvoice($invoiceId, Order $order, User $user) {
         $api = $this->getDocumentApi($user);
 
         // Megpróbáljuk lementeni...
@@ -378,7 +574,7 @@ class BillingoNewService
 
             // Jó volt, van számla PDF-ünk, elmentjük
             $fname = 'ssz-szamla-'.date('Ymd_His').'.pdf';
-            $path = sprintf('invoices/%s/%s', $order->id, $fname);
+            $path  = sprintf('invoices/%s/%s', $order->id, $fname);
 
             if (Storage::put($path, $result)) {
                 Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
@@ -397,12 +593,53 @@ class BillingoNewService
     }
 
     /**
-     * @param User $user
+     * @param         $invoiceId
+     * @param  User   $user
+     * @return bool|string
+     */
+    public function downloadInvoiceWithoutSaving($invoiceId, User $user) {
+        $api = $this->getDocumentApi($user);
+
+        // Megpróbáljuk legenerálni
+        usleep(1000000);
+        try {
+            $tries = 0;
+
+            $result = $api->downloadDocument($invoiceId);
+
+            while ($result == "{\"error\":{\"message\":\"Document PDF has not generated yet.\"}}" && $tries <= 10) {
+                $tries++;
+                Log::error("Nem sikerült letölteni a dokumentumot, még nem jött létre... Újrapróbálkozás 5 másodperc múlva...");
+                usleep(5000000);
+                $result = $api->downloadDocument($invoiceId);
+            }
+
+            Log::error(sprintf('Összes próbálkozások száma: %s', $tries));
+            if ($tries == 10) {
+                Log::error('-------------- GIGABAJVAN NINCS SZÁMLA LETÖLTVE! -----------------');
+                Log::error('-- Számla azonosító: '.$invoiceId);
+
+                return false;
+            }
+
+            // Jó volt, van számla PDF-ünk, elmentjük
+            $fname = 'ssz-szamla-'.date('Ymd_His').'.pdf';
+            header('Content-Type: application/pdf');
+            header('Content-Disposition: attachment; filename='.$fname);
+            echo $result;
+        } catch (ApiException $e) {
+            Log::error('Hiba történt a számla létrehozásakor!');
+        }
+
+        return false;
+    }
+
+    /**
+     * @param  User  $user
      * @return bool
      */
-    public function isBillingoConnected(User $user): bool
-    {
-        $api = $this->getDocumentBlockApi($user);
+    public function isBillingoConnected(User $user): bool {
+        $api   = $this->getDocumentBlockApi($user);
         $found = false;
 
         if (! $user->billingo_api_key || ! $user->block_uid) {
@@ -429,27 +666,34 @@ class BillingoNewService
     }
 
     /**
+     * @param  User  $user
+     * @return DocumentBlockApi
+     */
+    public function getDocumentBlockApi(User $user): DocumentBlockApi {
+        return new DocumentBlockApi(new Client(), $this->getBillingoConfig($user));
+    }
+
+    /**
      * @param $apiKey
      * @param $blockId
      * @return array
      */
-    public function isBillingoWorking($apiKey, $blockId): array
-    {
-        $config = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $apiKey);
-        $api = new DocumentBlockApi(new Client(), $config);
+    public function isBillingoWorking($apiKey, $blockId): array {
+        $config   = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', $apiKey);
+        $api      = new DocumentBlockApi(new Client(), $config);
         $response = [
             'success' => false,
             'message' => 'A lekérés elakadt a legelején.',
         ];
 
         try {
-            $list = $api->listDocumentBlock(0, 100);
+            $list         = $api->listDocumentBlock(0, 100);
             $foundBlockId = false;
             foreach ($list->getData() as $block) {
                 if ($blockId == $block->getId()) {
                     $response['success'] = true;
                     $response['message'] = 'A csatlakozás hibátlan (Számlatömb azonosító megtalálva)';
-                    $foundBlockId = true;
+                    $foundBlockId        = true;
                     break;
                 }
             }
@@ -484,31 +728,5 @@ class BillingoNewService
         }
 
         return $response;
-    }
-
-    /**
-     * Átalakítja a Billingo által visszaadott elemeket
-     *
-     * @param $invoiceId
-     * @param $reseller
-     * @return array
-     */
-    public function convertInvoiceItemsToInserts($invoiceId, $reseller): array
-    {
-        $invoice = $this->getInvoice($invoiceId, $reseller);
-        $insertItems = [];
-
-        foreach ($invoice->getItems() as $item) {
-            $insertItems[] = [
-                'name'            => $item->getName(),
-                'unit_price'      => $item->getNetUnitAmount(),
-                'unit_price_type' => UnitPriceType::NET,
-                'quantity'        => $item->getQuantity(),
-                'unit'            => 'db',
-                'vat'             => $item->getVat(),
-            ];
-        }
-
-        return $insertItems;
     }
 }

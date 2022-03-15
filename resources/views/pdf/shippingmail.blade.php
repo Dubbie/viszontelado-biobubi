@@ -38,7 +38,8 @@
                         {{ $order['order']->shippingLastname }} {{ $order['order']->shippingFirstname }}<br>
                         {{ $order['order']->shippingPostcode }} {{ $order['order']->shippingCity }}<br>
                         {{ sprintf('%s %s', $order['order']->shippingAddress1, $order['order']->shippingAddress2) }}<br>
-
+                    </p>
+                    <p style="margin-top: 10px"><b>@if($order['statusDescription']->name == 'BK. Függőben lévő') Bankkártyával fizetve @endif</b></p>
                     @if(strlen($order['order']->comment) > 0)
                         <p>
                             <small><b>Megjegyzés: </b></small>

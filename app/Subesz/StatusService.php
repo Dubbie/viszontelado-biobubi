@@ -22,8 +22,7 @@ class StatusService
     /**
      * StatusService constructor.
      */
-    public function __construct()
-    {
+    public function __construct() {
         // Teljesített státusz ID-k
         $this->completedStatusMap = [
             'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=', // Teljesítve
@@ -37,11 +36,10 @@ class StatusService
     }
 
     /**
-     * @param  string $statusName
+     * @param  string  $statusName
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
-    public function getOrderStatusByName(string $statusName)
-    {
+    public function getOrderStatusByName(string $statusName) {
         /** @var OrderStatus|null $status */
         $status = OrderStatus::where('name', '=', $statusName)->first();
 
@@ -49,11 +47,10 @@ class StatusService
     }
 
     /**
-     * @param  string $statusId
+     * @param  string  $statusId
      * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object|null
      */
-    public function getOrderStatusByID(string $statusId)
-    {
+    public function getOrderStatusByID(string $statusId) {
         /** @var OrderStatus|null $status */
         $status = OrderStatus::where('status_id', '=', $statusId)->first();
 
@@ -64,11 +61,17 @@ class StatusService
      * @param $localOrderId
      * @return bool
      */
-    public function isCompleted($localOrderId)
-    {
+    public function isCompleted($localOrderId): bool {
         $localOrder = Order::find($localOrderId);
 
         return in_array($localOrder->status_text, $this->completedStatusTextMap);
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getCompletedStatusTextMap() {
+        return $this->completedStatusTextMap;
     }
 
     /**
@@ -77,9 +80,8 @@ class StatusService
      * @param  \App\OrderStatus  $newStatus
      * @return array
      */
-    public function handleNewStatus($shoprenterOrder, Order $localOrder, OrderStatus $newStatus): array
-    {
-        Log::info('StatusService: Státusz változás frissítése');
+    public function handleNewStatus($shoprenterOrder, Order $localOrder, OrderStatus $newStatus): array {
+        Log::info(sprintf('StatusService: Státusz változás frissítése (Megrendelés azonosító: %s)', $localOrder->id));
         // Szervizek
         $ks = resolve('App\Subesz\KlaviyoService');
         $ws = resolve('App\Subesz\WorksheetService');
@@ -94,8 +96,8 @@ class StatusService
         // Ha Teljesítve státuszba került (Több is lehet), akkor rögzítjük az adatokat
         if (in_array($newStatus->status_id, $this->completedStatusMap)) {
             // Létrehozzuk a Kiszállítást
-            $delivery = new Delivery();
-            $delivery->user_id = $reseller->id;
+            $delivery           = new Delivery();
+            $delivery->user_id  = $reseller->id;
             $delivery->order_id = $localOrder->id;
             $delivery->save();
 
@@ -139,7 +141,7 @@ class StatusService
 
             // Ha bankkártyás fizetés, akkor a számlát elküldjük
             if ($newStatus->status_id == $this->creditCardPaidStatus) {
-                $invoiceResponse = $localOrder->createInvoice();
+                $invoiceResponse = $localOrder->createAdvanceInvoice();
                 if (! $invoiceResponse['success']) {
                     $response['message'] = $invoiceResponse['message'];
                 }
@@ -151,5 +153,23 @@ class StatusService
         }
 
         return $response;
+    }
+
+    /**
+     * Visszaadja a státuszhoz tartozó színt név alapján.
+     *
+     * @param  string  $string
+     * @return \Illuminate\Database\Eloquent\HigherOrderBuilderProxy|mixed|string
+     */
+    public function getColorByStatusName(string $string) {
+        $os = OrderStatus::where('name', $string)->first();
+
+        if (! $os) {
+            Log::warning(sprintf('Nincs ilyen státusz név (%s)', $string));
+
+            return '#000000';
+        } else {
+            return $os->color;
+        }
     }
 }

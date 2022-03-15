@@ -22,7 +22,7 @@ Route::group(['middleware' => 'auth'], function () {
      */
     Route::group(['middleware' => 'admin'], function () {
         Route::get('/felhasznalok', 'UserController@index');
-        Route::get('/felhasznalok/uj', 'UserController@create');
+        Route::get('/felhasznalok/uj/fiok', 'UserController@create');
         Route::post('/felhasznalok/mentes', 'UserController@store');
         Route::get('/felhasznalok/{userId}/megrendelesek', 'UserController@orders');
         Route::get('/felhasznalok/{userId}/szerkesztes', 'UserController@edit');
@@ -73,9 +73,23 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('kozpont/marketing', 'MarketingResultController@show');
         Route::post('kozpont/marketing/mentes', 'MarketingResultController@store');
 
+        // Átutalások adminisztrátori funkcói
+        Route::get('kozpont/atutalasok/uj', 'MoneyTransferController@create');
+        Route::post('kozpont/atutalasok/uj/mentes', 'MoneyTransferController@store');
+        //Route::post('kozpont/atutalasok/viszontelado/mentes', 'MoneyTransferController@storeReseller');
+        //Route::get('kozpont/atutalasok/megrendelesek', 'MoneyTransferController@chooseOrders');
+        //Route::post('kozpont/atutalasok/megrendelesek/mentes', 'MoneyTransferController@storeOrders');
+        Route::post('kozpont/atutalasok/multi-torles', 'MoneyTransferController@multiDestroy');
+        Route::delete('kozpont/atutalasok/{transferId}/torles', 'MoneyTransferController@destroy');
+        Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
+        Route::post('kozpont/atutalasok/excel', 'MoneyTransferController@generateExcel');
+
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
 
         Route::get('/ugyfelek/ujra-generalas', 'CustomerController@regenerateCustomers');
+        // Régió
+        Route::get('regiok/generalas', 'RegionController@generateByResellers');
+        Route::resource('regiok', 'RegionController');
     });
 
     // Index
@@ -107,12 +121,17 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/megrendelesek', 'OrderController@index');
     Route::post('/megrendelesek/allapot/frissites', 'OrderController@updateStatus');
     Route::post('/megrendelesek/tomeges/allapot/frissites', 'OrderController@massUpdateStatus');
+    Route::get('/megrendelesek/{orderId}/szamla-letoltese', 'OrderController@downloadInvoice');
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
     Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
 
+    //Javascript számára megjegyzéseket küld vissza, HTML/Text.
+    Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
+
     // Munkalapos dolgok
     Route::post('/munkalap/hozzaadas', 'WorksheetController@add');
+    Route::post('/munkalap/hozzaadas/tomeges', 'WorksheetController@addMultiple');
     Route::post('/munkalap/torles', 'WorksheetController@remove');
 
     // Szállítólevél
@@ -148,9 +167,15 @@ Route::group(['middleware' => 'auth'], function () {
     // Készlet
     Route::resource('keszletem', 'StockController', [
         'only' => [
-            'index', 'store'
-        ]
+            'index',
+            'store',
+        ],
     ]);
+
+    // Átutalások (Mindenkinek)
+    Route::get('kozpont/atutalasok', 'MoneyTransferController@index');
+    Route::get('kozpont/atutalasok/{transferId}', 'MoneyTransferController@show');
+    Route::get('kozpont/atutalasok/csatolmany/{transferId}', 'MoneyTransferController@downloadAttachment');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');

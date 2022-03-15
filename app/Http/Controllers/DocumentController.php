@@ -18,47 +18,47 @@ class DocumentController extends Controller
 
     /**
      * DocumentController constructor.
-     * @param OrderService $orderService
-     * @param ShoprenterService $shoprenterService
+     *
+     * @param  OrderService       $orderService
+     * @param  ShoprenterService  $shoprenterService
      */
-    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService)
-    {
-        $this->orderService = $orderService;
+    public function __construct(OrderService $orderService, ShoprenterService $shoprenterService) {
+        $this->orderService  = $orderService;
         $this->shoprenterApi = $shoprenterService;
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return mixed
      */
-    public function download(Request $request)
-    {
+    public function download(Request $request) {
         $data = $request->validate([
             'sm-order-ids' => 'required',
         ]);
 
         // Átalakítjuk a bemenetet
         $orderResourceIds = json_decode($data['sm-order-ids']);
-        $orders = [];
+        $orders           = [];
         foreach ($orderResourceIds as $resourceId) {
             $orders[] = $this->shoprenterApi->getOrder($resourceId);
         }
 
         foreach ($orders as $order) {
-            if (!property_exists($order['order'], 'paymentLastname')) {
+            if (! property_exists($order['order'], 'paymentLastname')) {
                 \Log::error('Nem volt található név a megrendelésben (Hiba van valahol)');
                 \Log::error(var_dump($order['order']));
+
                 return redirect(url()->previous())->with([
-                    'error' => 'Hiba történt a szállítólevél generálásakor. A Shoprenter API nem tért vissza megrendelésekkel.'
+                    'error' => 'Hiba történt a szállítólevél generálásakor. A Shoprenter API nem tért vissza megrendelésekkel.',
                 ]);
             }
         }
 
         // Összegzés
         $sum = [
-            'income' => 0,
+            'income'   => 0,
             'discount' => 0,
-            'items' => [],
+            'items'    => [],
         ];
         foreach ($orders as $order) {
             // Egyéni
@@ -67,8 +67,8 @@ class DocumentController extends Controller
 
                 if ($itemIndex === false) {
                     $sum['items'][] = [
-                        'sku' => $item->sku,
-                        'name' => $item->name,
+                        'sku'   => $item->sku,
+                        'name'  => $item->name,
                         'total' => floatval($item->total),
                         'count' => intval($item->stock1),
                     ];
@@ -92,52 +92,51 @@ class DocumentController extends Controller
         $pdf = App::make('dompdf.wrapper');
         $pdf->loadView('pdf.shippingmail', [
             'data' => $orders,
-            'pdf' => $pdf,
-            'sum' => $sum,
+            'pdf'  => $pdf,
+            'sum'  => $sum,
         ]);
 
         $filename = sprintf('szs_szallitolevel_%s.pdf', date('Y_m_d_his'));
+
         return $pdf->download($filename);
     }
 
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
-    {
+    public function index() {
         return view('documents')->with([
             'documents' => Document::all(),
         ]);
     }
 
     /**
-     * @param Request $request
+     * @param  Request  $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function store(Request $request)
-    {
+    public function store(Request $request) {
         $data = $request->validate([
             'documents' => 'required',
         ]);
 
         /** @var \Illuminate\Http\UploadedFile $file */
         foreach ($data['documents'] as $file) {
-            $path = $file->store('/storage/documents');
+            $path = $file->store('/public/documents');
 
-            if (!$path) {
+            if (! $path) {
                 return redirect(url()->previous())->with([
                     'error' => 'Hiba történt a fájl feltöltésekor',
                 ]);
             }
 
-            $doc = new Document();
+            $doc       = new Document();
             $doc->name = $file->getClientOriginalName();
             $doc->path = $path;
             $doc->save();
         }
 
         return redirect(url()->previous())->with([
-            'success' => 'Dokumentumok sikeresen feltöltve'
+            'success' => 'Dokumentumok sikeresen feltöltve',
         ]);
     }
 
@@ -145,9 +144,9 @@ class DocumentController extends Controller
      * @param $documentId
      * @return \Symfony\Component\HttpFoundation\StreamedResponse
      */
-    public function getDocument($documentId)
-    {
+    public function getDocument($documentId) {
         $doc = Document::find($documentId);
+
         return $doc->download();
     }
 
@@ -156,8 +155,7 @@ class DocumentController extends Controller
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      * @throws \Exception
      */
-    public function deleteDocument($documentId)
-    {
+    public function deleteDocument($documentId) {
         $doc = Document::find($documentId);
 
         if (\Storage::delete($doc->path)) {
@@ -165,7 +163,7 @@ class DocumentController extends Controller
         }
 
         return redirect(url()->previous())->with([
-            'success' => 'Dokumentumok sikeresen törölve'
+            'success' => 'Dokumentumok sikeresen törölve',
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Report;
 use App\ReportProducts;
 use App\Subesz\ReportService;
+use App\Subesz\UserService;
 use App\User;
 use Auth;
 use Carbon\Carbon;
@@ -17,11 +18,22 @@ use Schema;
 
 class ReportController extends Controller
 {
+    /** @var \App\Subesz\UserService */
+    private $userService;
+
+    /**
+     * ReportController constructor.
+     *
+     * @param  \App\Subesz\UserService  $userService
+     */
+    public function __construct(UserService $userService) {
+        $this->userService = $userService;
+    }
+
     /**
      * @return Factory|View
      */
-    public function showQuick()
-    {
+    public function showQuick() {
         return view('report.quick')->with([
             'deliveredCount' => Auth::user()->getDeliveryCountThisMonth(),
         ]);
@@ -31,8 +43,7 @@ class ReportController extends Controller
      * @param  Request  $request
      * @return Application|Factory|View
      */
-    public function showMonthly(Request $request)
-    {
+    public function showMonthly(Request $request) {
         $date              = $request->input('date') ?? null;
         $selectedReport    = null;
         $selectedMarketing = null;
@@ -53,8 +64,7 @@ class ReportController extends Controller
      * @param $privateKey
      * @return array|string[]
      */
-    public function generateMonthlyReports($privateKey): array
-    {
+    public function generateMonthlyReports($privateKey): array {
         Log::info('Havi riportok generálásának megkezdése...');
         $start = microtime(true);
 
@@ -66,12 +76,7 @@ class ReportController extends Controller
         /** @var User $reseller */
         /** @var ReportService $repService */
         $repService = resolve('App\Subesz\ReportService');
-        foreach (User::withCount('zips')->get() as $reseller) {
-            if ($reseller->zips_count == 0) {
-                Log::info('- %s nem viszonteladó, mivel nincs hozzárendelve irányítószám, ezért kihagyjuk.');
-                continue;
-            }
-
+        foreach ($this->userService->getResellers() as $reseller) {
             $repService->generateReportByDate($reseller, Carbon::now());
         }
 
@@ -81,8 +86,9 @@ class ReportController extends Controller
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function regenerateReports()
-    {
+    public function regenerateReports() {
+        /** @var ReportService $repService */
+        $repService = resolve('App\Subesz\ReportService');
         Log::info('Havi riportok újragenerálásának megkezdése...');
         $start = microtime(true);
 
@@ -98,17 +104,10 @@ class ReportController extends Controller
         Log::info('---');
 
         $rsDate = Carbon::create(2021, 2);
-        $now    = Carbon::now()->addMonth();
+        $now    = Carbon::now();
         while ($rsDate <= $now) {
             /** @var User $reseller */
-            /** @var ReportService $repService */
-            $repService = resolve('App\Subesz\ReportService');
-            foreach (User::withCount('zips')->get() as $reseller) {
-                if ($reseller->zips_count == 0) {
-                    Log::info(sprintf('- %s nem viszonteladó, mivel nincs hozzárendelve irányítószám, ezért kihagyjuk.', $reseller->name));
-                    continue;
-                }
-
+            foreach ($this->userService->getResellers() as $reseller) {
                 $repService->generateReportByDate($reseller, $rsDate);
             }
 

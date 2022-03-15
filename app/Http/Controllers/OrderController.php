@@ -2,27 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Delivery;
-use App\Mail\RegularOrderCompleted;
-use App\Mail\TrialOrderCompleted;
 use App\Order;
 use App\Subesz\BillingoNewService;
-use App\Subesz\BillingoService;
-use App\Subesz\KlaviyoService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
+use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use App\Subesz\WorksheetService;
 use App\User;
-use Billingo\API\Connector\Exceptions\JSONParseException;
-use Billingo\API\Connector\Exceptions\RequestErrorException;
-use Carbon\Carbon;
-use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
-use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
@@ -38,35 +29,45 @@ class OrderController extends Controller
     /** @var StockService */
     private $stockService;
 
+    /** @var StatusService */
+    private $statusService;
+
     /** @var WorksheetService */
     private $worksheetService;
+
+    /** @var string */
+    private $creditCardPaidStatus;
 
     /**
      * OrderController constructor.
      *
-     * @param  ShoprenterService  $shoprenterService
-     * @param  OrderService       $orderService
-     * @param  StockService       $stockService
-     * @param  WorksheetService   $worksheetService
+     * @param  ShoprenterService          $shoprenterService
+     * @param  OrderService               $orderService
+     * @param  StockService               $stockService
+     * @param  WorksheetService           $worksheetService
+     * @param  \App\Subesz\StatusService  $statusService
      */
     public function __construct(
         ShoprenterService $shoprenterService,
         OrderService $orderService,
         StockService $stockService,
-        WorksheetService $worksheetService
+        WorksheetService $worksheetService,
+        StatusService $statusService
     ) {
         $this->shoprenterApi    = $shoprenterService;
         $this->orderService     = $orderService;
         $this->stockService     = $stockService;
         $this->worksheetService = $worksheetService;
+        $this->statusService    = $statusService;
+
+        $this->creditCardPaidStatus = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4'; // BK. Függőben lévő
     }
 
     /**
      * @param  Request  $request
      * @return Factory|View
      */
-    public function index(Request $request)
-    {
+    public function index(Request $request) {
         $filter = [];
 
         if ($request->has('filter-reseller')) {
@@ -77,6 +78,12 @@ class OrderController extends Controller
         }
         if ($request->has('filter-query')) {
             $filter['query'] = $request->input('filter-query');
+        }
+        if ($request->has('filter-region')) {
+            $filter['region'] = $request->input('filter-region');
+        }
+        if ($request->has('filter-delivered')) {
+            $filter['delivered'] = $request->input('filter-delivered') == 'true';
         }
 
         $orders = $this->orderService->getOrdersFiltered($filter);
@@ -108,8 +115,7 @@ class OrderController extends Controller
      * @param $orderId
      * @return Factory|View
      */
-    public function show($orderId)
-    {
+    public function show($orderId) {
         $order = $this->shoprenterApi->getOrder($orderId);
 
         // Kezeljük le a státusz frissítéskor létrejövő session-t
@@ -127,8 +133,7 @@ class OrderController extends Controller
      * @param $orderId
      * @return Factory|View
      */
-    public function showStatus($orderId)
-    {
+    public function showStatus($orderId) {
         $order = $this->orderService->getLocalOrderByResourceId($orderId);
 
         return view('inc.order-status-content')->with([
@@ -141,8 +146,7 @@ class OrderController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function updateStatus(Request $request)
-    {
+    public function updateStatus(Request $request) {
         $data = $request->validate([
             'order-id'          => 'required',
             'order-status-now'  => 'required',
@@ -176,11 +180,11 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function massUpdateStatus(Request $request)
-    {
+    public function massUpdateStatus(Request $request) {
         $data = $request->validate([
-            'mos-order-ids'     => 'required',
-            'order-status-href' => 'required',
+            'mos-order-ids'      => 'required',
+            'order-status-href'  => 'required',
+            'mos-payment-method' => 'required_if:order-status-href,b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=',
         ]);
 
         // Átalakítjuk a bemenetet
@@ -192,6 +196,11 @@ class OrderController extends Controller
         // Végigmegyünk a kijelölésen
         $successCount = 0;
         foreach ($orderIds as $orderId) {
+            // Ha Teljesítve a státusz, akkor kérjük el, hogy mi is volt a fizetés módja
+            if (array_key_exists('mos-payment-method', $data) && $statusId == 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=') {
+                $this->orderService->updatePaymentMethod($orderId, $data['mos-payment-method']);
+            }
+
             // Frissítjük az új státuszra
             $result = $this->orderService->updateStatus($orderId, $statusId);
             if ($result['success']) {
@@ -215,11 +224,14 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function completeOrder(Request $request)
-    {
+    public function completeOrder(Request $request) {
         $data = $request->validate([
-            'order-id' => 'required',
+            'order-id'       => 'required',
+            'payment-method' => 'required',
         ]);
+
+        // Frissítjük, a kifizetés módját
+        $this->orderService->updatePaymentMethod($data['order-id'], $data['payment-method']);
 
         // Teljesítve státusz azonosítója
         $statusId  = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=';
@@ -238,8 +250,7 @@ class OrderController extends Controller
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
-    public function massUpdateReseller(Request $request)
-    {
+    public function massUpdateReseller(Request $request) {
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
 
@@ -300,6 +311,11 @@ class OrderController extends Controller
                 $localOrder->draft_invoice_id = $invoice->getId();
                 $localOrder->save();
                 Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // (4.) Ha már ki van fizetve online bankkártyával, akkor küldjünk róla egy új előlegszámlát.
+                if ($this->statusService->getOrderStatusByName($localOrder->status_text)->status_id == $this->creditCardPaidStatus) {
+                    $localOrder->createAdvanceInvoice();
+                }
             }
 
             $successCount++;
@@ -328,7 +344,40 @@ class OrderController extends Controller
         }
 
         return redirect(action('RevenueController@hqFinance'))->with([
-            'success' => 'Bevételek sikeresen frissítve'
+            'success' => 'Bevételek sikeresen frissítve',
         ]);
+    }
+
+    public function downloadInvoice($localOrderId) {
+        $order = Auth::user()->orders->find($localOrderId);
+        if (Auth::user()->admin) {
+            $order = Order::find($localOrderId);
+        }
+
+        if (! $order) {
+            return redirect(action('OrderController@index'))->with([
+                'error' => 'A fiókodhoz nem tartozik ilyen azonosítójú megrendelés.',
+            ]);
+        }
+
+        $bs = resolve('App\Subesz\BillingoNewService');
+
+        return $bs->downloadInvoiceWithoutSaving($order->invoice_id, $order->reseller);
+    }
+
+    /***
+     * @param  Request  $request
+     * @param           $orderID
+     * @return array|string
+     * Bejövő request (orderID) alapján renderel egy templatet, ami a megrendelésen lévő megjegyzéseket listázza.
+     * Visszatérési értéke HTML/Text
+     */
+    public function getCommentsHTML(Request $request, $orderID) {
+        $result = $this->orderService->getCommentsHTML((int) $orderID);
+        if ($result['success']) {
+            return view("inc.render-order-comments")->with(['order' => $result['order']])->toHtml();
+        } else {
+            return $result['message'];
+        }
     }
 }

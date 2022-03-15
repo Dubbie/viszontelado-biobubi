@@ -1,8 +1,8 @@
 @php /** @var \App\User $user */ @endphp
 <div class="row">
-    <div class="col-md-9">
-        <h3 class="h1 font-weight-bold mb-0">{{ $user->name }} @if($user->admin) <span
-                    class="badge badge-success">Admin</span> @endif</h3>
+    <div class="col-md-10">
+        <h3 class="font-weight-bold mb-0">{{ $user->name }} @if($user->admin) <span
+                class="badge badge-success">Admin</span> @endif</h3>
         <h5 class="font-weight-bold text-muted mb-2">{{ $user->email }}</h5>
         <p class="text-muted mb-0">{{ $user->vat_id == env('AAM_VAT_ID') ? 'Alanyi Adómentes' : 'Nem Alanyi Adómentes' }}</p>
     </div>
@@ -20,52 +20,61 @@
 <div class="row mt-5">
     <div class="col-md-5">
         <h4 class="font-weight-bold mb-3">Billingo Integráció</h4>
-        <p class="mb-4 text-muted">A számlák automatikus kiállításához szükséges a <b>Billingo</b> rendszerével való összekapcsolás.<br>Ezt a jobb felül található <b>Szerkesztés</b> gombra kattintva tudod megtenni.</p>
+        <p class="mb-4 text-muted">A számlák automatikus kiállításához szükséges a <b>Billingo</b> rendszerével való
+            összekapcsolás.<br>Ezt a jobb felül található <b>Szerkesztés</b> gombra kattintva tudod megtenni.</p>
     </div>
     <div class="col-md-6 offset-md-1">
         <a href="https://app.billingo.hu/document/list" class="d-block">
-            <img src="{{ url('/storage/billingo.png') }}" alt="Billingo logo" class="d-block mw-100" style="width: 100px;">
+            <img src="{{ url('/storage/billingo.png') }}" alt="Billingo logo" class="d-block mw-100"
+                 style="width: 100px;">
         </a>
         <div class="row">
             <div class="col-md-7">
                 <p class="font-weight-bold mb-0">API kulcs</p>
             </div>
             <div class="col-md-5">
-                <p class="has-tooltip mb-0 {{ $user->billingo_api_key ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
+                <p class="has-tooltip mb-0 {{ $user->billingo_api_key ? 'text-success' : 'text-danger' }}"
+                   data-toggle="tooltip" data-placement="left"
                    title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt láthatod.">{{ $user->billingo_api_key ? 'Van megadva' : 'Nincs megadva' }}</p>
             </div>
             <div class="col-md-7">
                 <p class="font-weight-bold mb-0">Számlatömb azonosító</p>
             </div>
             <div class="col-md-5">
-                <p class="has-tooltip mb-0 {{ $user->block_uid ? 'text-success' : 'text-danger' }}" data-toggle="tooltip" data-placement="left"
+                <p class="has-tooltip mb-0 {{ $user->block_uid ? 'text-success' : 'text-danger' }}"
+                   data-toggle="tooltip" data-placement="left"
                    title="Biztonsági okokból ezeket csak a szerkesztés menüpont alatt láthatod.">{{ $user->block_uid ? 'Van megadva' : 'Nincs megadva' }}</p>
             </div>
         </div>
     </div>
 </div>
 
-<p class="h5 font-weight-bold mt-4 mb-3">Irányítószámok</p>
+<p class="h5 font-weight-bold mt-4 mb-3">Régiók</p>
 <div class="row">
     <div class="col-md-5">
-        <p class="mb-0 text-muted">Ezek az irányítószámok lettek hozzárendelve a felhasználóhoz.<br>Új megrendeléskor nézi a rendszer, ez alapján találja meg a helyes viszonteladót.</p>
+        <p class="mb-0 text-muted">Ezek a régiók lettek hozzárendelve a felhasználóhoz.<br>Új megrendeléskor
+            nézi a rendszer, ez alapján találja meg a helyes viszonteladót a régiókon belül található irányítószámok
+            alapján.</p>
     </div>
     <div class="col-md-6 offset-md-1">
-        <div class="row">
-            @if(count($user->zips) > 0)
-                @foreach($user->zips->sortBy('zip') as $zip)
-                    <div class="col-md-4 col-lg-3">
-                        <p class="font-weight-bold mb-0">{{ $zip->zip }}</p>
-                    </div>
-                @endforeach
-            @else
-                <div class="col">
-                    <div class="alert alert-info">
-                        <p class="lead mb-0">A felhasználóhoz nem tartozik egy irányítószám sem, ezért nem fog kapni megrendeléseket automatikusan.</p>
-                    </div>
+        @if(count($user->regions) > 0)
+            @foreach($user->regions->sortBy('name') as $region)
+                <p class="font-weight-bold mb-2">{{ $region->name }}</p>
+
+                <div class="row">
+                    @foreach($region->zips as $rZip)
+                        <div class="col-md-4 col-lg-3">
+                            <p class="font-weight-semibold mb-0">{{ $rZip->zip }}</p>
+                        </div>
+                    @endforeach
                 </div>
-            @endif
-        </div>
+            @endforeach
+        @else
+            <div class="alert alert-info">
+                <p class="lead mb-0">A felhasználóhoz nem tartozik egy régió sem, ezért nem fog kapni
+                    megrendeléseket automatikusan.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -104,7 +113,8 @@
                 <div class="alert alert-info mt-4">
                     <p class="mb-2">A kiszállítási adatok nem lettek kitöltve, csak a számlázási adatok.</p>
                     <p class="mb-0">
-                        <a href="{{ action('UserController@edit', $user) }}" class="btn btn-sm btn-primary">Szerkesztés</a>
+                        <a href="{{ action('UserController@edit', $user) }}"
+                           class="btn btn-sm btn-primary">Szerkesztés</a>
                     </p>
                 </div>
             </div>

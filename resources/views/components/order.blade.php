@@ -77,26 +77,88 @@
     </div>
     <div class="col-12 mt-3">
         <div class="row no-gutters align-items-center">
-            @if(Auth::user()->admin)
-                <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
-                    <div class="d-flex align-items-center">
-                        <span class="icon text-muted">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-person" viewBox="0 0 16 16">
-                                <path d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
-                                <path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+            <div class="col-12 col-md-6" style="margin-left: calc(24px + 0.5rem)">
+                <div class="d-flex flex-column flex-md-row align-items-md-center mb-2">
+                    @if(Auth::user()->admin)
+                        <div class="d-flex overflow-hidden">
+                            <span class="icon text-muted mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-file-person" viewBox="0 0 16 16">
+                                    <path
+                                        d="M12 1a1 1 0 0 1 1 1v10.755S12 11 8 11s-5 1.755-5 1.755V2a1 1 0 0 1 1-1h8zM4 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H4z"/>
+                                    <path d="M8 10a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/>
+                                </svg>
+                            </span>
+                            <p class="d-block overflow-hidden mb-0">
+                                <span
+                                    class="d-block font-weight-bold text-truncate mb-0 has-tooltip"
+                                    data-toggle="tooltip"
+                                    title="{{ $order->reseller->name }}">{{ $order->reseller->name }}</span>
+                            </p>
+                            <span class="d-md-block text-muted d-none ml-1 mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-dot" viewBox="0 0 16 16">
+                                    <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                                </svg>
+                            </span>
+                        </div>
+                    @endif
+                    {{--megjegyzés gomb--}}
+                    <div class="d-flex">
+                        <span class="icon text-muted mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-chat-right" viewBox="0 0 16 16">
+                                <path
+                                    d="M2 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h9.586a2 2 0 0 1 1.414.586l2 2V2a1 1 0 0 0-1-1H2zm12-1a2 2 0 0 1 2 2v12.793a.5.5 0 0 1-.854.353l-2.853-2.853a1 1 0 0 0-.707-.293H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12z"/>
                             </svg>
                         </span>
-                        <p class="mb-0 font-weight-bold">{{ $order->reseller->name }}</p>
+                        <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
+                           data-order-id="{{ $order->id }}" class="text-muted d-block text-nowrap">
+                            {{ $order->comments()->count() }} megjegyzés
+                        </a>
                     </div>
                 </div>
-            @endif
+                {{-- Kiszállítás módja --}}
+                <div class="d-flex">
+                    <div class="d-flex has-tooltip" data-toggle="tooltip" title="Kiszállítás módja" data-placement="left">
+                        <span class="icon text-success mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-seam" viewBox="0 0 16 16">
+                                <path d="M8.186 1.113a.5.5 0 0 0-.372 0L1.846 3.5l2.404.961L10.404 2l-2.218-.887zm3.564 1.426L5.596 5 8 5.961 14.154 3.5l-2.404-.961zm3.25 1.7-6.5 2.6v7.922l6.5-2.6V4.24zM7.5 14.762V6.838L1 4.239v7.923l6.5 2.6zM7.443.184a1.5 1.5 0 0 1 1.114 0l7.129 2.852A.5.5 0 0 1 16 3.5v8.662a1 1 0 0 1-.629.928l-7.185 2.874a.5.5 0 0 1-.372 0L.63 13.09a1 1 0 0 1-.63-.928V3.5a.5.5 0 0 1 .314-.464L7.443.184z"/>
+                            </svg>
+                        </span>
+                        <p class="mb-0 font-weight-bold">{{ $order->shipping_method_name }}</p>
+                    </div>
+                    @if($order->isBankkcard())
+                        <span class="d-md-block d-none text-muted ml-1 mr-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-dot" viewBox="0 0 16 16">
+                                <path d="M8 9.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+                            </svg>
+                        </span>
+                        <div class="d-flex">
+                            <span class="icon text-info-pastel mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                     class="bi bi-credit-card" viewBox="0 0 16 16">
+                                    <path
+                                        d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"/>
+                                    <path d="M2 10a1 1 0 0 1 1-1h1a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-1z"/>
+                                </svg>
+                            </span>
+                            <p class="mb-0 text-info-pastel">Bankkártyás</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
             <div class="col">
                 <div class="d-flex justify-content-end">
                     {{-- Nem jó a számla - TODO --}}
-                    @if(Auth::user()->admin && $order->isCompleted() && !$order->invoice_id)
-                        <span class="icon icon-lg">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
-                              <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                    @if($order->isCompleted() && !$order->invoice_id)
+                        <span class="icon icon-lg has-tooltip" data-toggle="tooltip"
+                              title="Hiba történt a végszámla kiállításakor">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
+                                 class="bi bi-exclamation-triangle-fill text-danger" viewBox="0 0 16 16">
+                                <path
+                                    d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
                             </svg>
                         </span>
                     @endif
@@ -146,29 +208,48 @@
                                 <button type="submit" class="btn btn-icon has-tooltip" data-toggle="tooltip"
                                         title="Eltávolítom a munkalapról">
                                     <span class="icon icon-lg">
-                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            fill="currentColor" class="bi bi-clipboard-minus" viewBox="0 0 16 16">
-                                          <path fill-rule="evenodd"
-                                                d="M5.5 9.5A.5.5 0 0 1 6 9h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
-                                          <path
-                                              d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
-                                          <path
-                                              d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                             fill="currentColor" class="bi bi-clipboard-minus" viewBox="0 0 16 16">
+                                            <path fill-rule="evenodd"
+                                                  d="M5.5 9.5A.5.5 0 0 1 6 9h4a.5.5 0 0 1 0 1H6a.5.5 0 0 1-.5-.5z"/>
+                                            <path
+                                                d="M4 1.5H3a2 2 0 0 0-2 2V14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V3.5a2 2 0 0 0-2-2h-1v1h1a1 1 0 0 1 1 1V14a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V3.5a1 1 0 0 1 1-1h1v-1z"/>
+                                            <path
+                                                d="M9.5 1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5v-1a.5.5 0 0 1 .5-.5h3zm-3-1A1.5 1.5 0 0 0 5 1.5v1A1.5 1.5 0 0 0 6.5 4h3A1.5 1.5 0 0 0 11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3z"/>
                                         </svg>
                                     </span>
                                 </button>
                             </form>
                         @endif
 
-                        <form action="{{ action('OrderController@completeOrder') }}"
-                              class="form-complete-order d-inline-block ml-2" method="POST">
-                            @csrf
-                            {{-- Rejtett mező a megrendelésnek --}}
-                            <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
-                            <button type="submit" class="btn btn-success font-weight-semibold h-100">
-                                <span>Teljesítés</span>
+{{--                                                <form action="{{ action('OrderController@completeOrder') }}"--}}
+{{--                                                      class="form-complete-order d-inline-block ml-2" method="POST">--}}
+{{--                                                    @csrf--}}
+{{--                                                     Rejtett mező a megrendelésnek--}}
+{{--                                                    <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">--}}
+{{--                                                    <button type="submit" class="btn btn-success font-weight-semibold h-100">--}}
+{{--                                                        <span>Teljesítés</span>--}}
+{{--                                                    </button>--}}
+{{--                                                </form>--}}
+
+
+                        @if($order->status_text == 'BK. Függőben lévő')
+                                <form action="{{ action('OrderController@completeOrder') }}"
+                                      class="form-complete-order d-inline-block ml-2" method="POST">
+                                    @csrf
+                                    {{-- Rejtett mező a megrendelésnek--}}
+                                    <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
+                                    <input type="hidden" name="payment-method" value="Online Bankkártya">
+                                    <button type="submit" class="btn btn-success font-weight-semibold h-100">
+                                        <span>Teljesítés</span>
+                                    </button>
+                                </form>
+                        @else
+                            <button type="button" class="btn btn-outline-success btn-payment-method-chooser"
+                                 data-toggle="modal" data-target="#paymentMethodModal"
+                                 data-order-id="{{ $order->inner_resource_id }}">Teljesítés
                             </button>
-                        </form>
+                        @endif
                     @else
                         <button type="button" class="disabled btn btn-success ml-2" disabled style="opacity: 0.33">
                             Teljesítés

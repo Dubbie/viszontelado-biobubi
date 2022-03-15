@@ -2,7 +2,6 @@
 
 namespace App\Subesz;
 
-
 use App\Delivery;
 use App\Income;
 use App\OrderProducts;
@@ -15,22 +14,22 @@ use Log;
 
 /**
  * Class ReportService
+ *
  * @package App\Subesz
  */
 class ReportService
 {
     /**
-     * @param User $reseller
-     * @param Carbon $currentDate
+     * @param  User    $reseller
+     * @param  Carbon  $currentDate
      */
-    public function generateReportByDate(User $reseller, Carbon $currentDate)
-    {
-        $endDate = $currentDate->clone()->subMonth()->lastOfMonth()->setHour(23)->setMinute(59)->setSecond(59);
+    public function generateReportByDate(User $reseller, Carbon $currentDate) {
+        $endDate   = $currentDate->clone()->subMonth()->lastOfMonth()->setHour(23)->setMinute(59)->setSecond(59);
         $startDate = $endDate->clone()->firstOfMonth();
 
         // Kiszedjük az összes megrendelését az adott időintervallumra
         $perfStart = microtime(true);
-        $orders = $reseller->orders()->where([
+        $orders    = $reseller->orders()->where([
             ['created_at', '>=', $startDate],
             ['created_at', '<=', $endDate],
             ['status_text', '=', 'Teljesítve'],
@@ -43,10 +42,10 @@ class ReportService
         ])->first([DB::raw('SUM(gross_value) as gross_expense')]);
 
         // Termékekdarabra
-        $products = OrderProducts::select(['product_sku', DB::raw('SUM(product_qty) as count')])
-            ->whereIn('order_id', $orders->pluck('id')->toArray())
-            ->groupBy('product_sku')
-            ->get();
+        $products = OrderProducts::select([
+            'product_sku',
+            DB::raw('SUM(product_qty) as count'),
+        ])->whereIn('order_id', $orders->pluck('id')->toArray())->groupBy('product_sku')->get();
 
         // Bevételek
         $incomes = Income::where([
@@ -63,17 +62,18 @@ class ReportService
         ])->first([DB::raw('COUNT(id) as count')]);
 
         // Létrehozzuk magát a riportot
-        $report = new Report();
-        $report->user_id = $reseller->id;
-        $report->gross_expense = $expenses->gross_expense ?? 0;
-        $report->gross_income = $incomes->gross_income ?? 0;
+        $report                   = new Report();
+        $report->user_id          = $reseller->id;
+        $report->gross_expense    = $expenses->gross_expense ?? 0;
+        $report->gross_income     = $incomes->gross_income ?? 0;
         $report->delivered_orders = $deliveries->count;
-        $report->created_at = $startDate;
+        $report->created_at       = $startDate;
+
         $report->save();
         foreach ($products as $product) {
-            $rp = new ReportProducts();
+            $rp              = new ReportProducts();
             $rp->product_sku = $product->product_sku;
-            $rp->report_id = $report->id;
+            $rp->report_id   = $report->id;
             $rp->product_qty = $product->count;
             $rp->save();
         }
