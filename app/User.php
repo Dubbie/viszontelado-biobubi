@@ -2,9 +2,10 @@
 
 namespace App;
 
+use App\Subesz\CustomerService;
 use App\Subesz\OrderService;
 use Carbon\Carbon;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -98,17 +99,9 @@ class User extends Authenticatable
         $orderService = resolve('App\Subesz\OrderService');
 
         return $orderService->getOrdersFiltered([
-            'reseller'      => $this->id,
+            'reseller' => $this->id,
             'with_products' => true,
         ]);
-    }
-
-    /**
-     * @return HasMany
-     */
-    public function deliveries(): HasMany
-    {
-        return $this->hasMany(Delivery::class, 'user_id', 'id');
     }
 
     /**
@@ -183,13 +176,42 @@ class User extends Authenticatable
     public function getDeliveryCountThisMonth(): int
     {
         $start = Carbon::now()->firstOfMonth();
-        $end   = Carbon::now()->endOfDay();
+        $end = Carbon::now()->endOfDay();
 
         return $this->deliveries()->whereBetween('delivered_at', [$start, $end])->count();
     }
 
     /**
-     * @param bool $withSuffix
+     * @return HasMany
+     */
+    public function deliveries(): HasMany
+    {
+        return $this->hasMany(Delivery::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class, 'user_id', 'id');
+    }
+
+    /**
+     * Visszaadja a felhasználóhoz tartozó megrendeléseket
+     *
+     * @return LengthAwarePaginator
+     */
+    public function getCustomers(): LengthAwarePaginator
+    {
+        /** @var CustomerService $orderService */
+        $orderService = resolve('App\Subesz\CustomerService');
+
+        return $orderService->getCustomersFiltered(['reseller' => $this->id]);
+    }
+
+    /**
+     * @param  bool  $withSuffix
      * @return string
      */
     public function getFormattedBalance($withSuffix = false)

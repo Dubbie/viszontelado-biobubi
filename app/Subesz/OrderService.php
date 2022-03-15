@@ -2,12 +2,10 @@
 
 namespace App\Subesz;
 
-use App\Delivery;
 use App\Order;
 use App\OrderProducts;
 use App\User;
 use App\UserZip;
-use Exception;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -31,7 +29,7 @@ class OrderService
     /**
      * OrderService constructor.
      *
-     * @param  ShoprenterService $shoprenterService
+     * @param  ShoprenterService  $shoprenterService
      */
     public function __construct(ShoprenterService $shoprenterService)
     {
@@ -53,7 +51,8 @@ class OrderService
 
         // Feltöljük a státusz mapot
         foreach ($osds->items as $osd) {
-            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
+            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '',
+                $osd->orderStatus->href);
 
             $this->statusMap[$orderStatusId] = [
                 'name' => $osd->name,
@@ -81,7 +80,7 @@ class OrderService
 
         // Filter
         if (array_key_exists('query', $filter)) {
-            $searchValue = '%' . $filter['query'] . '%';
+            $searchValue = '%'.$filter['query'].'%';
             $orders = $orders->where(function ($query) use ($searchValue) {
                 $query->where('firstname', 'like', $searchValue)
                     ->orWhere('lastname', 'like', $searchValue)
@@ -106,15 +105,6 @@ class OrderService
 
     /**
      * @param $userId
-     * @return Builder
-     */
-    public function getOrdersQueryByUserId($userId): Builder
-    {
-        return Order::where('reseller_id', $userId)->orderBy('created_at', 'desc');
-    }
-
-    /**
-     * @param $userId
      * @return mixed
      */
     public function getOrdersByUserId($userId)
@@ -130,7 +120,8 @@ class OrderService
         } else {
             if ($user->admin && count($user->zips) > 0) {
                 // Kiszedjük azokat amik megfeleltek a feltételeknek
-                return Order::whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode', $resellerZips)->orderBy('created_at', 'desc')->get();
+                return Order::whereIn('shipping_postcode', $userZips)->orWhereNotIn('shipping_postcode',
+                    $resellerZips)->orderBy('created_at', 'desc')->get();
             } else {
                 // Kiszedjük azokat amik megfeleltek a feltételeknek
                 return Order::whereIn('shipping_postcode', $userZips)->orderBy('created_at', 'desc')->get();
@@ -139,8 +130,8 @@ class OrderService
     }
 
     /**
-     * @param  stdClass $order
-     * @param  bool $muted
+     * @param  stdClass  $order
+     * @param  bool  $muted
      * @return \App\Order|bool|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object
      */
     public function updateLocalOrder($order, $muted = false)
@@ -162,7 +153,8 @@ class OrderService
         $taxPrice = round($order->total - $total);
         $totalGross = round($order->total);
 
-        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
+        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '',
+            $order->orderStatus->href);
 
         if (!array_key_exists($orderStatusId, $this->statusMap)) {
             Log::error('Nem volt megtalálható a státusz azonosító a státusz leíró térképben.');
@@ -204,7 +196,7 @@ class OrderService
     }
 
     /**
-     * @param  int $limit
+     * @param  int  $limit
      * @return Builder|Model|null|object
      */
     public function getLatestOrder($limit = 1)
@@ -215,17 +207,12 @@ class OrderService
     }
 
     /**
-     * @return mixed
+     * @param $userId
+     * @return Builder
      */
-    public function getLastUpdate()
+    public function getOrdersQueryByUserId($userId): Builder
     {
-        /** @var Order $lastOrder */
-        $lastOrder = Order::orderBy('updated_at')->first();
-        if (!$lastOrder) {
-            return null;
-        }
-
-        return $lastOrder->updated_at;
+        return Order::where('reseller_id', $userId)->orderBy('created_at', 'desc');
     }
 
     /**
@@ -244,6 +231,20 @@ class OrderService
     }
 
     /**
+     * @return mixed
+     */
+    public function getLastUpdate()
+    {
+        /** @var Order $lastOrder */
+        $lastOrder = Order::orderBy('updated_at')->first();
+        if (!$lastOrder) {
+            return null;
+        }
+
+        return $lastOrder->updated_at;
+    }
+
+    /**
      * @param $resourceId
      * @return mixed
      */
@@ -255,7 +256,7 @@ class OrderService
     /**
      * Visszaadja a megrendelésből a megrendelt termékeket és darabszámukat.
      *
-     * @param  array $order
+     * @param  array  $order
      * @return array
      */
     public function getOrderedProductsFromOrder(array $order): array
@@ -280,14 +281,15 @@ class OrderService
         $out = '';
 
         if ($order->shippingPostcode && $order->shippingCity && $order->shippingAddress1) {
-            $out = sprintf('%s %s, %s %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1, $order->shippingAddress2);
+            $out = sprintf('%s %s, %s %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1,
+                $order->shippingAddress2);
         }
 
         return $out;
     }
 
     /**
-     * @param  string $string
+     * @param  string  $string
      * @return User|Builder|Model|mixed|null|object
      */
     public function getResellerByZip(string $string)
@@ -302,7 +304,7 @@ class OrderService
     }
 
     /**
-     * @param  array $skuList
+     * @param  array  $skuList
      * @param         $orderId
      */
     public function saveOrderedProducts(array $skuList, $orderId)
@@ -325,8 +327,8 @@ class OrderService
     }
 
     /**
-     * @param  string $orderResourceId
-     * @param  string $statusId
+     * @param  string  $orderResourceId
+     * @param  string  $statusId
      * @return array
      */
     public function updateStatus(string $orderResourceId, string $statusId): array
