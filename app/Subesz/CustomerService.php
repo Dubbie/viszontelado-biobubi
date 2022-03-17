@@ -16,7 +16,7 @@ class CustomerService
     private $startDate;
 
     public function __construct() {
-        $this->startDate = Carbon::parse('2021-01-01');
+        $this->startDate = Carbon::parse('2022-03-07');
     }
 
     /**
