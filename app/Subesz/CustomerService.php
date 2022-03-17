@@ -65,6 +65,7 @@ class CustomerService
                 $cc->customer_id = $customer->id;
                 $cc->due_date    = $order->created_at->addDays(14);
                 $cc->save();
+                $count++;
             }
         }
 
