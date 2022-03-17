@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 /**
  * Class User
@@ -55,8 +56,7 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function zips(): HasMany
-    {
+    public function zips(): HasMany {
         return $this->hasMany(UserZip::class, 'user_id', 'id');
     }
 
@@ -86,8 +86,7 @@ class User extends Authenticatable
      *
      * @return Builder[]|Collection
      */
-    public function getOrders()
-    {
+    public function getOrders() {
         /** @var OrderService $orderService */
         $orderService = resolve('App\Subesz\OrderService');
 
@@ -97,8 +96,7 @@ class User extends Authenticatable
     /**
      * @return Builder[]|Collection
      */
-    public function getOrdersWithProducts()
-    {
+    public function getOrdersWithProducts() {
         /** @var OrderService $orderService */
         $orderService = resolve('App\Subesz\OrderService');
 
@@ -146,8 +144,7 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function worksheet(): HasMany
-    {
+    public function worksheet(): HasMany {
         return $this->hasMany(Worksheet::class, 'user_id', 'id');
     }
 
@@ -163,6 +160,13 @@ class User extends Authenticatable
      */
     public function moneyTransfers(): HasMany {
         return $this->HasMany(MoneyTransfer::class, 'user_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function calls(): HasMany {
+        return $this->hasMany(CustomerCall::class, 'user_id', 'id');
     }
 
     /**
@@ -203,16 +207,14 @@ class User extends Authenticatable
     /**
      * @return HasMany
      */
-    public function deliveries(): HasMany
-    {
+    public function deliveries(): HasMany {
         return $this->hasMany(Delivery::class, 'user_id', 'id');
     }
 
     /**
      * @return HasMany
      */
-    public function customers(): HasMany
-    {
+    public function customers(): HasMany {
         return $this->hasMany(Customer::class, 'user_id', 'id');
     }
 
@@ -221,8 +223,7 @@ class User extends Authenticatable
      *
      * @return LengthAwarePaginator
      */
-    public function getCustomers(): LengthAwarePaginator
-    {
+    public function getCustomers(): LengthAwarePaginator {
         /** @var CustomerService $orderService */
         $orderService = resolve('App\Subesz\CustomerService');
 
@@ -233,8 +234,7 @@ class User extends Authenticatable
      * @param  bool  $withSuffix
      * @return string
      */
-    public function getFormattedBalance($withSuffix = false)
-    {
+    public function getFormattedBalance(bool $withSuffix = false): string {
         $balanceOutput = number_format($this->balance, 0, ' ', ' ');
 
         return $withSuffix ? $balanceOutput.' Ft' : $balanceOutput;

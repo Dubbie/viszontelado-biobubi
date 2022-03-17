@@ -13,10 +13,8 @@ class Customer extends Model
      *
      * @return string
      */
-    public function getFormattedName(): string
-    {
-        return sprintf('%s %s', mb_convert_case($this->firstname, MB_CASE_TITLE),
-            mb_convert_case($this->lastname, MB_CASE_TITLE));
+    public function getFormattedName(): string {
+        return sprintf('%s %s', mb_convert_case($this->firstname, MB_CASE_TITLE), mb_convert_case($this->lastname, MB_CASE_TITLE));
     }
 
     /**
@@ -25,16 +23,11 @@ class Customer extends Model
      * @param  bool  $convert
      * @return string
      */
-    public function getFormattedAddress(bool $convert = true): string
-    {
+    public function getFormattedAddress(bool $convert = true): string {
         if ($convert) {
-            return sprintf('%s %s, %s', mb_convert_case($this->postcode, MB_CASE_TITLE),
-                mb_convert_case($this->city, MB_CASE_TITLE),
-                mb_convert_case($this->address, MB_CASE_TITLE));
+            return sprintf('%s %s, %s', mb_convert_case($this->postcode, MB_CASE_TITLE), mb_convert_case($this->city, MB_CASE_TITLE), mb_convert_case($this->address, MB_CASE_TITLE));
         } else {
-            return sprintf('%s %s, %s', $this->postcode,
-                $this->city,
-                $this->address);
+            return sprintf('%s %s, %s', $this->postcode, $this->city, $this->address);
         }
     }
 
@@ -43,21 +36,21 @@ class Customer extends Model
      *
      * @return string
      */
-    public function getLastOrderTimeAgo()
-    {
-        $lastDate = Carbon::createFromFormat('Y.m.d', $this->getLastOrderDate());
+    public function getLastOrderTimeAgo() {
+        $lastDate = $this->getLastOrderDate();
+
         return $lastDate->shortRelativeToNowDiffForHumans(Carbon::now());
     }
 
     /**
-     * @return null
+     * @return Carbon|null
      */
-    public function getLastOrderDate()
-    {
+    public function getLastOrderDate(): ?Carbon {
         if ($this->orders()->count() > 0) {
             /** @var Order $order */
             $order = $this->orders()->orderByDesc('created_at')->first();
-            return $order->created_at->format('Y.m.d');
+
+            return $order->created_at;
         }
 
         return null;
@@ -66,8 +59,7 @@ class Customer extends Model
     /**
      * @return HasMany
      */
-    public function orders(): HasMany
-    {
+    public function orders(): HasMany {
         return $this->hasMany(Order::class, 'email', 'email');
     }
 }

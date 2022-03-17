@@ -6,6 +6,7 @@ use App\Mail\NewOrder;
 use App\Order;
 use App\RegionZip;
 use App\Subesz\BillingoNewService;
+use App\Subesz\CustomerService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use App\Subesz\StatusService;
@@ -29,6 +30,9 @@ class ShoprenterController extends Controller
     /** @var \App\Subesz\StatusService */
     private $statusService;
 
+    /** @var \App\Subesz\CustomerService */
+    private $customerService;
+
     /**
      * ShoprenterController constructor.
      *
@@ -41,12 +45,14 @@ class ShoprenterController extends Controller
         OrderService $orderService,
         ShoprenterService $shoprenterService,
         BillingoNewService $billingoNewService,
-        StatusService $statusService
+        StatusService $statusService,
+        CustomerService $customerService
     ) {
         $this->orderService       = $orderService;
         $this->shoprenterApi      = $shoprenterService;
         $this->billingoNewService = $billingoNewService;
         $this->statusService      = $statusService;
+        $this->customerService    = $customerService;
     }
 
     /**
@@ -183,6 +189,14 @@ class ShoprenterController extends Controller
             $booked          = $ss->bookOrder($orderedProducts, $localOrder->id);
             if ($booked) {
                 $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            }
+
+            // Létrehozzuk az ügyfelet, ha még nincs
+            $customer = $this->customerService->createCustomerFromLocalOrder($localOrder);
+            if ($customer->orders()->count() == 1) {
+                $this->customerService->createCall($customer->id, $localOrder->created_at);
+            } else {
+                $this->customerService->removeCall($customer->id);
             }
 
             // Mentsük el a számlát

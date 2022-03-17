@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Customer;
 use App\Order;
 use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
@@ -275,9 +276,12 @@ class OrderController extends Controller
         $failCount    = 0;
 
         // Kell számlákkal foglalkozni?
-        $createInvoice = $bs->isBillingoConnected($reseller);
-        if (! $createInvoice) {
-            Log::info('A viszonteladónak nincs beállítva Billingo API összekötés, ezért nem hozunk létre számlákat.');
+        $live = env('APP_ENV') == 'production';
+        if ($live) {
+            $createInvoice = $bs->isBillingoConnected($reseller);
+            if (! $createInvoice) {
+                Log::info('A viszonteladónak nincs beállítva Billingo API összekötés, ezért nem hozunk létre számlákat.');
+            }
         }
 
         foreach ($orderIds as $orderId) {
@@ -288,33 +292,45 @@ class OrderController extends Controller
             $localOrder->save();
             $localOrder->refresh();
 
+            // A megrendeléshez tartozó ügyfelet helyezzük át az új viszonteladóhoz
+            $customer = Customer::where('email', $localOrder->email)->first();
+            if (! $customer) {
+                Log::warning('Nincs ügyfél fiók ilyen email címmel: '.$localOrder->email);
+            } else {
+                $customer->user_id = $reseller->id;
+                $customer->save();
+                Log::info('Ügyfél áthelyezve az új viszonteladóhoz.');
+            }
+
             // Ha még nincs lementve számla, akkor generáljunk újat
-            if (! $localOrder->invoice_path && ! $localOrder->invoice_id && $createInvoice) {
-                // 1. Partner
-                $partner = $bs->createPartner($srOrder, $reseller);
-                if (! $partner) {
-                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehetett létrehozni.');
-                    $failCount++;
-                    continue;
-                }
+            if ($live) {
+                if (! $localOrder->invoice_path && ! $localOrder->invoice_id && $createInvoice) {
+                    // 1. Partner
+                    $partner = $bs->createPartner($srOrder, $reseller);
+                    if (! $partner) {
+                        Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehetett létrehozni.');
+                        $failCount++;
+                        continue;
+                    }
 
-                // 2. Számla
-                $invoice = $bs->createDraftInvoice($srOrder, $partner, $reseller);
-                if (! $invoice) {
-                    Log::error('Hiba történt a piszkozat számla létrehozásakor.');
-                    $failCount++;
-                    continue;
-                }
-                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
+                    // 2. Számla
+                    $invoice = $bs->createDraftInvoice($srOrder, $partner, $reseller);
+                    if (! $invoice) {
+                        Log::error('Hiba történt a piszkozat számla létrehozásakor.');
+                        $failCount++;
+                        continue;
+                    }
+                    Log::info(sprintf('A piszkozat számla sikeresen létrejött (Azonosító: %s)', $invoice->getId()));
 
-                // 3. Elmentjük a piszkozatot
-                $localOrder->draft_invoice_id = $invoice->getId();
-                $localOrder->save();
-                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+                    // 3. Elmentjük a piszkozatot
+                    $localOrder->draft_invoice_id = $invoice->getId();
+                    $localOrder->save();
+                    Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
 
-                // (4.) Ha már ki van fizetve online bankkártyával, akkor küldjünk róla egy új előlegszámlát.
-                if ($this->statusService->getOrderStatusByName($localOrder->status_text)->status_id == $this->creditCardPaidStatus) {
-                    $localOrder->createAdvanceInvoice();
+                    // (4.) Ha már ki van fizetve online bankkártyával, akkor küldjünk róla egy új előlegszámlát.
+                    if ($this->statusService->getOrderStatusByName($localOrder->status_text)->status_id == $this->creditCardPaidStatus) {
+                        $localOrder->createAdvanceInvoice();
+                    }
                 }
             }
 

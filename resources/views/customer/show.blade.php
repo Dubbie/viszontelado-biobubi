@@ -54,7 +54,7 @@
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
                         </span>
-                        <p class="mb-0">Utoljára <b class="has-tooltip" data-toggle="tooltip" title="{{ $customer->getLastOrderDate() }}">{{ $customer->getLastOrderTimeAgo() }}</b> rendelt.</p>
+                        <p class="mb-0">Utoljára <b class="has-tooltip" data-toggle="tooltip" title="{{ $customer->getLastOrderDate()->format('Y.m.d') }}">{{ $customer->getLastOrderTimeAgo() }}</b> rendelt.</p>
                     </div>
                 </div>
             </div>
@@ -69,7 +69,22 @@
                     @if($customer->orders()->count() > 0)
                         @php /** @var \App\Order $localOrder */ @endphp
                         @foreach($customer->orders as $localOrder)
-                            <p>{{ $localOrder }}</p>
+                            <div class="row align-items-center mb-4">
+                                <div class="col-12 col-md-7">
+                                    <p class="mb-0">
+                                        <a href="{{ action('OrderController@show', $localOrder->inner_resource_id) }}">#{{ $localOrder->inner_id }}</a>
+                                    </p>
+                                    <p class="mb-0">{{ $localOrder->getFormattedAddress() }}</p>
+                                    <p class="mb-0"><small>{{ $localOrder->created_at->format('Y.m.d H:i:s') }}</small></p>
+                                    @if($localOrder->invoice_id)
+                                        <a href="{{ action('OrderController@downloadInvoice', ['orderId' => $localOrder->invoice_id]) }}"
+                                           class="btn btn-sm btn-success mt-2">Számla letöltése</a>
+                                    @endif
+                                </div>
+                                <div class="col-12 col-md-5 text-md-right">
+                                    <p class="h3 font-weight-semibold mb-0">@money($localOrder->total_gross)<small class="font-weight-bold">Ft</small></p>
+                                </div>
+                            </div>
                         @endforeach
                     @else
                         <p>Még nem rendelt az ügyfél.</p>

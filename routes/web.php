@@ -86,7 +86,6 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
 
-        Route::get('/ugyfelek/ujra-generalas', 'CustomerController@regenerateCustomers');
         // Régió
         Route::get('regiok/generalas', 'RegionController@generateByResellers');
         Route::resource('regiok', 'RegionController');
@@ -163,6 +162,12 @@ Route::group(['middleware' => 'auth'], function () {
     // Ügyfelek
     Route::get('/ugyfelek/{customerId}', 'CustomerController@show');
     Route::get('/ugyfelek', 'CustomerController@index');
+
+    // Hívás
+    Route::get('/hivandok', 'CustomerCallController@index');
+    Route::get('/hivandok/{callId}/teljesites', 'CustomerCallController@complete');
+    Route::get('/hivandok/{callId}/megse', 'CustomerCallController@uncomplete');
+    Route::get('/hivandok/{callId}/torles', 'CustomerCallController@delete');
 
     // Készlet
     Route::resource('keszletem', 'StockController', [

@@ -70,7 +70,7 @@
                                 </td>
                                 <td>{{ $customer->phone }}</td>
                                 <td>{{ $customer->city }}</td>
-                                <td class="text-center">{{ $customer->getLastOrderDate() ?? '-' }}</td>
+                                <td class="text-center">{{ $customer->getLastOrderDate()->format('Y.m.d') ?? '-' }}</td>
                                 <td class="text-right">
                                     <a href="{{ action([\App\Http\Controllers\CustomerController::class, 'show'], ['customerId' => $customer->id]) }}" class="btn btn-sm btn-outline-secondary">Részletek</a>
                                 </td>
