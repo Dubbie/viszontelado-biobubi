@@ -10,15 +10,6 @@
 
 <div class="row mt-5">
     <div class="col-md-5">
-        <h4 class="font-weight-bold">Egyenleg</h4>
-    </div>
-    <div class="col-md-6 offset-md-1">
-        <p class="h4 mb-0"><span class="@if($user->balance < 0) text-danger @endif">{{ $user->getFormattedBalance() }}</span><span class="font-weight-bold ml-1">Ft</span></p>
-    </div>
-</div>
-
-<div class="row mt-5">
-    <div class="col-md-5">
         <h4 class="font-weight-bold mb-3">Billingo Integráció</h4>
         <p class="mb-4 text-muted">A számlák automatikus kiállításához szükséges a <b>Billingo</b> rendszerével való
             összekapcsolás.<br>Ezt a jobb felül található <b>Szerkesztés</b> gombra kattintva tudod megtenni.</p>

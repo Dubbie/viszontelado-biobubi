@@ -229,14 +229,4 @@ class User extends Authenticatable
 
         return $orderService->getCustomersFiltered(['reseller' => $this->id]);
     }
-
-    /**
-     * @param  bool  $withSuffix
-     * @return string
-     */
-    public function getFormattedBalance(bool $withSuffix = false): string {
-        $balanceOutput = number_format($this->balance, 0, ' ', ' ');
-
-        return $withSuffix ? $balanceOutput.' Ft' : $balanceOutput;
-    }
 }
