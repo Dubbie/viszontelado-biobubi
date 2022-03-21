@@ -16,7 +16,7 @@ class CustomerService
     private $startDate;
 
     public function __construct() {
-        $this->startDate = Carbon::parse('2022-03-07');
+        $this->startDate = Carbon::parse('2022-03-01');
     }
 
     /**
@@ -78,7 +78,7 @@ class CustomerService
         $count     = 0;
         foreach ($customers as $customer) {
             $order = $customer->orders()->first();
-            if ($order->created_at > $this->startDate) {
+            if ($order->created_at >= $this->startDate) {
                 $cc              = new CustomerCall();
                 $cc->user_id     = $customer->user_id;
                 $cc->customer_id = $customer->id;
