@@ -8,44 +8,38 @@
             </div>
         </div>
 
-{{--        <div id="filter-order">--}}
-{{--            <p class="mb-0">--}}
-{{--                <small>Szűrés</small>--}}
-{{--            </p>--}}
-{{--            <form id="form-customers-filter">--}}
-{{--                <div class="form-row align-items-end">--}}
-{{--                    <div class="col-xl">--}}
-{{--                        <div class="form-group">--}}
-{{--                            <label for="filter-query">Keresett kifejezés</label>--}}
-{{--                            <input type="text" id="filter-query" name="filter-query"--}}
-{{--                                   class="form-control form-control-sm"--}}
-{{--                                   value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">--}}
-{{--                        </div>--}}
-{{--                    </div>--}}
-{{--                    @if(Auth::user()->admin)--}}
-{{--                        <div class="col-xl-3 col-lg-5 col-md-5">--}}
-{{--                            <div class="form-group">--}}
-{{--                                <label for="filter-reseller">Viszonteladó</label>--}}
-{{--                                <select name="filter-reseller" id="filter-reseller"--}}
-{{--                                        class="custom-select custom-select-sm">--}}
-{{--                                    <option value="">Saját ügyfeleim</option>--}}
-{{--                                    @foreach($resellers as $reseller)--}}
-{{--                                        <option value="{{ $reseller->id }}"--}}
-{{--                                                @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>--}}
-{{--                                    @endforeach--}}
-{{--                                    <option value="ALL" @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>Összes viszonteladó</option>--}}
-{{--                                </select>--}}
-{{--                            </div>--}}
-{{--                        </div>--}}
-{{--                    @endif--}}
-{{--                    <div class="col-xl-auto col-lg-2 col-md-3">--}}
-{{--                        <div class="form-group">--}}
-{{--                            <button type="submit" class="btn btn-sm btn-block btn-success">Szűrés</button>--}}
-{{--                        </div>--}}
-{{--                    </div>--}}
-{{--                </div>--}}
-{{--            </form>--}}
-{{--        </div>--}}
+        @if(Auth::user()->admin)
+        <div id="filter-customer-calls">
+            <p class="mb-0">
+                <small>Szűrés</small>
+            </p>
+            <form id="form-customer-calls-filter">
+                <div class="form-row align-items-end">
+
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="filter-reseller">Viszonteladó</label>
+                                <select name="filter-reseller" id="filter-reseller"
+                                        class="custom-select custom-select-sm">
+                                    <option value="">Saját ügyfeleim</option>
+                                    @foreach($resellers as $reseller)
+                                        <option value="{{ $reseller->id }}"
+                                                @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
+                                    @endforeach
+                                    <option value="ALL" @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>Összes viszonteladó</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    <div class="col-xl-auto col-lg-2 col-md-3">
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-sm btn-block btn-success">Szűrés</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        @endif
 
         @if(count($calls) > 0)
             <div class="card card-body">
@@ -54,6 +48,9 @@
                         <tr>
                             <th><small>Ügyfél</small></th>
                             <th><small>Telefonszám</small></th>
+                            @if(Auth::user()->admin && array_key_exists('reseller', $filter))
+                                <th><small>Viszonteladó</small></th>
+                            @endif
                             <th class="text-center"><small>Határidő lejárta</small></th>
                             <th class="text-center"><small>Felhívva</small></th>
                             <th class="text-right"></th>
@@ -70,6 +67,9 @@
                                 </a>
                             </td>
                             <td class="align-middle">{{ $call->customer->phone }}</td>
+                            @if(Auth::user()->admin && array_key_exists('reseller', $filter))
+                                <td class="align-middle"><b>{{ $call->reseller->name }}</b></td>
+                            @endif
                             <td class="align-middle text-center">
                                 <p class="mb-0 has-tooltip @if($call->isOverdue()) text-danger font-weight-bold @endif"
                                    data-toggle="tooltip"
@@ -134,7 +134,7 @@
     {{-- Szűrő --}}
     <script>
         $(function () {
-            $('#form-customers-filter').submit(function () {
+            $('#form-customer-calls-filter').submit(function () {
                 var $empty_fields = $(this).find(':input').filter(function () {
                     return $(this).val() === '';
                 });

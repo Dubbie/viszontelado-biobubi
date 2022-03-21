@@ -5,9 +5,17 @@ namespace App;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Customer extends Model
 {
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function reseller(): HasOne {
+        return $this->hasOne(User::class, 'id', 'user_id');
+    }
+
     /**
      * Visszaadja az ügyfél nevét formázva.
      *

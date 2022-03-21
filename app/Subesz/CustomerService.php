@@ -47,6 +47,25 @@ class CustomerService
     }
 
     /**
+     * @param  array  $filter
+     * @return LengthAwarePaginator
+     */
+    public function getCustomerCallsFiltered(array $filter = []): LengthAwarePaginator {
+        // Viszonteladó filter
+        $cc = CustomerCall::where('user_id', '=', Auth::id());
+
+        if (Auth::user()->admin && array_key_exists('reseller', $filter)) {
+            if ($filter['reseller'] == 'ALL') {
+                $cc = CustomerCall::where('user_id', '!=', null);
+            } else {
+                $cc = CustomerCall::where('user_id', '=', intval($filter['reseller']));
+            }
+        }
+
+        return $cc->orderBy('called_at')->orderBy('due_date')->paginate(50)->onEachSide(1);
+    }
+
+    /**
      * Létrehozza az első timereket
      */
     public function createInitialTimers() {

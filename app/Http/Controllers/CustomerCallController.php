@@ -3,23 +3,61 @@
 namespace App\Http\Controllers;
 
 use App\CustomerCall;
+use App\Subesz\CustomerService;
+use App\User;
 use Auth;
 use Exception;
+use Illuminate\Http\Request;
 use Log;
 
 class CustomerCallController extends Controller
 {
+    /** @var \App\Subesz\CustomerService */
+    private $customerService;
+
+    public function __construct(CustomerService $customerService) {
+        $this->customerService = $customerService;
+    }
+
     /**
      * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index() {
-        if (CustomerCall::count() == 0) {
-            $cs = resolve('App\Subesz\CustomerService');
-            $cs->createInitialTimers();
+    public function index(Request $request) {
+        if (Auth::user()->admin && CustomerCall::count() == 0) {
+            try {
+                $this->customerService->createInitialTimers();
+            } catch (Exception $e) {
+                Log::error('Hiba a hívandók generálásakor');
+            }
+        }
+
+        $filter = [];
+
+        if ($request->has('filter-reseller')) {
+            $filter['reseller'] = $request->input('filter-reseller');
+        }
+        if ($request->has('filter-status')) {
+            $filter['status'] = $request->input('filter-status');
+        }
+        if ($request->has('filter-query')) {
+            $filter['query'] = $request->input('filter-query');
+        }
+
+        $cc = $this->customerService->getCustomerCallsFiltered($filter);
+
+        $resellers = [];
+        foreach (User::all() as $u) {
+            if ($u->id == Auth::id()) {
+                continue;
+            }
+
+            $resellers[] = $u;
         }
 
         return view('call.index')->with([
-            'calls' => Auth::user()->calls()->orderBy('called_at')->orderBy('due_date')->paginate(50),
+            'filter'    => $filter,
+            'calls'     => $cc,
+            'resellers' => $resellers,
         ]);
     }
 
