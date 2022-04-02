@@ -67,7 +67,12 @@ class CustomerCallController extends Controller
      */
     public function complete($callId) {
         /** @var CustomerCall $call */
-        $call = Auth::user()->calls()->find($callId);
+        if (Auth::user()->admin) {
+            $call = CustomerCall::find($callId);
+        } else {
+            $call = Auth::user()->calls()->find($callId);
+        }
+
         if (! $call) {
             return redirect(action([
                 CustomerCallController::class,
@@ -87,7 +92,12 @@ class CustomerCallController extends Controller
      */
     public function uncomplete($callId) {
         /** @var CustomerCall $call */
-        $call = Auth::user()->calls()->find($callId);
+        if (Auth::user()->admin) {
+            $call = CustomerCall::find($callId);
+        } else {
+            $call = Auth::user()->calls()->find($callId);
+        }
+
         if (! $call) {
             return redirect(action([
                 CustomerCallController::class,
@@ -107,7 +117,12 @@ class CustomerCallController extends Controller
      */
     public function delete($callId) {
         /** @var CustomerCall $call */
-        $call = Auth::user()->calls()->find($callId);
+        if (Auth::user()->admin) {
+            $call = CustomerCall::find($callId);
+        } else {
+            $call = Auth::user()->calls()->find($callId);
+        }
+
         if (! $call) {
             return redirect(action([
                 CustomerCallController::class,
