@@ -121,6 +121,13 @@ class User extends Authenticatable
     }
 
     /**
+     * @return HasMany
+     */
+    public function customerComments(): HasMany {
+        return $this->hasMany(CustomerComment::class, 'user_id', 'id');
+    }
+
+    /**
      * @return HasOne
      */
     public function details(): HasOne {

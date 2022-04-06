@@ -17,6 +17,13 @@ class Customer extends Model
     }
 
     /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function comments(): HasMany {
+        return $this->hasMany(CustomerComment::class, 'customer_id', 'id');
+    }
+
+    /**
      * Visszaadja az ügyfél nevét formázva.
      *
      * @return string

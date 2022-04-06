@@ -162,6 +162,10 @@ Route::group(['middleware' => 'auth'], function () {
     // Ügyfelek
     Route::get('/ugyfelek/{customerId}', 'CustomerController@show');
     Route::get('/ugyfelek', 'CustomerController@index');
+    Route::get('/ugyfelek/megjegyzes/{customerId}/szerkesztes', 'CustomerCommentController@edit');
+    Route::post('/ugyfelek/megjegyzes/frissites', 'CustomerCommentController@update');
+    Route::delete('/ugyfelek/megjegyzes/{customerId}/torles', 'CustomerCommentController@destroy');
+    Route::post('/ugyfelek/megjegyzes/mentes', 'CustomerCommentController@store');
 
     // Hívás
     Route::get('/hivandok', 'CustomerCallController@index');
