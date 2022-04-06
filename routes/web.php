@@ -160,6 +160,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/riport/havi', 'ReportController@showMonthly');
 
     // Ügyfelek
+    Route::get('/ugyfelek/{customerId}/megjegyzesek/html', 'CustomerCommentController@getCommentsHTML');
     Route::get('/ugyfelek/{customerId}', 'CustomerController@show');
     Route::get('/ugyfelek', 'CustomerController@index');
     Route::get('/ugyfelek/megjegyzes/{customerId}/szerkesztes', 'CustomerCommentController@edit');

@@ -86,7 +86,15 @@
                             <p class="mb-0">
                                 <span class="d-block font-weight-bold">{{ $customer->getFormattedName() }}</span>
                                 <span class="d-block font-weight-bold text-muted">{{ $customer->email }}</span>
-                                <small class="d-block mt-2">Nincs megjegyzés</small>
+
+                                @if($customer->comments()->count() == 0)
+                                    <small class="d-block mt-2">Nincs megjegyzés</small>
+                                @else
+                                    <a href="#" data-toggle="modal" name="comments-modal-link" data-target="#comments-modal"
+                                       data-customer-id="{{ $customer->id }}" class="text-primary d-block text-nowrap">
+                                        {{ $customer->comments()->count() }} megjegyzés
+                                    </a>
+                                @endif
                             </p>
                         </div>
                         <div class="col-12 col-lg-2">
@@ -130,6 +138,8 @@
 
         <div class="paginate mt-5">{{ $customers->withQueryString()->links() }}</div>
     </div>
+
+    @include('modal.customer-comments')
 @endsection
 
 @section('scripts')
@@ -144,5 +154,21 @@
                 return true;
             });
         });
+
+        /* modal feltöltő js - megjegyzésekhez */
+        //kikukázza a linkeket
+        let commentButtons = document.getElementsByName("comments-modal-link");
+        //rárakja mindre az eventlistenert
+        commentButtons.forEach((comment) => {
+            comment.addEventListener('click', fetchModalData);
+        });
+
+        //küldi a requestet, megnézi hogy melyik linket nyomta az emberünk
+        async function fetchModalData(e) {
+            let id = e.currentTarget.getAttribute("data-customer-id");
+            //feltölti a modal testét
+            let modal = document.getElementById("modal-body-content");
+            await fetch("/ugyfelek/" + id + "/megjegyzesek/html").then(res => res.text()).then(data => modal.innerHTML = data);
+        }
     </script>
 @endsection

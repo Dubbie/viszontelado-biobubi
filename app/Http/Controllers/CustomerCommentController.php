@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Customer;
 use App\CustomerComment;
 use Auth;
 use Exception;
@@ -102,5 +103,24 @@ class CustomerCommentController extends Controller
         return redirect(url()->previous())->with([
             'success' => 'Megjegyzés sikeresen törölve',
         ]);
+    }
+
+    /***
+     * @param           $customerId
+     * @return array|string
+     * Bejövő request (orderID) alapján renderel egy templatet, ami a megrendelésen lévő megjegyzéseket listázza.
+     * Visszatérési értéke HTML/Text
+     */
+    public function getCommentsHTML($customerId) {
+        $customer = Auth::user()->customers()->find($customerId);
+        if (Auth::user()->admin) {
+            $customer = Customer::find($customerId);
+        }
+
+        if ($customer) {
+            return view("inc.render-customer-comments")->with(['customer' => $customer])->toHtml();
+        } else {
+            return false;
+        }
     }
 }
