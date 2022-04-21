@@ -59,7 +59,7 @@ class WorksheetController extends Controller
         $wse           = new Worksheet();
         $wse->user_id  = Auth::id();
         $wse->order_id = $data['order-id'];
-        $wse->order    = $nextOrder;
+        $wse->ws_order = $nextOrder;
         $wse->save();
 
         Log::info('Munkalapra mentés:');
@@ -92,7 +92,7 @@ class WorksheetController extends Controller
         $alreadyThere = 0;
 
         // Megkeressük, mi volt a legutolsó a sorban
-        $lastOrder = Auth::user()->worksheet->last()->ws_order;
+        $lastOrder = Auth::user()->worksheet()->count() > 0 ? Auth::user()->worksheet->last()->ws_order : -1;
 
         /** @var \App\Order $order */
         foreach ($orders as $order) {
@@ -107,7 +107,7 @@ class WorksheetController extends Controller
                 $wse           = new Worksheet();
                 $wse->user_id  = Auth::id();
                 $wse->order_id = $order->id;
-                $wse->order    = $lastOrder + 1;
+                $wse->ws_order = $lastOrder + 1;
                 $wse->save();
 
                 Log::info('Munkalapra mentés:');
@@ -155,7 +155,7 @@ class WorksheetController extends Controller
             $wse->delete();
 
             foreach (Auth::user()->worksheet()->where('ws_order', '>', $tgtOrder)->orderBy('ws_order')->get() as $ws) {
-                $ws->order = $ws->ws_order - 1;
+                $ws->ws_order = $ws->ws_order - 1;
                 $ws->save();
             }
         } catch (Exception $e) {
