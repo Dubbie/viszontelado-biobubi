@@ -3,8 +3,18 @@
     /** @var Worksheet $worksheet */
     use App\Order;use App\Worksheet
 @endphp
-<div class="row flex-row no-gutters mb-4">
-    <div class="col ml-3">
+<div class="row flex-row no-gutters list-group-item d-flex" data-ws-id="{{ $worksheet->id }}">
+    <div class="col-2 col-md-1">
+{{--        <span class="icon handle">--}}
+{{--            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-list" viewBox="0 0 16 16">--}}
+{{--              <path fill-rule="evenodd" d="M2.5 12a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>--}}
+{{--            </svg>--}}
+{{--        </span>--}}
+        <span class="icon icon-lg handle text-muted" style="cursor: grab">
+            <i class="fas fa-bars"></i>
+        </span>
+    </div>
+    <div class="col-10 col-md-11">
         <div class="row no-gutters">
             <div class="col-11 col-md">
                 <a href="{{ action('OrderController@show', $order->inner_resource_id) }}"
@@ -69,12 +79,12 @@
     <div class="col-12 mt-3">
         <div class="row no-gutters">
             <div class="col offset-md-8">
-                <div class="d-flex justify-content-end">
+                <div class="d-flex align-items-center justify-content-end">
                     {{-- Hívás gomb --}}
                     @if($order->phone)
-                        <a href="tel:{{ $order->phone }}" class="btn btn-icon has-tooltip" data-toggle="tooltip"
+                        <a href="tel:{{ $order->phone }}" class="btn btn-sm btn-icon has-tooltip mr-3" data-toggle="tooltip"
                            title="Ügyfél felhívása">
-                            <span class="icon icon-lg">
+                            <span class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                                      class="bi bi-telephone" viewBox="0 0 16 16">
                                     <path
@@ -84,13 +94,13 @@
                         </a>
                     @endif
 
-                    {{-- Munkalapra gomb --}}
+                    {{-- Munkalapról le gomb --}}
                     <form action="{{ action('WorksheetController@remove') }}" class="d-inline-block" method="POST">
                         @csrf
                         <input type="hidden" name="ws-id" value="{{ $worksheet->id }}">
-                        <button type="submit" class="btn btn-icon has-tooltip" data-toggle="tooltip"
+                        <button type="submit" class="btn btn-sm btn-icon has-tooltip mr-3" data-toggle="tooltip"
                                 title="Eltávolítom a munkalapról">
-                            <span class="icon icon-lg">
+                            <span class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor"
                                      class="bi bi-clipboard-minus" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd"
@@ -116,17 +126,17 @@
                         {{--                        </form>--}}
                         @if($order->status_text == 'BK. Függőben lévő')
                             <form action="{{ action('OrderController@completeOrder') }}"
-                                  class="form-complete-order d-inline-block ml-2" method="POST">
+                                  class="form-complete-order d-inline-block" method="POST">
                                 @csrf
                                 {{-- Rejtett mező a megrendelésnek--}}
                                 <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
                                 <input type="hidden" name="payment-method" value="Online Bankkártya">
-                                <button type="submit" class="btn btn-success font-weight-semibold h-100">
+                                <button type="submit" class="btn btn-sm btn-success font-weight-semibold h-100">
                                     <span>Teljesítés</span>
                                 </button>
                             </form>
                         @else
-                            <button type="button" class="btn btn-outline-success btn-payment-method-chooser"
+                            <button type="button" class="btn btn-sm btn-outline-success btn-payment-method-chooser"
                                     data-toggle="modal" data-target="#paymentMethodModal"
                                     data-order-id="{{ $order->inner_resource_id }}">Teljesítés
                             </button>

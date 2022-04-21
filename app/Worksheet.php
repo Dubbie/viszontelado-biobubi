@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Class Worksheet
+ *
  * @package App
  * @mixin Worksheet
  */
@@ -16,8 +17,7 @@ class Worksheet extends Model
     /**
      * @return BelongsTo
      */
-    public function order(): BelongsTo
-    {
+    public function localOrder(): BelongsTo {
         return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 

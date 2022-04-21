@@ -9,9 +9,9 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div>
+                <div id="worksheets-container" class="list-group">
                     @foreach(Auth::user()->worksheet as $wse)
-                        <x-order :order="$wse->order" type="worksheet" :worksheet="$wse"></x-order>
+                        <x-order :order="$wse->localOrder" type="worksheet" :worksheet="$wse"></x-order>
                     @endforeach
                 </div>
 

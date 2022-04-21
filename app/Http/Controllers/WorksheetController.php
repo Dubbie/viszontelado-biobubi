@@ -52,10 +52,14 @@ class WorksheetController extends Controller
             ]);
         }
 
+        // Megkeressük, mi volt a legutolsó a sorban
+        $nextOrder = Auth::user()->worksheet->last()->order + 1;
+
         // Hozzáadás
         $wse           = new Worksheet();
         $wse->user_id  = Auth::id();
         $wse->order_id = $data['order-id'];
+        $wse->order    = $nextOrder;
         $wse->save();
 
         Log::info('Munkalapra mentés:');
@@ -87,6 +91,9 @@ class WorksheetController extends Controller
         $added        = 0;
         $alreadyThere = 0;
 
+        // Megkeressük, mi volt a legutolsó a sorban
+        $lastOrder = Auth::user()->worksheet->last()->ws_order;
+
         /** @var \App\Order $order */
         foreach ($orders as $order) {
             if (Worksheet::where([
@@ -100,6 +107,7 @@ class WorksheetController extends Controller
                 $wse           = new Worksheet();
                 $wse->user_id  = Auth::id();
                 $wse->order_id = $order->id;
+                $wse->order    = $lastOrder + 1;
                 $wse->save();
 
                 Log::info('Munkalapra mentés:');
@@ -107,6 +115,7 @@ class WorksheetController extends Controller
                 Log::info(' - Megrendelés: '.$order->id);
 
                 $added++;
+                $lastOrder++;
             }
         }
 
@@ -142,7 +151,13 @@ class WorksheetController extends Controller
         // Törlés
         $user = $wse->user;
         try {
+            $tgtOrder = $wse->ws_order;
             $wse->delete();
+
+            foreach (Auth::user()->worksheet()->where('ws_order', '>', $tgtOrder)->orderBy('ws_order')->get() as $ws) {
+                $ws->order = $ws->ws_order - 1;
+                $ws->save();
+            }
         } catch (Exception $e) {
             Log::error('Hiba történt a munkalap bejegyzés törlésekor.');
         }
@@ -152,5 +167,24 @@ class WorksheetController extends Controller
         return redirect(url()->previous())->with([
             'success' => 'Megrendelés eltávolítva a munkalapról',
         ]);
+    }
+
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return bool
+     */
+    public function updateOrdering(Request $request) {
+        $data = $request->validate([
+            'ws-ids' => 'array',
+        ]);
+
+        $worksheets = Auth::user()->worksheet()->whereIn('id', $data['ws-ids'])->get();
+        foreach ($worksheets as $worksheet) {
+            $newOrder            = array_search($worksheet->id, $data['ws-ids']);
+            $worksheet->ws_order = $newOrder;
+            $worksheet->save();
+        }
+
+        return true;
     }
 }

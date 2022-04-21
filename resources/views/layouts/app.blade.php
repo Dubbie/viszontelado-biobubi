@@ -66,6 +66,7 @@
 <script src="{{ asset('js/ckeditor.js') }}"></script>
 <script src="{{ asset('js/select2.min.js') }}"></script>
 <script src="{{ asset('js/jquery.mask.min.js') }}"></script>
+<script src="{{ asset('js/Sortable.min.js') }}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
 
 {{-- Tooltipek a sidebarnak --}}
@@ -107,6 +108,38 @@
         });
         // Inicializálja a custom file inputot.
         // bsCustomFileInput.init();
+    });
+</script>
+
+{{-- Worksheet script --}}
+<script>
+    const sortContainer = document.getElementById('worksheets-container');
+    const sortable = new Sortable(sortContainer, {
+        animation: 300,
+        ghostClass: 'bg-info-pastel',
+        handle: '.handle',
+
+        onEnd: function() {
+            // Megváltozott a sorrend, szedjük ki mi az új sorrendünk.
+            let orders = [];
+            for (const el of sortContainer.children) {
+                orders.push(el.dataset.wsId);
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ action('WorksheetController@updateOrdering') }}',
+                data: {
+                    'ws-ids': orders,
+                },
+                success: function(res) {
+                    console.log(res);
+                },
+                error: function(request, status, error) {
+                    console.log(request);
+                }
+            });
+        }
     });
 </script>
 @yield('scripts')

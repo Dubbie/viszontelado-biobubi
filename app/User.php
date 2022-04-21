@@ -152,7 +152,7 @@ class User extends Authenticatable
      * @return HasMany
      */
     public function worksheet(): HasMany {
-        return $this->hasMany(Worksheet::class, 'user_id', 'id');
+        return $this->hasMany(Worksheet::class, 'user_id', 'id')->orderBy('ws_order');
     }
 
     /**
