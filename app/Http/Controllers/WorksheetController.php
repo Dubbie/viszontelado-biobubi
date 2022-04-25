@@ -53,7 +53,7 @@ class WorksheetController extends Controller
         }
 
         // Megkeressük, mi volt a legutolsó a sorban
-        $nextOrder = Auth::user()->worksheet->last()->order + 1;
+        $nextOrder = Auth::user()->worksheet()->count() > 0 ? Auth::user()->worksheet->last()->order + 1 : 0;
 
         // Hozzáadás
         $wse           = new Worksheet();
