@@ -110,7 +110,7 @@
                                       <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
                                     </svg>
                                 </span>
-                                <span>{{ $customer->getLastOrderDate()->format('Y.m.d') ?? '-' }}</span>
+                                <span>{{ $customer->getLastOrderDate() ? $customer->getLastOrderDate()->format('Y.m.d') : '-' }}</span>
                             </p>
                         </div>
                         <div class="col-12 mt-1 mt-lg-0 col-lg text-lg-right">

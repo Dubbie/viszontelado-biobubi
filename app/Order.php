@@ -515,6 +515,8 @@ class Order extends Model
             if ($this->delivery) {
                 $realDate = $this->delivery->delivered_at;
             }
+        } else {
+            $realDate = $date;
         }
 
         $income              = $this->income ?? new Income();

@@ -48,14 +48,16 @@
                     </div>
 
                     {{-- Mikor rendelt utoljára? --}}
-                    <div class="d-flex align-items-center">
+                    @if( $customer->getLastOrderDate())
+                        <div class="d-flex align-items-center">
                         <span class="icon text-muted mr-2" style="width: 20px; height: 20px;">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
                             </svg>
                         </span>
-                        <p class="mb-0">Utoljára <b class="has-tooltip" data-toggle="tooltip" title="{{ $customer->getLastOrderDate()->format('Y.m.d') }}">{{ $customer->getLastOrderTimeAgo() }}</b> rendelt.</p>
-                    </div>
+                            <p class="mb-0">Utoljára <b class="has-tooltip" data-toggle="tooltip" title="{{ $customer->getLastOrderDate()->format('Y.m.d') }}">{{ $customer->getLastOrderTimeAgo() }}</b> rendelt.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -87,7 +89,7 @@
                             </div>
                         @endforeach
                     @else
-                        <p>Még nem rendelt az ügyfél.</p>
+                        <p>Az ügyfélhez nem tartozik egy megrendelés sem.</p>
                     @endif
                 </div>
             </div>
