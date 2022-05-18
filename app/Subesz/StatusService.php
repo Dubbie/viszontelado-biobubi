@@ -81,7 +81,8 @@ class StatusService
      * @return array
      */
     public function handleNewStatus($shoprenterOrder, Order $localOrder, OrderStatus $newStatus): array {
-        Log::info(sprintf('StatusService: Státusz változás frissítése (Megrendelés azonosító: %s)', $localOrder->id));
+        Log::info(sprintf('StatusService: Státusz változás frissítése (Megrendelés azonosító: %s, Új státusz: %s [Status id: %s])', $localOrder->id, $newStatus->name, $newStatus->status_id));
+
         // Szervizek
         $ks = resolve('App\Subesz\KlaviyoService');
         $ws = resolve('App\Subesz\WorksheetService');
@@ -141,6 +142,7 @@ class StatusService
 
             // Ha bankkártyás fizetés, akkor a számlát elküldjük
             if ($newStatus->status_id == $this->creditCardPaidStatus) {
+                Log::info('Előlegszámla gyártásának megkezdése...');
                 $invoiceResponse = $localOrder->createAdvanceInvoice();
                 if (! $invoiceResponse['success']) {
                     $response['message'] = $invoiceResponse['message'];
