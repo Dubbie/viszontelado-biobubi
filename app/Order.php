@@ -440,8 +440,10 @@ class Order extends Model
         }
 
         /** @var BillingoNewService $bs */
-        $bs       = resolve('App\Subesz\BillingoNewService');
+        $bs = resolve('App\Subesz\BillingoNewService');
+        /** @var \App\User $reseller */
         $reseller = $this->getReseller()['correct'];
+        Log::info('Számla gyártás megkezdése piszkozatból, számlát előállító viszonteladó: '.$reseller->name);
 
         return $bs->getRealInvoiceFromDraft($this->draft_invoice_id, $reseller, $this, true);
     }

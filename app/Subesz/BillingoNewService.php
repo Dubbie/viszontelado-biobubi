@@ -160,6 +160,8 @@ class BillingoNewService
 
                 // 4. Átalakítjuk a piszkozatot újra, hátha most jó lesz
                 return $this->getRealInvoiceFromDraft($invoice->getId(), $localOrder->reseller, $localOrder);
+            } else {
+                Log::info(var_dump($documentInsert));
             }
         }
 
@@ -639,7 +641,6 @@ class BillingoNewService
      * @return bool
      */
     public function isBillingoConnected(User $user): bool {
-        $api   = $this->getDocumentBlockApi($user);
         $found = false;
 
         if (! $user->billingo_api_key || ! $user->block_uid) {
@@ -648,6 +649,7 @@ class BillingoNewService
             return $found;
         }
 
+        $api = $this->getDocumentBlockApi($user);
         try {
             $list = $api->listDocumentBlock(0, 100);
 
