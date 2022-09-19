@@ -21,7 +21,7 @@ define('LARAVEL_START', microtime(true));
 |
 */
 
-$bootstrap = ! in_array($_SERVER["REMOTE_ADDR"], ["127.0.0.1", "192.168.1.65"]) ? '/viszontelado' : '';
+$bootstrap = $_SERVER["REMOTE_ADDR"] == "185.51.191.57" ? '/viszontelado' : '';
 
 require __DIR__.'/..'.$bootstrap.'/vendor/autoload.php';
 
