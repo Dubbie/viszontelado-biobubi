@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
@@ -24,7 +25,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot() {
         // Mix manifest
-        if (array_key_exists('REMOTE_ADDR', $_SERVER) && $_SERVER['REMOTE_ADDR'] != '127.0.0.1') {
+        if (array_key_exists('REMOTE_ADDR', $_SERVER) && ! in_array($_SERVER["REMOTE_ADDR"], [
+                "127.0.0.1",
+                "192.168.1.65",
+            ])) {
             $this->app->bind('path.public', function () {
                 return base_path().'/../public_html';
             });
@@ -36,5 +40,8 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Schema::defaultStringLength(191);
+
+        // Bootstrap léptető modul
+        Paginator::useBootstrap();
     }
 }

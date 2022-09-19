@@ -56,8 +56,6 @@
             </div>
         </div>
     </div>
-
-    @include('modal.stock.add-to-reseller')
 @endsection
 
 @section('scripts')

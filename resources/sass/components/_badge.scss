@@ -1,0 +1,36 @@
+.badge-arrow {
+  border: 1px solid $border-color;
+  position: relative;
+  height: 24px;
+  font-size: revert;
+  font-weight: revert;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  padding-left: 0.5rem !important;
+  line-height: 0.9rem;
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    right: -24px;
+    top: -1px;
+    border-top: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-left: 12px solid white;
+    z-index: 2;
+  }
+
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    right: -25px;
+    top: -1px;
+    border-top: 12px solid transparent;
+    border-right: 12px solid transparent;
+    border-bottom: 12px solid transparent;
+    border-left: 12px solid $border-color;
+  }
+}

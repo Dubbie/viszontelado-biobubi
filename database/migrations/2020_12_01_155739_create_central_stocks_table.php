@@ -11,8 +11,7 @@ class CreateCentralStocksTable extends Migration
      *
      * @return void
      */
-    public function up()
-    {
+    public function up() {
         Schema::create('central_stocks', function (Blueprint $table) {
             $table->id();
             $table->string('product_sku');
@@ -20,14 +19,6 @@ class CreateCentralStocksTable extends Migration
             $table->bigInteger('inventory_on_hand');
             $table->timestamps();
         });
-
-        $ss = resolve('App\Subesz\StockService');
-        foreach ($ss->getBaseProducts() as $product) {
-            $stock = new \App\CentralStock();
-            $stock->product_sku = $product->sku;
-            $stock->inventory_on_hand = 0;
-            $stock->save();
-        }
     }
 
     /**
@@ -35,8 +26,7 @@ class CreateCentralStocksTable extends Migration
      *
      * @return void
      */
-    public function down()
-    {
+    public function down() {
         Schema::dropIfExists('central_stocks');
     }
 }

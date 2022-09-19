@@ -8,8 +8,7 @@
             </div>
             @if(Auth::user()->admin)
                 <div class="col text-right">
-                    <a href="{{ action('StockController@create') }}" class="btn btn-teal shadow-sm">Készlet
-                        hozzáadása</a>
+                    <a href="{{ route('hq.stock.index') }}" class="btn btn-teal shadow-sm">Központi készlet</a>
                 </div>
             @endif
         </div>

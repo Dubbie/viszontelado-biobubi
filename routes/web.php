@@ -53,16 +53,21 @@ Route::group(['middleware' => 'auth'], function () {
         Route::get('/termekek/csomagok/{bundleSku}', 'BundleController@edit');
 
         Route::get('keszlet/uj-keszlet-sor', 'StockController@createRow');
-        Route::get('kozpont/keszlet', 'CentralStockController@index');
+        Route::get('kozpont/keszlet', 'CentralStockController@index')->name('hq.stock.index');
         Route::get('kozpont/keszlet/uj-sor', 'CentralStockController@getCentralStockRow');
         Route::post('kozpont/keszlet/hozzaadas', 'CentralStockController@store');
         Route::get('kozpont/keszlet/viszontelado/uj-sor', 'CentralStockController@getResellerStockRow');
-        Route::post('kozpont/keszlet/viszontelado/feltoltes', 'CentralStockController@addStockToReseller');
+
+        Route::get('kozpont/keszlet/tortenet', 'CentralStockController@history');
+        Route::get('kozpont/keszlet/beolvasas/{sku}', 'CentralStockController@scanResult')->name('hq.stock.scanned');
+        Route::get('kozpont/keszlet/feltoltes/{sku}', 'CentralStockController@incoming')->name('hq.stock.incoming');
+        Route::post('kozpont/keszlet/feltoltes/feldolgozas', 'CentralStockController@handleIncoming')->name('hq.stock.handle-incoming');
+        Route::get('kozpont/keszlet/atadas/{sku}', 'CentralStockController@toReseller')->name('hq.stock.to-reseller');
+        Route::post('kozpont/keszlet/viszontelado/feltoltes', 'CentralStockController@addStockToReseller')->name('hq.stock.handle-to-reseller');
+        Route::get('viszontelado/{userId}/keszlet/{sku}/mennyiseg', 'StockController@getResellerStockBySKU')->name('stock.fetch.reseller.product');
 
         Route::get('kozpont/keszlet/letrehozas', 'StockController@create');
         Route::get('kozpont/keszlet/{userId}/lekerdezes', 'StockController@fetch');
-        Route::get('kozpont/keszlet/{userId}/szerkesztes', 'StockController@edit');
-        Route::put('kozpont/keszlet/{userId}/frissites', 'StockController@update');
 
         Route::get('kozpont/keszlet/hmtl', 'CentralStockController@stockHtml');
 

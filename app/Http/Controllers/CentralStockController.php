@@ -2,145 +2,184 @@
 
 namespace App\Http\Controllers;
 
-use App\CentralStock;
 use App\Product;
+use App\StockMovement;
 use App\Subesz\StockService;
+use App\Subesz\StockService2;
 use App\User;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 
 class CentralStockController extends Controller
 {
     /** @var StockService */
-    private $stockService;
+    private StockService $stockService;
+
+    /** @var \App\Subesz\StockService2 */
+    private StockService2 $stockService2;
 
     /**
      * CentralStockController constructor.
-     * @param StockService $stockService
+     *
+     * @param  StockService   $stockService
+     * @param  StockService2  $stockService2
      */
-    public function __construct(StockService $stockService)
-    {
-        $this->stockService = $stockService;
+    public function __construct(StockService $stockService, StockService2 $stockService2) {
+        $this->stockService  = $stockService;
+        $this->stockService2 = $stockService2;
     }
 
     /**
+     * Fő központi készlet nézet, itt listázza ki az összes készleten lévő terméket a központban.
+     *
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function index()
-    {
-        return view('hq.stock-index')->with([
-            'users' => User::all(),
-            'products' => resolve('App\Subesz\StockService')->getBaseProducts()
+    public function index(): Factory|\Illuminate\View\View {
+        return view('hq.stock.index')->with([
+            'products' => $this->stockService2->getBaseProducts(),
         ]);
     }
 
     /**
-     * @param bool $first
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function getCentralStockRow($first = false)
-    {
-        return resolve('App\Subesz\StockService')->getCentralStockRow($first);
-    }
-
-    /**
-     * @param bool $first
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function getResellerStockRow($first = false)
-    {
-        return resolve('App\Subesz\StockService')->getResellerStockRow($first);
-    }
-
-    /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function stockHtml()
-    {
-        return resolve('App\Subesz\StockService')->getCentralStockHTML();
-    }
-
-    /**
-     * @param $userId
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function resellerStockHtml($userId)
-    {
-        return resolve('App\Subesz\StockService')->getResellerStockListHTML($userId);
-    }
-
-    /**
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function store(Request $request)
-    {
+    public function addStockToReseller(Request $request): Redirector|RedirectResponse|Application {
         $data = $request->validate([
-            'cs-new-product' => 'required|array',
-            'cs-new-product-qty' => 'required|array',
+            'os-reseller-id' => 'required',
+            'os-sku'         => 'required',
+            'os-amount'      => 'required',
         ]);
 
-        // Rendezzük
-        $uniques = [];
-        foreach ($data['cs-new-product'] as $key => $sku) {
-            if (!array_key_exists($sku, $uniques)) {
-                $uniques[$sku] = intval($data['cs-new-product-qty'][$key]);
-            } else {
-                $uniques[$sku] += intval($data['cs-new-product-qty'][$key]);
-            }
-        }
-
-        // Most mentjük el
-        foreach ($uniques as $sku => $qty) {
-            $this->stockService->addToCentralStock($sku, $qty);
-        }
-
-        // Visszatérünk
-        if ($request->ajax()) {
-            return response()->json([
-                'code' => 200,
-                'message' => 'Központi készlet sikeresen hozzáadva',
-                'csListHTML' => $this->stockService->getCentralStockHTML(),
-                'csNewHTML' => $this->stockService->getCentralStockRow(true),
-            ], 200);
-        } else {
-            return redirect(action('CentralStockController@index'))->with([
-                'success' => 'Központi készlet sikeresen hozzáadva',
-            ]);
-        }
-    }
-
-    public function addStockToReseller(Request $request)
-    {
-        $data = $request->validate([
-            'rs-add-reseller-id' => 'required',
-            'rs-add-stock' => 'required|array',
-            'rs-add-stock-qty' => 'required|array',
-        ]);
-
-        // Rendezzük
-        $uniques = [];
-        foreach ($data['rs-add-stock'] as $key => $sku) {
-            if (!array_key_exists($sku, $uniques)) {
-                $uniques[$sku] = intval($data['rs-add-stock-qty'][$key]);
-            } else {
-                $uniques[$sku] += intval($data['rs-add-stock-qty'][$key]);
-            }
-        }
-
-        // Most mentjük el
-        $reseller = User::find($data['rs-add-reseller-id']);
-        if (!$reseller) {
+        $reseller = User::find($data['os-reseller-id']);
+        if (! $reseller) {
             return redirect(action('CentralStockController@index'))->with([
                 'error' => 'Nem található ilyen viszonteladó',
             ]);
         }
 
-        foreach ($uniques as $sku => $qty) {
-            $this->stockService->addToStock($reseller, $sku, $qty);
+        $sku    = $data['os-sku'];
+        $amount = str_replace(' ', '', $data['os-amount']);
+
+        // Szervíz segítségével intézzük a mozgással járó feladatokat.
+        $this->stockService->addToStock($reseller, $sku, $amount);
+
+        return redirect(action('CentralStockController@index'))->with([
+            'success' => 'Viszonteladó készlete sikeresen frissítve',
+        ]);
+    }
+
+    /**
+     * A paraméterben átadott cikkszám alapján betölti, hogy milyen terméket olvasott le.
+     * Ezt utána hozzátudja adni magához, vagy a viszonteladóhoz.
+     *
+     * @param $sku
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function scanResult($sku): View|Factory|Application {
+        // Megkeressük a kívánt terméket, ha nincs ilyen a helyi adatbázisban, akkor megnézzük, hogy az éles listában van-e ilyen.
+        $product = Product::where('sku', $sku)->first();
+        if (! $product) {
+            // TODO:
+            dd('Nincs ilyen termék');
         }
 
-        return redirect(url()->previous())->with([
-            'success' => 'Viszonteladó készlete sikeresen frissítve',
+        // Volt termék, mutassuk a nézetet ami ide tartozik.
+        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+
+        return view('hq.stock.scan-result')->with([
+            'product'         => $product,
+            'inventoryOnHand' => $inventoryOnHand,
+        ]);
+    }
+
+    /**
+     * A paraméterben megadott cikkszám alapján mutatja a nézetet, ahol a központi készlethez kíván feltölteni.
+     *
+     * @param $sku
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function incoming($sku): View|Factory|Application {
+        // Megkeressük a kívánt terméket, ha nincs ilyen a helyi adatbázisban, akkor megnézzük, hogy az éles listában van-e ilyen.
+        $product = Product::where('sku', $sku)->first();
+        if (! $product) {
+            // TODO:
+            dd('Nincs ilyen termék');
+        }
+
+        // Volt termék, mutassuk a nézetet ami ide tartozik.
+        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+
+        return view('hq.stock.incoming')->with([
+            'product'         => $product,
+            'inventoryOnHand' => $inventoryOnHand,
+        ]);
+    }
+
+    /**
+     * @param $sku
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function toReseller($sku): View|Factory|Application {
+        // Megkeressük a kívánt terméket, ha nincs ilyen a helyi adatbázisban, akkor megnézzük, hogy az éles listában van-e ilyen.
+        $product = Product::where('sku', $sku)->first();
+        if (! $product) {
+            // TODO:
+            dd('Nincs ilyen termék');
+        }
+
+        // Volt termék, mutassuk a nézetet ami ide tartozik.
+        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+
+        return view('hq.stock.to-reseller')->with([
+            'product'         => $product,
+            'inventoryOnHand' => $inventoryOnHand,
+            'users'           => User::whereHas('regions')->get(),
+        ]);
+    }
+
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse
+     */
+    public function handleIncoming(Request $request): Redirector|RedirectResponse|Application {
+        $data = $request->validate([
+            'is-sku'    => 'required',
+            'is-amount' => 'required',
+        ]);
+
+        // Mennyiség amennyivel növelni kell a meglévőt
+        $amount = intval(str_replace(' ', '', $data['is-amount']));
+
+        // Megkeressük a kívánt terméket, ha nincs ilyen a helyi adatbázisban, akkor megnézzük, hogy az éles listában van-e ilyen.
+        $product = Product::where('sku', $data['is-sku'])->first();
+
+        if (! $product) {
+            // TODO:
+            dd('Nincs ilyen termék');
+        }
+
+        // Adjuk hozzá a központhoz.
+        $this->stockService2->addToCentralStock($data['is-sku'], $amount);
+
+        return redirect(action('CentralStockController@index'))->with([
+            'success' => 'Készlet sikeresen elmentve!',
+        ]);
+    }
+
+    /**
+     * Központi készlethez tartozó történetet mutatja meg.
+     *
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
+     */
+    public function history(): View|Factory|Application {
+        return view('hq.stock.history')->with([
+            'movements' => StockMovement::orderByDesc('created_at')->paginate(10),
+            'products'  => $this->stockService2->getBaseProducts(),
         ]);
     }
 }
