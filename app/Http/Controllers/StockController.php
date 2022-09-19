@@ -8,13 +8,18 @@ use App\Subesz\StockService;
 use App\User;
 use Auth;
 use Exception;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Log;
 
 class StockController extends Controller
 {
     /** @var StockService */
-    private $stockService;
+    private StockService $stockService;
 
     /**
      * StockController constructor.
@@ -28,9 +33,9 @@ class StockController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function index() {
+    public function index(): View|Factory|Application {
         return view('stock.index')->with([
             'stock' => Auth::user()->stock,
         ]);
@@ -40,11 +45,11 @@ class StockController extends Controller
      * Show the form for creating a new resource.
      *
      * @param  Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View
      */
-    public function create(Request $request) {
+    public function create(Request $request): Application|Factory|View {
         /** @var ShoprenterService $ss */
-        $ss    = resolve('App\Subesz\ShoprenterService');
+        $ss    = resolve('App\Subesz\ShoprenterService2');
         $items = $ss->getBasicProducts();
 
         return view('stock.create')->with([
@@ -58,9 +63,9 @@ class StockController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function store(Request $request) {
+    public function store(Request $request): Application|RedirectResponse|Redirector {
         $data = $request->validate([
             'stock-user-id'    => 'required',
             'stock-item-sku'   => 'required|array',
@@ -80,22 +85,12 @@ class StockController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Stock  $stock
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Stock $stock) {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      *
      * @param $userId
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
-    public function edit($userId) {
+    public function edit($userId): Factory|\Illuminate\View\View {
         $user = User::find($userId);
 
         /** @var ShoprenterService $ss */
@@ -191,19 +186,10 @@ class StockController extends Controller
     }
 
     /**
-     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
-     */
-    public function adminIndex() {
-        return view('stock.admin-index')->with([
-            'users' => User::all(),
-        ]);
-    }
-
-    /**
      * @param $userId
-     * @return Stock[]|\Illuminate\Database\Eloquent\Collection|mixed
+     * @return mixed
      */
-    public function fetch($userId) {
+    public function fetch($userId): mixed {
         $user = User::find($userId);
 
         return $user->stock->load('product', 'reseller');

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Product;
 use App\StockMovement;
 use App\Subesz\StockService;
-use App\Subesz\StockService2;
 use App\User;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
@@ -16,21 +15,16 @@ use Illuminate\Routing\Redirector;
 
 class CentralStockController extends Controller
 {
-    /** @var StockService */
+    /** @var \App\Subesz\StockService */
     private StockService $stockService;
-
-    /** @var \App\Subesz\StockService2 */
-    private StockService2 $stockService2;
 
     /**
      * CentralStockController constructor.
      *
-     * @param  StockService   $stockService
-     * @param  StockService2  $stockService2
+     * @param  StockService  $stockService
      */
-    public function __construct(StockService $stockService, StockService2 $stockService2) {
-        $this->stockService  = $stockService;
-        $this->stockService2 = $stockService2;
+    public function __construct(StockService $stockService) {
+        $this->stockService = $stockService;
     }
 
     /**
@@ -40,7 +34,7 @@ class CentralStockController extends Controller
      */
     public function index(): Factory|\Illuminate\View\View {
         return view('hq.stock.index')->with([
-            'products' => $this->stockService2->getBaseProducts(),
+            'products' => $this->stockService->getBaseProducts(),
         ]);
     }
 
@@ -89,7 +83,7 @@ class CentralStockController extends Controller
         }
 
         // Volt termék, mutassuk a nézetet ami ide tartozik.
-        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+        $inventoryOnHand = number_format($this->stockService->getCentralStockOnHand($sku), 0, '.', ' ');
 
         return view('hq.stock.scan-result')->with([
             'product'         => $product,
@@ -112,7 +106,7 @@ class CentralStockController extends Controller
         }
 
         // Volt termék, mutassuk a nézetet ami ide tartozik.
-        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+        $inventoryOnHand = number_format($this->stockService->getCentralStockOnHand($sku), 0, '.', ' ');
 
         return view('hq.stock.incoming')->with([
             'product'         => $product,
@@ -133,7 +127,7 @@ class CentralStockController extends Controller
         }
 
         // Volt termék, mutassuk a nézetet ami ide tartozik.
-        $inventoryOnHand = number_format($this->stockService2->getCentralStockOnHand($sku), 0, '.', ' ');
+        $inventoryOnHand = number_format($this->stockService->getCentralStockOnHand($sku), 0, '.', ' ');
 
         return view('hq.stock.to-reseller')->with([
             'product'         => $product,
@@ -164,7 +158,7 @@ class CentralStockController extends Controller
         }
 
         // Adjuk hozzá a központhoz.
-        $this->stockService2->addToCentralStock($data['is-sku'], $amount);
+        $this->stockService->addToCentralStock($data['is-sku'], $amount);
 
         return redirect(action('CentralStockController@index'))->with([
             'success' => 'Készlet sikeresen elmentve!',
@@ -179,7 +173,7 @@ class CentralStockController extends Controller
     public function history(): View|Factory|Application {
         return view('hq.stock.history')->with([
             'movements' => StockMovement::orderByDesc('created_at')->paginate(10),
-            'products'  => $this->stockService2->getBaseProducts(),
+            'products'  => $this->stockService->getBaseProducts(),
         ]);
     }
 }

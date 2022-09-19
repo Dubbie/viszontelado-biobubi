@@ -5,20 +5,20 @@ namespace App\Http\Controllers;
 use App\BundleProduct;
 use App\Product;
 use App\Subesz\ShoprenterService;
-use App\Subesz\StockService2;
+use App\Subesz\StockService;
 use Illuminate\Http\Request;
 
 class BundleController extends Controller
 {
-    /** @var StockService2 */
-    private StockService2 $stockService;
+    /** @var StockService */
+    private StockService $stockService;
 
     /**
      * BundleController constructor.
      *
-     * @param  StockService2  $stockService
+     * @param  StockService  $stockService
      */
-    public function __construct(StockService2 $stockService) {
+    public function __construct(StockService $stockService) {
         $this->stockService = $stockService;
     }
 

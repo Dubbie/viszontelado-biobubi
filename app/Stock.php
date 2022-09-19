@@ -2,13 +2,13 @@
 
 namespace App;
 
-use App\Subesz\StockService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use PhpParser\Builder\Declaration;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * Class Stock
+ *
  * @package App
  * @mixin Stock
  */
@@ -17,14 +17,14 @@ class Stock extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function product() {
+    public function product(): HasOne {
         return $this->hasOne(Product::class, 'sku', 'sku');
     }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function reseller() {
+    public function reseller(): HasOne {
         return $this->hasOne(User::class, 'id', 'user_id');
     }
 
@@ -35,35 +35,20 @@ class Stock extends Model
         /** @var User $reseller */
         /** @var Order $order */
         $reseller = $this->reseller;
+
         return OrderProducts::whereHas('order', function (Builder $query) use ($reseller) {
             $query->where([
                 ['orders.reseller_id', $reseller->id],
                 ['orders.status_text', 'Függőben lévő'],
             ]);
         })->where('product_sku', '=', $this->sku)->sum('product_qty');
-//        foreach ($orderedProducts as $op) {
-//            // 1. eset, EZ MONEY
-//            if ($op->product_sku == $this->sku) {
-//                $booked += ($op->product_qty);
-//            } else {
-//                // 2. eset, megnézzük, hogy ha ez csomag termék és tartalmazza ezt az SKU-t akkor mennyivel növeljük
-//                /** @var BundleProduct[] $bps */
-//                $bps = BundleProduct::where('bundle_sku', $op->product_sku)->get();
-//                foreach ($bps as $bp) {
-//                    if ($bp->product_sku == $this->sku) {
-//                        $booked += ($op->product_qty * $bp->product_qty);
-//                    }
-//                }
-//            }
-//        }
-//
-//        return $booked;
     }
 
     public function getSoldCount() {
         /** @var User $reseller */
         /** @var Order $order */
         $reseller = $this->reseller;
+
         return OrderProducts::whereHas('order', function (Builder $query) use ($reseller) {
             $query->where([
                 ['orders.reseller_id', $reseller->id],

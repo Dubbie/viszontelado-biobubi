@@ -2,106 +2,229 @@
 
 namespace App\Subesz;
 
-use App\CentralStock;
-use App\Order;
 use App\Product;
 use App\Stock;
 use App\StockMovement;
 use App\User;
-use Log;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class StockService
 {
     /**
-     * @param  User  $recipient
-     * @param  int   $stockId
-     * @param        $newInventory
+     * Visszaadja az alap termékeket. Az alap termék olyan termék, amelyhez nem tartoznak altermékek (subProducts) és jelenleg a status mező értéke Igaz.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|array
      */
-    public function updateStock(User $recipient, int $stockId, $newInventory) {
-        /** @var Stock $stockItem */
-        $oldInventory = null;
-        $stockItem    = $recipient->stock()->find($stockId);
-
-        // Elmentjük a régi állást
-        $oldInventory = $stockItem->inventory_on_hand;
-
-        // Frissítjük az újra
-        $stockItem->inventory_on_hand = $newInventory;
-        $stockItem->save();
-
-        // Létrehozzuk az új eseményt
-        $mvmt                  = new StockMovement();
-        $mvmt->user_id         = $recipient->id;
-        $mvmt->product_sku     = $stockItem->sku;
-        $mvmt->quantity        = ($newInventory - $oldInventory);
-        $mvmt->gross_price     = $stockItem->product->gross_price;
-        $mvmt->purchase_price  = $stockItem->product->purchase_price;
-        $mvmt->wholesale_price = $stockItem->product->wholesale_price;
-        $mvmt->save();
+    public function getBaseProducts(): Collection|array {
+        return Product::doesntHave('subProducts')->where('status', '=', '1')->get();
     }
 
     /**
-     * Létrehozza a megrendeléshez tartozó termékeket.
+     * Visszaadja a központi készlet darabszámát az adott cikkszámra.
      *
-     * @param  array  $skuList
-     * @param         $orderId
+     * @param        $sku
+     * @return int
+     */
+    public function getCentralStockOnHand($sku): int {
+        $stockEntry = Stock::where([
+            ['user_id', '=', null],
+            ['sku', '=', $sku],
+        ])->first();
+
+        if ($stockEntry) {
+            return $stockEntry->inventory_on_hand;
+        } else {
+            return 0;
+        }
+    }
+
+    /**
+     * Visszaadja a központi készlet összértékét (Nagyker árból)
+     *
+     * @param  bool  $formatted
+     * @return float|int|string
+     */
+    public function getCentralStockValue(bool $formatted = false): float|int|string {
+        /** @var Stock $cs */
+        $sum = 0;
+        foreach (Stock::where('user_id', null)->get() as $cs) {
+            $sum += ($cs->product->wholesale_price * $cs->inventory_on_hand);
+        }
+
+        if ($formatted) {
+            return number_format($sum, 0, '.', ' ').' Ft';
+        }
+
+        return $sum;
+    }
+
+    /**
+     * Visszaadja a központi készletnél látható listát.
+     *
+     * @return string
+     */
+    public function getCentralStockHTML(): string {
+        return view('inc.stock.central-list')->with([
+            'stock' => Stock::where('user_id', null)->get(),
+        ])->toHtml();
+    }
+
+    /**
+     * Hozzáaadja a megadott cikkszámból a megfelelő mennyiséget.
+     *
+     * @param $sku
+     * @param $qty
+     * @return \App\Stock
+     */
+    public function addToCentralStock($sku, $qty): Stock {
+        $product = Product::where('sku', $sku)->first();
+        if (! $product) {
+            Log::error('Nincs ilyen cikkszámú termék, hogy hozzáadjuk a központi készlethez! (Cikkszám: '.$sku.')');
+
+            return false;
+        }
+
+        /** @var Stock $cs */
+        $cs = Stock::where([
+            ['sku', '=', $sku],
+            ['user_id', '=', null],
+        ])->first();
+
+        $oldInventory = 0;
+        if (! $cs) {
+            $cs                    = new Stock();
+            $cs->sku               = $sku;
+            $cs->inventory_on_hand = $qty;
+        } else {
+            $oldInventory          = $cs->inventory_on_hand;
+            $cs->inventory_on_hand += $qty;
+        }
+
+        $cs->save();
+        Log::info('Központi készlet frissítve.');
+        Log::info(sprintf(' - %s (%s)', $sku, ($qty > 0 ? '+'.$qty : $qty)));
+
+        // 2. Elmentjük a mozgást
+        $movement                  = new StockMovement();
+        $movement->product_sku     = $sku;
+        $movement->user_id         = null;
+        $movement->gross_price     = $product->gross_price;
+        $movement->wholesale_price = $product->wholesale_price;
+        $movement->purchase_price  = $product->purchase_price;
+        $movement->quantity        = $cs->inventory_on_hand - $oldInventory;
+        $movement->save();
+        Log::info(sprintf('A központ kapott %s db %s terméket (Cikkszám: %s).', $qty, $product->name, $product->sku));
+
+        return $cs;
+    }
+
+    /**
+     * @param  User  $recipient
+     * @param        $sku
+     * @param        $count
      * @return bool
      */
-    public function bookOrder(array $skuList, $orderId): bool {
-        /** @var User $reseller */
-        $localOrder = Order::find($orderId);
-        $reseller   = $localOrder->getReseller()['correct'];
+    public function addToStock(User $recipient, $sku, $count): bool {
+        $revenueService = resolve('App\Subesz\RevenueService');
 
-        Log::info('-- Új megrendelés készletének levezetése: --');
-        Log::info('-- -- Viszonteladó: '.$reseller->name);
-        Log::info('-- -- Megrendelt termékek: ');
-        foreach ($skuList as $orderedProduct) {
-            // Kikeressük, hogy mi is ez a termék nálunk
-            $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
-            if (! $localProduct) {
-                $sp = resolve('App\Subesz\ShoprenterService');
-                $sp->updateProducts();
-
-                $localProduct = $this->getLocalProductBySku($orderedProduct['sku']);
-                if (! $localProduct) {
-                    return false;
-                }
-            }
-
-            // Kiszejdük, hogy ez a termék mikből áll
-            Log::info(sprintf('-- -- %s (Cikkszám: %s) ami a következőkből áll:', $localProduct->name, $localProduct->sku));
-            foreach ($localProduct->getSubProducts() as $subProduct) {
-                /** @var Product $baseProduct */
-                $baseProduct      = $subProduct['product'];
-                $baseProductCount = $subProduct['count'];
-
-                Log::info(sprintf('-- -- -- Alaptermék: %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
-                /** @var Stock $stockItem */
-                $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
-                // Ha nincs még, akkor létrehozzuk
-                if (! $stockItem) {
-                    Log::info('-- -- -- A viszonteladónak még nincs ilyen termékből készlete, ezért létrehozzuk.');
-                    $stockItem                    = new Stock();
-                    $stockItem->sku               = $baseProduct->sku;
-                    $stockItem->inventory_on_hand = 0;
-                    $stockItem->user_id           = $reseller->id;
-
-                    // Elmentsük
-                    $stockItem->save();
-                }
-
-                Log::info('-- -- -- Készlet frissítve.');
-            }
+        $product = Product::find($sku);
+        if (! $product) {
+            return false;
         }
+
+        // 1. Megnézzük, hogy van-e már ilyen termékből készlete
+        $stockItem                    = $recipient->stock()->where('sku', $sku)->first() ?? new Stock();
+        $oldInventory                 = $stockItem->inventory_on_hand ?? 0; // Elmentjük, ha volt régi készlete
+        $stockItem->user_id           = $recipient->id;
+        $stockItem->sku               = $sku;
+        $stockItem->inventory_on_hand += $count;
+        $stockItem->save();
+
+        // 2. Elmentjük a mozgást a viszonteladónak
+        $movement                  = new StockMovement();
+        $movement->product_sku     = $sku;
+        $movement->user_id         = $recipient->id;
+        $movement->gross_price     = $product->gross_price;
+        $movement->wholesale_price = $product->wholesale_price;
+        $movement->purchase_price  = $product->purchase_price;
+        $movement->quantity        = $stockItem->inventory_on_hand - $oldInventory;
+        $movement->save();
+        Log::info(sprintf('%s viszonteladó kapott %s db %s terméket (Cikkszám: %s) a központtól.', $recipient->name, $count, $product->name, $product->sku));
+
+        // 3. Levonjuk a központi készletből
+        $cs                    = Stock::where([
+            ['user_id', '=', null],
+            ['sku', '=', $sku],
+        ])->first();
+        $cs->inventory_on_hand -= $count;
+        $cs->save();
+        Log::info(sprintf('A központi készletből levonásra került %s db %s termék (Cikkszám: %s)', $count, $product->name, $product->sku));
+
+        // 4. Elmentjük a mozgást
+        $movement                  = new StockMovement();
+        $movement->product_sku     = $sku;
+        $movement->user_id         = null;
+        $movement->gross_price     = $product->gross_price;
+        $movement->wholesale_price = $product->wholesale_price;
+        $movement->purchase_price  = $product->purchase_price;
+        $movement->quantity        = -1 * $count;
+        $movement->save();
+
+        /*
+        // 4. Hozzáadjuk a központnak, mint bevétel
+        $amount = $count * $product->wholesale_price;
+        $revenueService->storeCentralIncome('Készletértékesítés', null, $amount, null, sprintf('Készlet átadva %s viszonteladónak.', $recipient->name));
+
+        // 5. Hozzáadjuk a viszonteladónak, mint kiadás
+        $revenueService->storeResellerExpense('Készletvásárlás', $amount, $recipient, null, sprintf('%s db %s', $count, $product->name));
+        */
 
         return true;
     }
 
     /**
+     * Visszaadja a csomag termékeket.
+     *
+     * @return Product[]|\Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
+     */
+    public function getBundles(): Collection|array {
+        return Product::has('subProducts')->get();
+    }
+
+    /**
+     * @param $arrSku
+     * @param $arrCount
+     * @return array
+     */
+    public function getProductDataFromInput($arrSku, $arrCount): array {
+        $stockData = [];
+
+        foreach ($arrSku as $key => $sku) {
+            $count = intval(str_replace(' ', '', $arrCount[$key]));
+
+            $stockIndex = array_search($sku, array_column($stockData, 'sku'));
+            if ($stockIndex !== false) {
+                $stockData[$stockIndex]['count'] += $count;
+            } else {
+                $stockData[] = [
+                    'sku'   => $sku,
+                    'count' => $count,
+                ];
+            }
+        }
+
+        return $stockData;
+    }
+
+    /**
+     * Visszaadja cikkszám alapján az elmentett terméket.
+     *
      * @param $sku
      * @return Product|Product[]|bool|\Illuminate\Database\Eloquent\Collection|\Illuminate\Database\Eloquent\Model|null
      */
-    public function getLocalProductBySku($sku) {
+    public function getLocalProductBySku($sku): Model|Collection|array|Product|bool|null {
         $product = Product::find($sku);
 
         if (! $product) {
@@ -112,93 +235,5 @@ class StockService
         }
 
         return $product;
-    }
-
-    /**
-     * Létrehozza a megrendeléshez tartozó termékeket.
-     *
-     * @param $orderId
-     * @return bool
-     */
-    public function subtractStockFromOrder($orderId): bool {
-        /** @var User $reseller */
-        $localOrder = Order::find($orderId);
-        $reseller   = $localOrder->reseller;
-
-        Log::info('-- Megrendelés teljesítve, készletének levezetése: --');
-        Log::info('-- -- Viszonteladó: '.$reseller->name);
-        Log::info('-- -- Megrendelt termékek: ');
-        foreach ($localOrder->products as $orderedProduct) {
-            $localProduct = $orderedProduct->product;
-
-            // Kiszejdük, hogy ez a termék mikből áll
-            Log::info(sprintf('-- -- %s (Cikkszám: %s) ami a következőkből áll:', $localProduct->name, $localProduct->sku));
-            foreach ($localProduct->getSubProducts() as $subProduct) {
-                /** @var Product $baseProduct */
-                $baseProduct      = $subProduct['product'];
-                $baseProductCount = $subProduct['count'];
-
-                Log::info(sprintf('-- -- -- Alaptermék: %s db, %s (Cikkszám: %s)', $baseProductCount, $baseProduct->name, $baseProduct->sku));
-                /** @var Stock $stockItem */
-                $stockItem = $reseller->stock()->where('sku', $baseProduct->sku)->first();
-                // Ha nincs még, akkor létrehozzuk
-                if (! $stockItem) {
-                    Log::info('-- -- -- A viszonteladónak még nincs ilyen termékből készlete, ezért létrehozzuk.');
-                    $stockItem                    = new Stock();
-                    $stockItem->sku               = $baseProduct->sku;
-                    $stockItem->inventory_on_hand = -1 * ($orderedProduct->product_qty * $baseProductCount); // Megrendelt termék mennyiség (pl.: 3db 3 liter mosószer csomag, akkor 3 * 3)
-                    $stockItem->user_id           = $reseller->id;
-                } else {
-                    $stockItem->inventory_on_hand = $stockItem->inventory_on_hand - ($orderedProduct->product_qty * $baseProductCount);
-                }
-
-                // Elmentsük
-                $stockItem->save();
-                Log::info('-- -- -- Készlet frissítve.');
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param $userId
-     * @return string
-     */
-    public function getResellerStockListHTML($userId): string {
-        return view('inc.stock.reseller-stock-list')->with([
-            'reseller' => User::find($userId),
-        ])->toHtml();
-    }
-
-    /**
-     * @param  bool  $first
-     * @return array|\Illuminate\Contracts\View\Factory|\Illuminate\View\View|string
-     */
-    public function getCentralStockRow($first = false) {
-        return view('inc.stock.cs-row')->with([
-            'products' => resolve('App\Subesz\StockService')->getBaseProducts(),
-            'first'    => $first,
-        ])->toHtml();
-    }
-
-    /**
-     * Visszaadja az alap termékeket
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|array
-     */
-    public function getBaseProducts(): \Illuminate\Database\Eloquent\Collection|array {
-        return Product::doesntHave('subProducts')->where('status', '=', '1')->get();
-    }
-
-    /**
-     * @param  bool  $first
-     * @return array|\Illuminate\Contracts\View\Factory|\Illuminate\View\View|string
-     */
-    public function getResellerStockRow($first = false) {
-        return view('inc.stock.rs-row')->with([
-            'centralStock' => CentralStock::all(),
-            'first'        => $first,
-        ])->toHtml();
     }
 }

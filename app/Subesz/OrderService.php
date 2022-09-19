@@ -50,8 +50,7 @@ class OrderService
 
         // Feltöljük a státusz mapot
         foreach ($osds->items as $osd) {
-            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '',
-                $osd->orderStatus->href);
+            $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $osd->orderStatus->href);
 
             $this->statusMap[$orderStatusId] = [
                 'name'  => $osd->name,
@@ -137,8 +136,7 @@ class OrderService
         $taxPrice   = round($order->total - $total);
         $totalGross = round($order->total);
 
-        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '',
-            $order->orderStatus->href);
+        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order->orderStatus->href);
 
         if (! array_key_exists($orderStatusId, $this->statusMap)) {
             Log::error('Nem volt megtalálható a státusz azonosító a státusz leíró térképben.');
@@ -314,8 +312,7 @@ class OrderService
         $out = '';
 
         if ($order->shippingPostcode && $order->shippingCity && $order->shippingAddress1) {
-            $out = sprintf('%s %s, %s %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1,
-                $order->shippingAddress2);
+            $out = sprintf('%s %s, %s %s', $order->shippingPostcode, $order->shippingCity, $order->shippingAddress1, $order->shippingAddress2);
         }
 
         return $out;

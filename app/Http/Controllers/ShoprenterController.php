@@ -185,11 +185,14 @@ class ShoprenterController extends Controller
             $order = $this->shoprenterApi->getOrder($orderId);
 
             // Elmentjük a készlethez szükséges dolgokat
+            // TODO: Újra implementáljuk a készletes dolgokat
             $orderedProducts = $this->orderService->getOrderedProductsFromOrder($order);
-            $booked          = $ss->bookOrder($orderedProducts, $localOrder->id);
-            if ($booked) {
-                $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
-            }
+            //$booked          = $ss->bookOrder($orderedProducts, $localOrder->id);
+            //if ($booked) {
+            //    $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            //}
+
+            $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
 
             // Létrehozzuk az ügyfelet, ha még nincs
             $customer = $this->customerService->createCustomerFromLocalOrder($localOrder);

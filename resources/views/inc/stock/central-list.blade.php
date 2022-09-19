@@ -45,7 +45,7 @@
     <hr>
     <p class="text-right mb-0 mt-4">
         <small>Készlet összértéke: </small>
-        <b class="h4">{{ resolve('App\Subesz\StockService2')->getCentralStockValue(true) }}</b>
+        <b class="h4">{{ resolve('App\Subesz\StockService')->getCentralStockValue(true) }}</b>
     </p>
 @else
     <p class="lead text-muted">A központi készlet még nem lett feltöltve.</p>
