@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot() {
         // Mix manifest
-        if (array_key_exists('REMOTE_ADDR', $_SERVER) && $_SERVER["REMOTE_ADDR"] == "185.51.191.57") {
+        if (array_key_exists('SERVER_ADDR', $_SERVER) && $_SERVER["SERVER_ADDR"] == "185.51.191.57") {
             $this->app->bind('path.public', function () {
                 return base_path().'/../public_html';
             });
