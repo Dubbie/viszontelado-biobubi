@@ -50,7 +50,7 @@
 @else
     <p class="lead text-muted">A központi készlet még nem lett feltöltve.</p>
     <p class="mb-0">
-        <a href="#newCentralStock" data-toggle="modal" data-target="#newCentralStock"
-           class="btn btn-sm btn-teal shadow-sm">Készlet hozzáadása</a>
+        <a href="#stockMovement" data-toggle="modal" data-target="#stockMovement"
+           class="btn btn-sm btn-teal shadow-sm">Készlet mozgatása</a>
     </p>
 @endif
