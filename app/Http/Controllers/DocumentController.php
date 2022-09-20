@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Document;
+use App\Product;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
 use Illuminate\Http\Request;
@@ -60,21 +61,47 @@ class DocumentController extends Controller
             'discount' => 0,
             'items'    => [],
         ];
-        foreach ($orders as $order) {
-            // Egyéni
-            foreach ($order['products']->items as $item) {
-                $itemIndex = array_search($item->sku, array_column($sum['items'], 'sku'));
 
-                if ($itemIndex === false) {
-                    $sum['items'][] = [
+        foreach ($orders as $order) {
+            foreach ($order['products']->items as $item) {
+                // Megnézzük, hogy van-e ilyen termék nálunk, ha igen, akkor nézzük meg, hogy csomag-e
+                $localProduct = Product::where('sku', $item->sku)->first();
+                $pieces       = [];
+
+                if ($localProduct && $localProduct->subProducts()->count() > 0) {
+                    // Ha ez egy csomag, akkor szedjük darabokra
+                    foreach ($localProduct->subProducts as $subProduct) {
+                        $pieces[] = [
+                            'sku'   => $subProduct->product_sku,
+                            'name'  => $subProduct->product->name,
+                            'count' => $subProduct->product_qty * $item->stock1,
+                        ];
+                    }
+                } else {
+                    if (! $localProduct) {
+                        // Nincs nálunk ilyen termék az adatbázisban...
+                        \Log::info(sprintf('- A(z) %s termék cikkszáma nem szerepel a helyi adatbázisban! (Cikkszám: %s)', $item->name, $item->sku));
+                    }
+
+                    $pieces[] = [
                         'sku'   => $item->sku,
                         'name'  => $item->name,
-                        'total' => floatval($item->total),
-                        'count' => intval($item->stock1),
+                        'count' => $item->stock1,
                     ];
-                } else {
-                    $sum['items'][$itemIndex]['total'] += floatval($item->total);
-                    $sum['items'][$itemIndex]['count'] += intval($item->stock1);
+                }
+
+                // Most nézzük meg az összes darabot, hogy szerepel-e már a szummázó tömbben
+                foreach ($pieces as $piece) {
+                    $itemIndex = array_search($piece['sku'], array_column($sum['items'], 'sku'));
+                    if ($itemIndex === false) {
+                        $sum['items'][] = [
+                            'sku'   => $piece['sku'],
+                            'name'  => $piece['name'],
+                            'count' => intval($piece['count']),
+                        ];
+                    } else {
+                        $sum['items'][$itemIndex]['count'] += intval($piece['count']);
+                    }
                 }
             }
 

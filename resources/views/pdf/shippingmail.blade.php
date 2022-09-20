@@ -78,14 +78,12 @@
         <thead>
             <tr>
                 <th align="left">Termék</th>
-                <th align="left">Részösszeg</th>
             </tr>
         </thead>
         <tbody>
             @foreach($sum['items'] as $item)
             <tr>
                 <td><b>{{ $item['count'] }} db</b> {{ $item['name'] }}</td>
-                <td>({{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($item['total'] * 1.27)) }} Ft)</td>
             </tr>
             @endforeach
             <tr>

@@ -17,7 +17,7 @@
     "php": "^8.0",
     "ext-curl": "*",
     "ext-json": "*",
-    "barryvdh/laravel-dompdf": "^0.8.6",
+    "barryvdh/laravel-dompdf": "^1.0.0",
     "dubbie/billingo-v3": "*@dev",
     "fideloper/proxy": "^4.2",
     "fruitcake/laravel-cors": "^1.0",
