@@ -295,6 +295,7 @@
 
         @auth
             <ul class="sidebar-bottom-menu">
+                <x-environment/>
                 <li class="nav-item dropup">
                     <a id="navbarDropdown" class="nav-link " href="#" role="button"
                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" v-pre>
