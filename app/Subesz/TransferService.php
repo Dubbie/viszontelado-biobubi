@@ -103,6 +103,12 @@ class TransferService
         }
         unset($data[0]); // Kiszedjük a headert az adathalmazból
         foreach ($data as &$row) {
+            // Leszedjük a fölösleget a végéről...
+            for ($i = 0; $i <= count($row) + 1; $i++) {
+                if ($i >= count($headers)) {
+                    unset($row[$i]);
+                }
+            }
             $row = array_combine($headers, $row);
 
             /**
