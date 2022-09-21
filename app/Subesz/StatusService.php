@@ -19,6 +19,9 @@ class StatusService
     /** @var string */
     private $creditCardPaidStatus;
 
+    /** @var string[] */
+    private $glsCompletedStatusMap;
+
     /**
      * StatusService constructor.
      */
@@ -27,6 +30,13 @@ class StatusService
         $this->completedStatusMap = [
             'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=', // Teljesítve
             'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTI0', // FOXPOST Teljesítve
+        ];
+
+        // Teljesített GLS ID-k
+        $this->glsCompletedStatusMap = [
+            'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTMz=', // --- GLS teljesítve
+            'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE2', // MyGLS Kézbesítve
+            'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTIx', // MyGLS csomagpont kézbesítve
         ];
 
         // Teljesített státusz szövegek alapján
@@ -149,7 +159,12 @@ class StatusService
                 }
             }
 
-            $response['success'] = true;
+            // Ha GLS Teljesítve a státusz, akkor Klaviyo-ba teljesítjük
+            if (in_array($newStatus->status_id, $this->glsCompletedStatusMap)) {
+                Log::info('GLS teljesítve az új státusz, továbbküldjük Klavyio irányába.');
+                $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
+                Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
+            }
             $response['message'] = 'Státusz váltás sikeres';
             Log::info('StatusService: Státusz váltás sikeresen teljesítve');
         }
