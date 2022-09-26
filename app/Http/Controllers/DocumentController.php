@@ -110,11 +110,9 @@ class DocumentController extends Controller
             foreach ($order['totals'] as $total) {
                 if ($total->type == 'TOTAL') {
                     $sum['income'] += floatval($total->value);
-                    break;
                 }
                 if ($total->type == 'SHIPPING' && intval($total->value) > 0) {
                     $sum['shipping'] += floatval($total->value);
-                    break;
                 }
             }
         }
