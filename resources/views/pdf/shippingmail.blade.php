@@ -87,6 +87,9 @@
             </tr>
             @endforeach
             <tr>
+                <td colspan="2">Összes szállítási költség: {{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($sum['shipping'])) }} Ft</td>
+            </tr>
+            <tr>
                 <td colspan="2">Összes bruttó bevétel: {{ resolve('App\Subesz\MoneyService')->getFormattedMoney(round($sum['income'])) }} Ft</td>
             </tr>
         </tbody>
