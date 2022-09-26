@@ -67,8 +67,8 @@
                             <p class="mb-0">Szállítási cím:</p>
                         </div>
                         <div class="col-md-6 col-lg-8">
-                            @if (resolve('App\Subesz\OrderService')->getFormattedAddress($order['order']) != '')
-                                <p class="mb-0">{{ resolve('App\Subesz\OrderService')->getFormattedAddress($order['order']) }}</p>
+                            @if ($address != '')
+                                <p class="mb-0">{{ $address }}</p>
                             @else
                                 <p class="mb-0">Nincs megadva helyes cím</p>
                             @endif

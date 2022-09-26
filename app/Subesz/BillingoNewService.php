@@ -435,6 +435,16 @@ class BillingoNewService
                         'unit_price_type' => UnitPriceType::GROSS,
                     ];
                 }
+                if ($total->type == 'PAYMENT') {
+                    $items[] = [
+                        'name'            => 'Gls utánvét',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total->value)),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
             }
         }
 

@@ -119,6 +119,10 @@ class OrderController extends Controller
     public function show($orderId) {
         $order = $this->shoprenterApi->getOrder($orderId);
 
+        if ($order && array_key_exists('order', $order) && property_exists($order['order'], 'error')) {
+            return redirect(url()->previous())->with(['error' => 'Shoprenter hiba történt a megrendelés betöltésekor: '.$order['order']->message]);
+        }
+
         // Kezeljük le a státusz frissítéskor létrejövő session-t
         if (! session()->has('updateLocalOrder') || session('updateLocalOrder') != false) {
             $this->orderService->updateLocalOrder($order['order']);
@@ -127,6 +131,7 @@ class OrderController extends Controller
         return view('order.show')->with([
             'order'      => $order,
             'localOrder' => $this->orderService->getLocalOrderByResourceId($order['order']->id),
+            'address'    => $this->orderService->getFormattedAddress($order['order']),
         ]);
     }
 

@@ -37,6 +37,8 @@ class OrderService
 
         $osds = $this->shoprenterApi->getAllStatuses();
         if (! $osds || ! property_exists($osds, 'items')) {
+            dump($osds);
+
             return redirect(action('UserController@home'))->with([
                 'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
             ]);
@@ -79,7 +81,7 @@ class OrderService
         if (array_key_exists('query', $filter)) {
             $searchValue = '%'.$filter['query'].'%';
             $orders      = $orders->where(function ($query) use ($searchValue) {
-                $query->where('firstname', 'like', $searchValue)->orWhere('lastname', 'like', $searchValue)->orWhere('shipping_address', 'like', $searchValue)->orWhere('inner_id', 'like', $searchValue)->orWhere('email', 'like', $searchValue);
+                $query->where('firstname', 'like', $searchValue)->orWhere('lastname', 'like', $searchValue)->orWhere('shipping_address', 'like', $searchValue)->orWhere('inner_id', 'like', $searchValue)->orWhere('id', 'like', $searchValue)->orWhere('email', 'like', $searchValue);
             });
         }
 
@@ -366,7 +368,8 @@ class OrderService
         ];
 
         // Ha hibára fut a Shoprenter frissítés akkor visszatérünk
-        if (! $this->shoprenterApi->updateOrderStatusId($orderResourceId, $statusId)) {
+        $ss = resolve('App\Subesz\ShoprenterService');
+        if (! $ss->updateOrderStatusId($orderResourceId, $statusId)) {
             $response['success'] = false;
             $response['message'] = 'Hiba történt a státusz frissítésekor a ShopRenterben.';
 
