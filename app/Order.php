@@ -365,9 +365,10 @@ class Order extends Model
     }
 
     /**
+     * @param  bool  $notifyCustomer
      * @return array
      */
-    public function createInvoice(): array {
+    public function createInvoice(bool $notifyCustomer = true): array {
         $bs       = resolve('App\Subesz\BillingoNewService');
         $response = [
             'success' => false,
@@ -409,7 +410,12 @@ class Order extends Model
                     // Elmentjük a számlát helyileg
                     $this->invoice_path = $path;
                     $this->save();
-                    $this->sendInvoice();
+
+                    if ($notifyCustomer) {
+                        $this->sendInvoice();
+                    } else {
+                        Log::info('Nem küldünk róla értesítést az ügyfélnek, paraméterezés miatt');
+                    }
                     $response['success'] = true;
                     $response['message'] = 'Számla sikeresen létrehozva és elküldve az ügyfélnek';
                 }

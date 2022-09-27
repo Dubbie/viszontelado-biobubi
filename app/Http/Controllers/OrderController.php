@@ -416,30 +416,46 @@ class OrderController extends Controller
 
         // Átalakítjuk a bemenetet
         $orderResourceIds = json_decode($data['mri-order-ids']);
-
-        // Végigmegyünk a kijelölésen
-        $successCount = 0;
-        $errors       = [];
-        Log::info('Kijelölt megrendelések számlájának újraküldése...');
+        $localOrders      = collect();
+        $successCount     = 0;
+        $errors           = [];
         foreach ($orderResourceIds as $orderResourceId) {
             /** @var Order $localOrder */
             $localOrder = $this->orderService->getLocalOrderByResourceId($orderResourceId);
+
+            if (! $localOrder) {
+                return redirect(url()->previous(action('OrderController@index')))->with([
+                    'error' => 'Nincs ilyen azonosítójú megrendelés a helyi adatbázisban: '.$orderResourceId,
+                ]);
+            } else {
+                if (! $localOrder->isCompleted()) {
+                    return redirect(url()->previous(action('OrderController@index')))->with([
+                        'error' => sprintf('Egy vagy több megrendelés még folyamatban van, ezért nem lehet újra generálni számlát. (%s %s)', $localOrder->firstname, $localOrder->lastname),
+                    ]);
+                }
+            }
+
+            $localOrders->add($localOrder);
+        }
+
+        Log::info('Kijelölt megrendelések számlájának újragenerálása...');
+        foreach ($localOrders as $localOrder) {
             // Küldjük el újra a számlát
             Log::info(sprintf(' - Jelenlegi megrendelés: %s (%s %s)', $localOrder->id, $localOrder->firstname, $localOrder->lastname));
             Log::info(' -- Számla készítése ...');
-            $invoiceResponse = $localOrder->createInvoice();
+            $invoiceResponse = $localOrder->createInvoice(false);
             if (! $invoiceResponse['success']) {
-                $errors[] = sprintf('<br>%s %s - %s', $localOrder->firstname, $localOrder->lastname, $invoiceResponse['message']);
+                $errors[] = sprintf('%s %s (%s) - %s', $localOrder->firstname, $localOrder->lastname, $localOrder->id, $invoiceResponse['message']);
             } else {
                 $successCount++;
             }
-            Log::info(' -- ... számla elintézve.');
+            Log::info(' -- ... számlák elintézve.');
         }
 
         if (count($errors) > 0) {
-            return redirect(url()->previous(action('OrderController@index')))->with([
-                'errors' => 'Sikeresen elküldve, vagy már el vol küldve: '.$successCount.'db megrendelés. A következő megrendeléseknél nem sikerült újraküldeni a számlát:'.join('', $errors),
-            ]);
+            array_unshift($errors, ['A következő megrendeléseknél lépett fel probléma:']);
+
+            return redirect(url()->previous(action('OrderController@index')))->withErrors($errors);
         }
 
         return redirect(url()->previous(action('OrderController@index')))->with([
