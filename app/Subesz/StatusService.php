@@ -119,8 +119,6 @@ class StatusService
             Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
             $ws->remove($localOrder->id, $reseller->id); // Töröljük a munkalapról
             Log::info('WorksheetService: - Törölve a munkalapról.');
-            $ss->subtractStockFromOrder($localOrder->id); // Levonjuk a készletet
-            Log::info('StockService: - Készlet levonva.');
 
             // Logolunk kicsit, aztán számlázunk
             Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));

@@ -11,6 +11,7 @@ use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use App\Subesz\WorksheetService;
 use App\User;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -400,5 +401,49 @@ class OrderController extends Controller
         } else {
             return $result['message'];
         }
+    }
+
+    /**
+     * Újra megpróbálja elküldeni a kijelölt megrendelésekhez a számlát, ha még nem ment ki.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function massRegenerateInvoices(Request $request): Redirector|RedirectResponse|Application {
+        $data = $request->validate([
+            'mri-order-ids' => 'required',
+        ]);
+
+        // Átalakítjuk a bemenetet
+        $orderResourceIds = json_decode($data['mri-order-ids']);
+
+        // Végigmegyünk a kijelölésen
+        $successCount = 0;
+        $errors       = [];
+        Log::info('Kijelölt megrendelések számlájának újraküldése...');
+        foreach ($orderResourceIds as $orderResourceId) {
+            /** @var Order $localOrder */
+            $localOrder = $this->orderService->getLocalOrderByResourceId($orderResourceId);
+            // Küldjük el újra a számlát
+            Log::info(sprintf(' - Jelenlegi megrendelés: %s (%s %s)', $localOrder->id, $localOrder->firstname, $localOrder->lastname));
+            Log::info(' -- Számla készítése ...');
+            $invoiceResponse = $localOrder->createInvoice();
+            if (! $invoiceResponse['success']) {
+                $errors[] = sprintf('<br>%s %s - %s', $localOrder->firstname, $localOrder->lastname, $invoiceResponse['message']);
+            } else {
+                $successCount++;
+            }
+            Log::info(' -- ... számla elintézve.');
+        }
+
+        if (count($errors) > 0) {
+            return redirect(url()->previous(action('OrderController@index')))->with([
+                'errors' => 'Sikeresen elküldve, vagy már el vol küldve: '.$successCount.'db megrendelés. A következő megrendeléseknél nem sikerült újraküldeni a számlát:'.join('', $errors),
+            ]);
+        }
+
+        return redirect(url()->previous(action('OrderController@index')))->with([
+            'success' => 'A számlák sikeresen el lettek küldve, vagy már el voltak küldve.',
+        ]);
     }
 }

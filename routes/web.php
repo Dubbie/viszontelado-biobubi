@@ -31,6 +31,7 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::post('/megrendelesek/viszontelado-frissitese', 'OrderController@massUpdateReseller');
         Route::get('/megrendelesek/bevetelek/frissites', 'OrderController@updateOrderIncomes');
+        Route::post('/megrendelesek/szamlak/ujra-generalas', 'OrderController@massRegenerateInvoices');
 
         Route::post('/api/billingo/test', 'UserController@testBillingo');
 

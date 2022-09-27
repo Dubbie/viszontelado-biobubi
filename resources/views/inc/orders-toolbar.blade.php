@@ -58,6 +58,23 @@
                     </p>
                 </form>
             </div>
+            @if(Auth::user()->admin)
+                <div class="col-lg-auto">
+                    <form action="{{ action('OrderController@massRegenerateInvoices') }}" method="POST">
+                        @csrf
+                        <input type="hidden" id="mri-order-ids" name="mri-order-ids" class="mass-order-id-input" value="">
+                        <p class="mb-0">
+                            <button type="submit" class="btn btn-muted has-tooltip" data-toggle="tooltip"
+                                    title="Számlák újragenerálása és küldése">
+                            <span class="icon text-dark">
+                                <i class="fas fa-redo"></i>
+                            </span>
+                                <span class="d-inline-block d-md-none">Számlák újragenerálása és küldése</span>
+                            </button>
+                        </p>
+                    </form>
+                </div>
+            @endif
         </div>
     </div>
 </div>

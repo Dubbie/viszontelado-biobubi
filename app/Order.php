@@ -375,8 +375,15 @@ class Order extends Model
         ];
 
         if (! $bs->isBillingoConnected($this->reseller)) {
-            Log::info('A felhasználónak nincs billingo összekötése, ezért nem készül számla.');
+            Log::info('A megrendeléshez tartozó viszonteladónak nincs billingo összekötése, ezért nem készül számla.');
+            $response['message'] = 'A megrendeléshez tartozó viszonteladónak nincs billingo összekötése, ezért nem készül számla.';
         } else {
+            if (env('APP_ENV') !== 'production') {
+                $response['message'] = 'Nem PRODUCTION a környezet, ezért nem foglalkozunk számlázással.';
+
+                return $response;
+            }
+
             // Csak az új típusú számlázást támogatjuk mostantól, és csak akkor hozzuk létre, ha nincs még számla
             if ($this->draft_invoice_id && (! $this->invoice_path && ! $this->invoice_id)) {
                 // 1. Létrehozzuk az éles számlát, ha sikerül
