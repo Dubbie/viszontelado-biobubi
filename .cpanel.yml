@@ -2,5 +2,5 @@
 ---
 deployment:
  tasks:
- - /bin/composer install # Feltelepítjük a dependencyket
+ - /opt/cpanel/composer/bin/composer install # Feltelepítjük a dependencyket
  - /bin/ls -la vendor
