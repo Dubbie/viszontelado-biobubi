@@ -2,4 +2,4 @@
 ---
 deployment:
 	tasks:
-		- /bin/ls -la >> /home/semmisze/repositories/viszontelado-biobubi/test.txt
+		- /bin/ls -a
