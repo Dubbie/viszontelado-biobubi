@@ -1,5 +1,5 @@
 # Test the CPanel Git waters
 ---
 deployment:
-	tasks:
-		- /bin/ls -a
+ tasks:
+ - /bin/ls -la
