@@ -2,5 +2,5 @@
 ---
 deployment:
  tasks:
- - composer install # Feltelepítjük a dependencyket
+ - /bin/composer install # Feltelepítjük a dependencyket
  - /bin/ls -la vendor
