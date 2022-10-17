@@ -153,6 +153,13 @@ class ShoprenterController extends Controller
             Log::info($_order);
             $orderId = str_replace('orders/', '', $_order['innerResourceId']);
 
+            // Ellenőrizzük le, hogy nincs-e már ilyen megrendelés, ne duplikájl!
+            if ($this->orderService->getLocalOrderByResourceId($orderId)) {
+                Log::warning('Már létezik ilyen megrendelés, duplikált webhook érkezett be.');
+
+                return ['success' => false];
+            }
+
             // Elmentése a Megrendelésnek db-be
             $localOrder                       = new Order();
             $localOrder->shipping_postcode    = $_order['shippingPostcode'];
@@ -296,6 +303,40 @@ class ShoprenterController extends Controller
         header('Access-Control-Allow-Origin: https://biobubi.hu');
 
         return $klaviyoProduct;
+    }
+
+    /**
+     * @param $privateKey
+     * @return bool|string[]
+     */
+    public function handleDuplicates($privateKey): array|bool {
+        set_time_limit(0);
+        Log::info('- Duplikált megrendelések rendberakása -');
+
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            return ['error' => 'Hibás privát kulcs lett megadva'];
+        }
+
+        $duplicates = Order::select([
+            'inner_resource_id',
+            \DB::raw('COUNT(*) as db'),
+        ])->groupBy('inner_resource_id')->having('db', '>', '1')->get()->toArray();
+
+        foreach ($duplicates as $row) {
+            $duplicatedInnerId = $row['inner_resource_id'];
+            Log::info('Vizsgált inner ID: '.$duplicatedInnerId);
+            foreach (Order::where('inner_resource_id', $duplicatedInnerId)->get() as $localOrder) {
+                if ($localOrder->updated_at->diffInSeconds($localOrder->created_at) < 5) {
+                    Log::info('Duplikált ID: '.$localOrder->id);
+                    $localOrder->delete();
+                }
+            }
+        }
+
+        Log::info('- Duplikált megrendelések törölve -');
+
+        return true;
     }
 
     /**
