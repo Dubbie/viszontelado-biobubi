@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\MoneyTransfer;
+use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\TransferService;
 use App\Subesz\UserService;
@@ -24,35 +25,38 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 class MoneyTransferController extends Controller
 {
     /** @var \App\Subesz\UserService */
-    private $userService;
+    private UserService $userService;
 
     /** @var \App\Subesz\OrderService */
-    private $orderService;
+    private OrderService $orderService;
 
     /** @var \App\Subesz\TransferService */
-    private $transferService;
+    private TransferService $transferService;
 
-    /** @var string */
-    private $sessionResellerKey;
+    private BillingoNewService $billingoNewService;
 
-    /** @var string */
-    private $sessionOrderIdsKey;
+    private string $sessionResellerKey;
+
+    private string $sessionOrderIdsKey;
 
     /**
      * MoneyTransferController constructor.
      *
-     * @param  \App\Subesz\OrderService     $orderService
-     * @param  \App\Subesz\TransferService  $transferService
-     * @param  \App\Subesz\UserService      $userService
+     * @param  \App\Subesz\OrderService        $orderService
+     * @param  \App\Subesz\TransferService     $transferService
+     * @param  \App\Subesz\UserService         $userService
+     * @param  \App\Subesz\BillingoNewService  $billingoNewService
      */
     public function __construct(
         OrderService $orderService,
         TransferService $transferService,
-        UserService $userService
+        UserService $userService,
+        BillingoNewService $billingoNewService,
     ) {
         $this->orderService       = $orderService;
         $this->transferService    = $transferService;
         $this->userService        = $userService;
+        $this->billingoNewService = $billingoNewService;
         $this->sessionResellerKey = 'transfer-reseller-id';
         $this->sessionOrderIdsKey = 'transfer-order-ids';
     }
@@ -221,6 +225,106 @@ class MoneyTransferController extends Controller
         return redirect(action('MoneyTransferController@index'))->with([
             'success' => 'Átutalás sikeresen törölve',
         ]);
+    }
+
+    /**
+     * @param  \Illuminate\Http\Request  $request
+     */
+    public function multiGenerateCommissions(Request $request) {
+        $data = $request->validate([
+            'com-transfer-ids' => 'required|json',
+        ]);
+
+        $invoices    = [];
+        $mts         = $this->transferService->getTransfersQueryByUser(Auth::id())->whereIn('id', json_decode($data['com-transfer-ids']))->get();
+        $err         = false;
+        $errMessages = collect();
+        $success     = 0;
+
+        foreach ($mts as $mt) {
+            if ($mt->invoice_id) {
+                return redirect(url()->previous(action('MoneyTransferController@index')))->with([
+                    'error' => 'Az alábbi átutaláshoz már készült számla, kérlek ne jelöld be: '.$mt->getId(),
+                ]);
+            }
+
+            if (! array_key_exists($mt->user_id, $invoices)) {
+                $invoices[$mt->user_id] = [
+                    'commission'   => 0,
+                    'ids'          => [],
+                    'user_data'    => $mt->reseller,
+                    'billing_data' => $mt->reseller->details,
+                    'transfers'    => [],
+                ];
+            }
+
+            $invoices[$mt->user_id]['commission']  += $mt->getCommissionFee();
+            $invoices[$mt->user_id]['ids'][]       = $mt->getId();
+            $invoices[$mt->user_id]['transfers'][] = $mt;
+        }
+
+        try {
+            foreach ($invoices as $inv) {
+                $fee         = $inv['commission'];
+                $ids         = $inv['ids'];
+                $userData    = $inv['user_data'];
+                $billingData = $inv['billing_data'];
+                // Megnézzük, hogy van-e mindenünk a számla gyártásához.
+                Log::info('Jutalék számla készítése (Azonosító: )'.implode(',', $ids));
+                if (! $billingData) {
+                    Log::error('A viszonteladónak nincs elmentve számlázási adat: '.$userData->name);
+                    $errMessages->add('A viszonteladónak nincs elmentve számlázási adat: '.$userData->name);
+                    $err = true;
+                } else {
+                    if (! $billingData['billing_address_id'] || ! $billingData['billing_name'] || ! $billingData['billing_tax_number'] || ! $billingData['billing_account_number']) {
+                        Log::error('A viszonteladónak hiányzik egy vagy több számlázási adata: '.$userData->name);
+                        $errMessages->add('A viszonteladónak hiányzik egy vagy több számlázási adata: '.$userData->name);
+                        $err = true;
+                    }
+                }
+
+                if (! $err) {
+                    // Csináljuk a számlát
+                    $partner = $this->billingoNewService->createResellerPartner($billingData);
+
+                    if (! $partner) {
+                        $errMessages->add('Hiba történt a viszonteladó létrehozásakor a Billingo API-n keresztül.');
+                        Log::error('Hiba történt a viszonteladó létrehozásakor a Billingo API-n keresztül.');
+                    }
+
+                    $invoice = $this->billingoNewService->createCommissionInvoice($partner, $fee, $ids);
+                    if (! $invoice) {
+                        $errMessages->add('Hiba történt a számla létrehozásakor a Billingo API-n keresztül.');
+                        Log::error('Hiba történt a számla létrehozásakor a Billingo API-n keresztül.');
+                    } else {
+                        foreach ($inv['transfers'] as $mt) {
+                            $mt->invoice_id = $invoice->getId();
+                            $mt->save();
+                        }
+                        $success++;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            Log::error('Hiba történt a számlák generálásakor.');
+            Log::error($e->getMessage());
+
+            return redirect(url()->previous(action('MoneyTransferController@index')))->with([
+                'error' => 'Hiba történt a számlák generálásakor. '.$e->getMessage(),
+            ]);
+        }
+
+        if (! $err) {
+            return redirect(action('MoneyTransferController@index'))->with([
+                'success' => sprintf('Jutalék számlák sikeresen legenerálva (%d db)', $success),
+            ]);
+        } else {
+            $errMessages->prepend(sprintf('Jutalék számlák kiállítva: %d db', $success));
+
+            return redirect(url()->previous(action('MoneyTransferController@index')))->with([
+                'errors' => $errMessages,
+            ]);
+        }
     }
 
     /**

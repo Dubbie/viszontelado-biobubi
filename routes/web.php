@@ -89,6 +89,7 @@ Route::group(['middleware' => 'auth'], function () {
         Route::delete('kozpont/atutalasok/{transferId}/torles', 'MoneyTransferController@destroy');
         Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
         Route::post('kozpont/atutalasok/excel', 'MoneyTransferController@generateExcel');
+        Route::post('kozpont/atutalasok/jutalekok', 'MoneyTransferController@multiGenerateCommissions');
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
 

@@ -32,6 +32,20 @@
                     </button>
                 </form>
             </div>
+
+            <div class="col-lg-auto">
+                <form action="{{ action('MoneyTransferController@multiGenerateCommissions') }}" method="POST">
+                    @csrf
+                    <input type="hidden" id="com-transfer-ids" name="com-transfer-ids" class="mass-transfer-id-input" value="">
+                    <button type="submit" class="btn btn-muted has-tooltip" data-toggle="tooltip"
+                            title="Jutalék számlák generálása">
+                        <span class="icon text-dark">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                        </span>
+                        <span class="d-inline-block">Jutalék számlák generálása</span>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

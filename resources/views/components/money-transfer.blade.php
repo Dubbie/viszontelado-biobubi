@@ -16,7 +16,8 @@
         </div>
         <div class="col-12 col-md-3">
             <p class="mb-0" style="line-height: 1.25">
-                <span class="d-block text-truncate">{{ $transfer->reseller->name }}</span>
+                <span class="d-block text-truncate">{{ $transfer->reseller->name }} @if( !$transfer->reseller->billable()) <small><a class="text-danger-pastel"
+                            href="{{ action('UserController@edit', ['userId' => $transfer->reseller->id]) }}">Hiányzó adatok</a></small> @endif</span>
                 <small class="text-muted">{{ $transfer->transfer_orders_count }} megrendelés</small>
             </p>
         </div>
