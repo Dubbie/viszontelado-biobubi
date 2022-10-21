@@ -270,7 +270,7 @@ class MoneyTransferController extends Controller
                 $userData    = $inv['user_data'];
                 $billingData = $inv['billing_data'];
                 // Megnézzük, hogy van-e mindenünk a számla gyártásához.
-                Log::info('Jutalék számla készítése (Azonosító: )'.implode(',', $ids));
+                Log::info(sprintf('Jutalék számla készítése (Azonosító: %s)', implode(',', $ids)));
                 if (! $billingData) {
                     Log::error('A viszonteladónak nincs elmentve számlázási adat: '.$userData->name);
                     $errMessages->add('A viszonteladónak nincs elmentve számlázási adat: '.$userData->name);
@@ -302,6 +302,7 @@ class MoneyTransferController extends Controller
                             $mt->save();
                         }
                         $success++;
+                        Log::info('Jutalék számla sikeresen létrehozva. (ID: '.$invoice->getId().')');
                     }
                 }
             }
