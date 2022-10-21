@@ -42,6 +42,10 @@ class MoneyTransfer extends Model
      * @return string
      */
     public function getStatusText(): string {
+        if ($this->invoice_id) {
+            return 'Jutalékolva';
+        }
+
         return $this->isCompleted() ? 'Elutalva' : 'Utalás alatt';
     }
 
@@ -56,7 +60,11 @@ class MoneyTransfer extends Model
      * @return string
      */
     public function getTextColorClass(): string {
-        return $this->isCompleted() ? 'text-success-pastel' : 'text-info-pastel';
+        if ($this->invoice_id) {
+            return 'text-success-pastel';
+        }
+
+        return $this->isCompleted() ? 'text-info-pastel' : 'text-muted';
     }
 
     /**

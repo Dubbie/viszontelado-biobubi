@@ -23,8 +23,7 @@ class OrderStatusController extends Controller
      * @param  \App\Subesz\StatusService  $statusService
      * @param  \App\Subesz\OrderService   $orderService
      */
-    public function __construct(StatusService $statusService, OrderService $orderService)
-    {
+    public function __construct(StatusService $statusService, OrderService $orderService) {
         $this->statusService = $statusService;
         $this->orderService  = $orderService;
     }
@@ -35,8 +34,7 @@ class OrderStatusController extends Controller
      * @param $privateKey
      * @return bool
      */
-    public function updateStatuses($privateKey): bool
-    {
+    public function updateStatuses($privateKey): bool {
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
             Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
@@ -75,8 +73,7 @@ class OrderStatusController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return bool|string[]
      */
-    public function handleStatusWebhook(string $privateKey, Request $request)
-    {
+    public function handleStatusWebhook(string $privateKey, Request $request) {
         Log::info('|-------------------------------------|');
         Log::info('| Shoprenter Státusz változás Webhook |');
         Log::info('|-------------------------------------|');
@@ -92,6 +89,16 @@ class OrderStatusController extends Controller
             $os              = $this->statusService->getOrderStatusByName($_order['orderHistory']['statusText']);
             $innerResourceId = str_replace('orders/', '', $_order['innerResourceId']);
             $srOrder         = resolve('App\Subesz\ShoprenterService')->getOrder($innerResourceId);
+
+            /** @var \App\Order $localOrder */
+            $localOrder = $this->orderService->getLocalOrderByResourceId($innerResourceId);
+            if ($localOrder && $localOrder->status_text == $os->name) {
+                Log::warning('Már a megfelelő státuszban van a megrendelés.');
+                Log::info('Régi: '.$localOrder->status_text);
+                Log::info('Új: '.$os->name);
+
+                return false;
+            }
 
             // Frissítjük most a helyi megrendelésünket
             $this->orderService->updateLocalOrder($srOrder['order']);

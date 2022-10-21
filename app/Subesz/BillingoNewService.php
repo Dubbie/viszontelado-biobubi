@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 use App\Order;
 use App\User;
+use App\UserDetails;
 use GuzzleHttp\Client;
 use Illuminate\Support\Carbon;
 use Log;
@@ -740,5 +741,84 @@ class BillingoNewService
         }
 
         return $response;
+    }
+
+    public function createResellerPartner(UserDetails $details): ?Partner {
+        $config     = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', env('BILLINGO_V3_API'));
+        $partnerApi = new PartnerApi(new Client(), $config);
+
+        // Céget kezelünk
+        $taxType = PartnerTaxType::HAS_TAX_NUMBER;
+        $name    = $details->billing_name;
+        $taxCode = $details->billing_tax_number;
+
+        $partnerUpsertData = [
+            'name'     => $name,
+            'address'  => [
+                'country_code' => Country::HU,
+                'post_code'    => $details->billingAddress->zip,
+                'city'         => $details->billingAddress->city,
+                'address'      => trim(sprintf('%s %s', $details->billingAddress->address1, $details->billingAddress->address2)),
+            ],
+            'taxcode'  => $taxCode,
+            'tax_type' => $taxType,
+        ];
+
+        $upsert = new PartnerUpsert($partnerUpsertData);
+        try {
+            return $partnerApi->createPartner($upsert);
+        } catch (ApiException $e) {
+            Log::error(sprintf('Hiba történt a PartnerApi->createPartner meghívásakor: %s %s', $e->getMessage(), PHP_EOL));
+
+            return null;
+        }
+    }
+
+    public function createCommissionInvoice(
+        Partner $partner,
+        mixed $fee,
+        array $ids
+    ): ?Document {
+        $config      = Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', env('BILLINGO_V3_API'));
+        $documentApi = new DocumentApi(new Client(), $config);
+        $invoice     = null;
+        $items       = [
+            [
+                'name'            => 'SimplePay Jutalék',
+                'quantity'        => 1,
+                'unit'            => 'db',
+                'vat'             => Vat::_27,
+                'unit_price'      => floatval($fee),
+                'unit_price_type' => UnitPriceType::GROSS,
+            ],
+        ];
+        // DocumentInsert
+        $documentInsertData = [
+            'partner_id'       => $partner->getId(),
+            'block_id'         => env('BILLINGO_V3_BLOCK'),
+            'type'             => DocumentType::INVOICE,
+            'fulfillment_date' => Carbon::now()->format('Y-m-d'),
+            'due_date'         => Carbon::now()->format('Y-m-d'),
+            'payment_method'   => PaymentMethod::LEVONAS,
+            'language'         => DocumentLanguage::HU,
+            'currency'         => Currency::HUF,
+            'conversion_rate'  => 1,
+            'electronic'       => true,
+            'paid'             => false,
+            'comment'          => implode(',', $ids),
+            'items'            => $items,
+            'settings'         => [
+                'round'                         => Round::ONE,
+                'without_financial_fulfillment' => true,
+            ],
+        ];
+        $documentInsert     = new DocumentInsert($documentInsertData);
+        try {
+            $invoice = $documentApi->createDocument($documentInsert);
+        } catch (ApiException $e) {
+            Log::error(sprintf('Exception when calling DocumentApi->createDocument: %s %s', $e->getMessage(), PHP_EOL));
+        }
+
+        return $invoice;
     }
 }

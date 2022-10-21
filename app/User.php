@@ -225,6 +225,10 @@ class User extends Authenticatable
         return $this->hasMany(Customer::class, 'user_id', 'id');
     }
 
+    public function billable(): bool {
+        return $this->details && ($this->details->billing_account_number && $this->details->billing_address_id && $this->details->billing_name && $this->details->billing_tax_number);
+    }
+
     /**
      * Visszaadja a felhasználóhoz tartozó megrendeléseket
      *

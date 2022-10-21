@@ -1,0 +1,6 @@
+# Test the CPanel Git waters
+---
+deployment:
+ tasks:
+ - /usr/local/bin/ea-php81 -f /opt/cpanel/composer/bin/composer install # Feltelepítjük a dependencyket
+ - /bin/ls -la vendor
