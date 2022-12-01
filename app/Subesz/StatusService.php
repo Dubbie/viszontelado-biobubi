@@ -115,8 +115,6 @@ class StatusService
             // Létrehozzuk a bevételt
             $localOrder->updateIncome(date('Y-m-d'));
 
-            $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
-            Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
             $ws->remove($localOrder->id, $reseller->id); // Töröljük a munkalapról
             Log::info('WorksheetService: - Törölve a munkalapról.');
 
@@ -128,6 +126,9 @@ class StatusService
                 $response['message'] = $invoiceResponse['message'];
             }
             Log::info('... számla elintézve.');
+
+            $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
+            Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');
 
             $response['success'] = true;
             $response['message'] = 'Megrendelés sikeresen teljesítve (Minden folyamat lefutott)';
