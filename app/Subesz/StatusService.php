@@ -150,12 +150,15 @@ class StatusService
             }
 
             // Ha bankkártyás fizetés, akkor a számlát elküldjük
+            //if ($newStatus->status_id == $this->creditCardPaidStatus) {
+            //    Log::info('Előlegszámla gyártásának megkezdése...');
+            //    $invoiceResponse = $localOrder->createAdvanceInvoice();
+            //    if (! $invoiceResponse['success']) {
+            //        $response['message'] = $invoiceResponse['message'];
+            //    }
+            //}
             if ($newStatus->status_id == $this->creditCardPaidStatus) {
-                Log::info('Előlegszámla gyártásának megkezdése...');
-                $invoiceResponse = $localOrder->createAdvanceInvoice();
-                if (! $invoiceResponse['success']) {
-                    $response['message'] = $invoiceResponse['message'];
-                }
+                Log::info('Előlegszámla gyártás kihagyása, majd éles számlát kap egyből');
             }
 
             // Ha GLS Teljesítve a státusz, akkor Klaviyo-ba teljesítjük
