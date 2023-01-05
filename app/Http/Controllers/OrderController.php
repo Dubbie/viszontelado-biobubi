@@ -332,11 +332,6 @@ class OrderController extends Controller
                     $localOrder->draft_invoice_id = $invoice->getId();
                     $localOrder->save();
                     Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
-
-                    // (4.) Ha már ki van fizetve online bankkártyával, akkor küldjünk róla egy új előlegszámlát.
-                    if ($this->statusService->getOrderStatusByName($localOrder->status_text)->status_id == $this->creditCardPaidStatus) {
-                        $localOrder->createAdvanceInvoice();
-                    }
                 }
             }
 
