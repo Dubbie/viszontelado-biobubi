@@ -93,11 +93,9 @@ class OrderStatusController extends Controller
             /** @var \App\Order $localOrder */
             $localOrder = $this->orderService->getLocalOrderByResourceId($innerResourceId);
             if ($localOrder && $localOrder->status_text == $os->name) {
-                Log::warning('Már a megfelelő státuszban van a megrendelés.');
+                Log::warning('Már a megfelelő státuszban van a megrendelés, de nem érdekel minket.');
                 Log::info('Régi: '.$localOrder->status_text);
                 Log::info('Új: '.$os->name);
-
-                return false;
             }
 
             // Frissítjük most a helyi megrendelésünket
