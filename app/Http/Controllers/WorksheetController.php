@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Product;
 use App\Subesz\OrderService;
 use App\Worksheet;
 use Auth;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Illuminate\Support\Facades\App;
 use Log;
 
 /**
@@ -186,5 +189,95 @@ class WorksheetController extends Controller
         }
 
         return true;
+    }
+
+    public function downloadShippingMail() {
+        $wsResourceIds = [];
+
+        foreach (Auth::user()->worksheet as $wse) {
+            $wsResourceIds[] = $wse->localOrder->inner_resource_id;
+        }
+        $ss = resolve('App\Subesz\ShoprenterService');
+        $orders = $ss->getBatchedOrdersByResourceIds($wsResourceIds);
+        if (empty($orders)) {
+            return redirect(url()->previous())->with([
+                'error' => 'Nem kaptunk vissza adatokat a Shoprentertől. Próbáld újra később.'
+            ]);
+        }
+
+        // Összegzés
+        $sum = [
+            'shipping' => 0,
+            'income'   => 0,
+            'discount' => 0,
+            'items'    => [],
+        ];
+
+        foreach ($orders as $order) {
+            foreach ($order->orderProducts as $item) {
+                // Megnézzük, hogy van-e ilyen termék nálunk, ha igen, akkor nézzük meg, hogy csomag-e
+                $localProduct = Product::where('sku', $item->sku)->first();
+                $pieces       = [];
+
+                if ($localProduct && $localProduct->subProducts()->count() > 0) {
+                    // Ha ez egy csomag, akkor szedjük darabokra
+                    foreach ($localProduct->subProducts as $subProduct) {
+                        $pieces[] = [
+                            'sku'   => $subProduct->product_sku,
+                            'name'  => $subProduct->product->name,
+                            'count' => $subProduct->product_qty * $item->stock1,
+                        ];
+                    }
+                } else {
+                    if (! $localProduct) {
+                        // Nincs nálunk ilyen termék az adatbázisban...
+                        \Log::info(sprintf('- A(z) %s termék cikkszáma nem szerepel a helyi adatbázisban! (Cikkszám: %s)', $item->name, $item->sku));
+                    }
+
+                    $pieces[] = [
+                        'sku'   => $item->sku,
+                        'name'  => $item->name,
+                        'count' => $item->stock1,
+                    ];
+                }
+
+                // Most nézzük meg az összes darabot, hogy szerepel-e már a szummázó tömbben
+                foreach ($pieces as $piece) {
+                    $itemIndex = array_search($piece['sku'], array_column($sum['items'], 'sku'));
+                    if ($itemIndex === false) {
+                        $sum['items'][] = [
+                            'sku'   => $piece['sku'],
+                            'name'  => $piece['name'],
+                            'count' => intval($piece['count']),
+                        ];
+                    } else {
+                        $sum['items'][$itemIndex]['count'] += intval($piece['count']);
+                    }
+                }
+            }
+
+            // Összegző iteráció
+            foreach ($order->orderTotals as $total) {
+                if ($total->type == 'TOTAL') {
+                    $sum['income'] += floatval($total->value);
+                }
+                if ($total->type == 'SHIPPING' && intval($total->value) > 0) {
+                    $sum['shipping'] += floatval($total->value);
+                }
+            }
+        }
+
+        // Adjuk át view-ba
+        /** @var PDF $pdf */
+        $pdf = App::make('dompdf.wrapper');
+        $pdf->loadView('pdf.shippingmail-new', [
+            'data' => $orders,
+            'pdf'  => $pdf,
+            'sum'  => $sum,
+        ]);
+
+        $filename = sprintf('szs_szallitolevel_%s.pdf', date('Y_m_d_his'));
+
+        return $pdf->download($filename);
     }
 }

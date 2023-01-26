@@ -15,7 +15,7 @@
                     </button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group mb-0">
+                    <div class="form-group">
                         <label for="payment-method">Kifizetés módja</label>
                         <select id="payment-method" name="payment-method" class="custom-select" required>
                             <option value="">Kérlek válassz fizetési módot...</option>
@@ -23,6 +23,10 @@
                             <option value="Bankkártya">Bankkártya (Terminál)</option>
                             <option value="Átutalás">Átutalás</option>
                         </select>
+                    </div>
+                    <div class="form-check mb-0">
+                        <input type="checkbox" name="create-invoice" class="form-check-input" id="create-invoice" checked>
+                        <label class="form-check-label" for="create-invoice">Számla generálása és küldése</label>
                     </div>
                 </div>
                 <div class="modal-footer">

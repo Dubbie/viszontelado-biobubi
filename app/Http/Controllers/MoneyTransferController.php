@@ -387,7 +387,11 @@ class MoneyTransferController extends Controller
         ]);
 
         $transferIds = json_decode($data['dl-transfer-ids']);
-        $transfers   = MoneyTransfer::whereIn('id', $transferIds)->get()->groupBy('user_id');
+        $transfers   = MoneyTransfer::whereIn('id', $transferIds)->where('user_id', Auth::id())->get()->groupBy('user_id');
+        if (Auth::user()->admin) {
+            $transfers   = MoneyTransfer::whereIn('id', $transferIds)->get()->groupBy('user_id');
+        }
+
         /** @var \App\Subesz\BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
 

@@ -409,6 +409,78 @@ class ShoprenterService
         return $product;
     }
 
+    public function getBatchedOrdersByResourceIds($resourceIds) {
+        $apiUrl     = sprintf('%s/batch', env('SHOPRENTER_API'));
+        $data       = [
+            'data' => [
+                'requests' => [],
+            ],
+        ];
+        foreach ($resourceIds as $resourceId) {
+            $url                        = sprintf('%s/orderExtend/%s', env('SHOPRENTER_API'), $resourceId);
+            $data['data']['requests'][] = [
+                'method' => 'GET',
+                'uri'    => $url,
+            ];
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_POST           => 1,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        $response = json_decode(curl_exec($ch));
+        curl_close($ch);
+
+        // Végigmegyünk a kapott eredményeken és ha 200-as a státusz akkor hozzáadjuk a listánkhoz amit visszaadunk
+        $data['data']['requests'] = [];
+        $orderData = [];
+        if ($response) {
+            foreach ($response->requests->request as $responseData) {
+                if ($responseData->response->header->statusCode == 200) {
+                    $orderData[] = $responseData->response->body;
+                    $data['data']['requests'][] = [
+                        'method' => 'GET',
+                        'uri'    => str_replace('orderStatuses/','orderStatusDescriptions?orderStatusId=',$responseData->response->body->orderStatus->href) . '&full=1',
+                    ];
+
+                }
+            }
+        }
+
+        // Kiszedjük a státuszokat is
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_POST           => 1,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        $response = json_decode(curl_exec($ch));
+        curl_close($ch);
+        if ($response) {
+            foreach ($response->requests->request as $responseData) {
+                if ($responseData->response->header->statusCode == 200) {
+                    // Megkeressük, h melyik megrendeléshez való
+                    foreach ($orderData as $order) {
+                        if (strpos($order->orderStatus->href, $responseData->response->body->items[0]->id) >= 0) {
+                            $order->statusData = $responseData->response->body->items[0];
+                        }
+                    }
+                }
+            }
+        }
+
+        return $orderData;
+    }
+
     /**
      * It recursively converts the multi dimension (deep) array to single dimension array as it was posted from an html form
      *

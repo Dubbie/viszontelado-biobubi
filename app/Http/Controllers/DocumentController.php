@@ -38,21 +38,11 @@ class DocumentController extends Controller
         ]);
 
         // Átalakítjuk a bemenetet
-        $orderResourceIds = json_decode($data['sm-order-ids']);
-        $orders           = [];
-        foreach ($orderResourceIds as $resourceId) {
-            $orders[] = $this->shoprenterApi->getOrder($resourceId);
-        }
-
-        foreach ($orders as $order) {
-            if (! property_exists($order['order'], 'paymentLastname')) {
-                \Log::error('Nem volt található név a megrendelésben (Hiba van valahol)');
-                \Log::error(var_dump($order['order']));
-
-                return redirect(url()->previous())->with([
-                    'error' => 'Hiba történt a szállítólevél generálásakor. A Shoprenter API nem tért vissza megrendelésekkel.',
-                ]);
-            }
+        $orders = $this->shoprenterApi->getBatchedOrdersByResourceIds(json_decode($data['sm-order-ids']));
+        if (empty($orders)) {
+            return redirect(url()->previous())->with([
+                'error' => 'Nem kaptunk vissza adatokat a Shoprentertől. Próbáld újra később.'
+            ]);
         }
 
         // Összegzés
@@ -64,7 +54,7 @@ class DocumentController extends Controller
         ];
 
         foreach ($orders as $order) {
-            foreach ($order['products']->items as $item) {
+            foreach ($order->orderProducts as $item) {
                 // Megnézzük, hogy van-e ilyen termék nálunk, ha igen, akkor nézzük meg, hogy csomag-e
                 $localProduct = Product::where('sku', $item->sku)->first();
                 $pieces       = [];
@@ -107,7 +97,7 @@ class DocumentController extends Controller
             }
 
             // Összegző iteráció
-            foreach ($order['totals'] as $total) {
+            foreach ($order->orderTotals as $total) {
                 if ($total->type == 'TOTAL') {
                     $sum['income'] += floatval($total->value);
                 }
@@ -120,7 +110,7 @@ class DocumentController extends Controller
         // Adjuk át view-ba
         /** @var PDF $pdf */
         $pdf = App::make('dompdf.wrapper');
-        $pdf->loadView('pdf.shippingmail', [
+        $pdf->loadView('pdf.shippingmail-new', [
             'data' => $orders,
             'pdf'  => $pdf,
             'sum'  => $sum,

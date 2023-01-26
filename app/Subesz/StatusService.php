@@ -120,12 +120,17 @@ class StatusService
 
             // Logolunk kicsit, aztán számlázunk
             Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
-            Log::info('Számla gyártás megkezdése...');
-            $invoiceResponse = $localOrder->createInvoice();
-            if (! $invoiceResponse['success']) {
-                $response['message'] = $invoiceResponse['message'];
+
+            if ($localOrder->create_invoice) {
+                Log::info('Számla gyártás megkezdése...');
+                $invoiceResponse = $localOrder->createInvoice();
+                if (! $invoiceResponse['success']) {
+                    $response['message'] = $invoiceResponse['message'];
+                }
+                Log::info('... számla elintézve.');
+            } else {
+                Log::info('Számla gyártás kihagyása, a Teljesítéskor nem került bepipálásra számla generálás és küldés.');
             }
-            Log::info('... számla elintézve.');
 
             $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
             Log::info('KlaviyoService: - Megrendelés teljesítése rögzítve.');

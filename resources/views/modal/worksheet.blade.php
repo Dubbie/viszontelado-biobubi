@@ -18,6 +18,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sm btn-link" data-dismiss="modal">Vissza</button>
+                <a href="{{ route('worksheet.shipping-mail') }}" class="btn btn-sm btn-primary">Szállítólevél letöltése</a>
+                <button id="btn-update-ws-orders" type="button" class="btn btn-sm btn-success">Sorrend mentése</button>
             </div>
         </div>
     </div>

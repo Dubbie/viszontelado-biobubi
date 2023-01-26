@@ -37,7 +37,7 @@ class OrderService
 
         $osds = $this->shoprenterApi->getAllStatuses();
         if (! $osds || ! property_exists($osds, 'items')) {
-            dump($osds);
+            //dump($osds);
 
             return redirect(action('UserController@home'))->with([
                 'error' => 'Hiba történt a Shoprenter API-hoz való kapcsolódáskor. Próbáld újra később.',
@@ -428,5 +428,19 @@ class OrderService
      */
     public function getLocalOrderByResourceId($resourceId) {
         return Order::where('inner_resource_id', $resourceId)->first();
+    }
+
+    /**
+     * @param  string  $orderResourceId
+     * @param  bool    $createInvoice
+     * @return void
+     */
+    public function updateCreateInvoice(string $orderResourceId, bool $createInvoice) {
+        /** @var Order $lo */
+        $lo                 = $this->getLocalOrderByResourceId($orderResourceId);
+        $lo->create_invoice = $createInvoice;
+        $lo->save();
+
+        Log::info(sprintf('Számla generálás módosult a következő megrendeléshez! (ID: %s, %s)', $lo->id, $createInvoice ? 'Generálás' : 'Nincs generálás'));
     }
 }

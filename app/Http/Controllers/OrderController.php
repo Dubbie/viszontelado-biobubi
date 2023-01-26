@@ -235,10 +235,17 @@ class OrderController extends Controller
         $data = $request->validate([
             'order-id'       => 'required',
             'payment-method' => 'required',
+            'create-invoice' => 'nullable',
         ]);
+
 
         // Frissítjük, a kifizetés módját
         $this->orderService->updatePaymentMethod($data['order-id'], $data['payment-method']);
+
+        // Frissítjük, a számla generálását
+        if (!array_key_exists('create-invoice', $data)) {
+            $this->orderService->updateCreateInvoice($data['order-id'], false);
+        }
 
         // Teljesítve státusz azonosítója
         $statusId  = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=';

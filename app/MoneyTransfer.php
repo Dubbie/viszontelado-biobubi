@@ -42,7 +42,7 @@ class MoneyTransfer extends Model
      * @return string
      */
     public function getStatusText(): string {
-        if ($this->invoice_id) {
+        if ($this->invoice_id && !$this->isCompleted()) {
             return 'Jutalékolva';
         }
 

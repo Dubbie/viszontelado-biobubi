@@ -445,18 +445,6 @@ class Order extends Model
             return null;
         }
 
-        //if ($this->payment_method_name == 'Online bankkártyás fizetés' && ! $this->advance_invoice_id && $this->final_payment_method == 'Online Bankkártya') {
-        //    Log::error(sprintf('Hiba történt az átalakításkor, nincs elmentve előlegszámla azonosító! (Helyi megrendelési azonosító: %s)', $this->id));
-        //
-        //    /** @var BillingoNewService $bs */
-        //    $bs = resolve('App\Subesz\BillingoNewService');
-        //    /** @var \App\User $reseller */
-        //    $reseller = $this->getReseller()['correct'];
-        //    Log::info('Számla gyártás megkezdése piszkozatból, számlát előállító viszonteladó: '.$reseller->name);
-        //
-        //    return $bs->getOnlineBankcardInvoiceFromDraft($this->draft_invoice_id, $reseller, $this, true);
-        //}
-
         /** @var BillingoNewService $bs */
         $bs = resolve('App\Subesz\BillingoNewService');
         /** @var \App\User $reseller */

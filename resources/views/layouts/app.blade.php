@@ -114,33 +114,44 @@
 {{-- Worksheet script --}}
 <script>
     const sortContainer = document.getElementById('worksheets-container');
+    const btnUpdateWsOrder = document.getElementById('btn-update-ws-orders');
+
+    function updateOrders() {
+        // Megváltozott a sorrend, szedjük ki mi az új sorrendünk.
+        let orders = [];
+        for (const el of sortContainer.children) {
+            orders.push(el.dataset.wsId);
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '{{ action('WorksheetController@updateOrdering') }}',
+            data: {
+                'ws-ids': orders,
+            },
+            success: function(res) {
+                console.log(res);
+            },
+            error: function(request, status, error) {
+                console.log(request);
+            }
+        });
+    }
+
     const sortable = new Sortable(sortContainer, {
         animation: 300,
         ghostClass: 'bg-info-pastel',
         handle: '.handle',
-
+        sort: true,
         onEnd: function() {
-            // Megváltozott a sorrend, szedjük ki mi az új sorrendünk.
-            let orders = [];
-            for (const el of sortContainer.children) {
-                orders.push(el.dataset.wsId);
-            }
-
-            $.ajax({
-                type: 'POST',
-                url: '{{ action('WorksheetController@updateOrdering') }}',
-                data: {
-                    'ws-ids': orders,
-                },
-                success: function(res) {
-                    console.log(res);
-                },
-                error: function(request, status, error) {
-                    console.log(request);
-                }
-            });
+           updateOrders();
         }
     });
+
+    $(btnUpdateWsOrder).on('click', e => {
+        e.preventDefault();
+        updateOrders();
+    })
 </script>
 @yield('scripts')
 </body>

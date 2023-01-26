@@ -88,7 +88,6 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('kozpont/atutalasok/multi-torles', 'MoneyTransferController@multiDestroy');
         Route::delete('kozpont/atutalasok/{transferId}/torles', 'MoneyTransferController@destroy');
         Route::post('kozpont/atutalasok/teljesites', 'MoneyTransferController@complete');
-        Route::post('kozpont/atutalasok/excel', 'MoneyTransferController@generateExcel');
         Route::post('kozpont/atutalasok/jutalekok', 'MoneyTransferController@multiGenerateCommissions');
 
         Route::get('/riportok/ujra-generalas', 'ReportController@regenerateReports');
@@ -140,6 +139,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/munkalap/hozzaadas/tomeges', 'WorksheetController@addMultiple');
     Route::post('/munkalap/torles', 'WorksheetController@remove');
     Route::post('/munkalap/sorrend-frissites', 'WorksheetController@updateOrdering');
+    Route::get('/munkalap/szallitolevel', 'WorksheetController@downloadShippingMail')->name('worksheet.shipping-mail');
 
     // Szállítólevél
     Route::post('/szallitolevel/letoltes', 'DocumentController@download');
@@ -194,6 +194,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('kozpont/atutalasok', 'MoneyTransferController@index');
     Route::get('kozpont/atutalasok/{transferId}', 'MoneyTransferController@show');
     Route::get('kozpont/atutalasok/csatolmany/{transferId}', 'MoneyTransferController@downloadAttachment');
+    Route::post('kozpont/atutalasok/excel', 'MoneyTransferController@generateExcel');
 });
 
 Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebhook');
