@@ -430,6 +430,11 @@ class OrderController extends Controller
                     'error' => 'Nincs ilyen azonosítójú megrendelés a helyi adatbázisban: '.$orderResourceId,
                 ]);
             } else {
+                if ($localOrder->reseller_id !== Auth::id() && !Auth::user()->admin) {
+                    return redirect(url()->previous(action('OrderController@index')))->with([
+                        'error' => sprintf('Egy vagy több megrendelés még folyamatban van, ezért nem lehet újra generálni számlát. (%s %s)', $localOrder->firstname, $localOrder->lastname),
+                    ]);
+                }
                 if (! $localOrder->isCompleted()) {
                     return redirect(url()->previous(action('OrderController@index')))->with([
                         'error' => sprintf('Egy vagy több megrendelés még folyamatban van, ezért nem lehet újra generálni számlát. (%s %s)', $localOrder->firstname, $localOrder->lastname),
@@ -442,7 +447,7 @@ class OrderController extends Controller
 
         Log::info('Kijelölt megrendelések számlájának újragenerálása...');
         foreach ($localOrders as $localOrder) {
-            // Küldjük el újra a számlát
+            // Generáljuk le újra a számlákat
             Log::info(sprintf(' - Jelenlegi megrendelés: %s (%s %s)', $localOrder->id, $localOrder->firstname, $localOrder->lastname));
             Log::info(' -- Számla készítése ...');
             $invoiceResponse = $localOrder->createInvoice(false);

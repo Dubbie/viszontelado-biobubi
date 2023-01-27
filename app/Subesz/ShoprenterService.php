@@ -470,8 +470,9 @@ class ShoprenterService
                 if ($responseData->response->header->statusCode == 200) {
                     // Megkeressük, h melyik megrendeléshez való
                     foreach ($orderData as $order) {
-                        if (strpos($order->orderStatus->href, $responseData->response->body->items[0]->id) >= 0) {
+                        if ($order->orderStatus->href == $responseData->response->body->items[0]->orderStatus->href) {
                             $order->statusData = $responseData->response->body->items[0];
+                            break;
                         }
                     }
                 }

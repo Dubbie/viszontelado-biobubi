@@ -31,7 +31,6 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::post('/megrendelesek/viszontelado-frissitese', 'OrderController@massUpdateReseller');
         Route::get('/megrendelesek/bevetelek/frissites', 'OrderController@updateOrderIncomes');
-        Route::post('/megrendelesek/szamlak/ujra-generalas', 'OrderController@massRegenerateInvoices');
 
         Route::post('/api/billingo/test', 'UserController@testBillingo');
 
@@ -130,8 +129,9 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/megrendelesek/{orderId}/statusz', 'OrderController@showStatus');
     Route::get('/megrendelesek/{orderId}', 'OrderController@show');
     Route::post('/megrendelesek/teljesites', 'OrderController@completeOrder');
+    Route::post('/megrendelesek/szamlak/ujra-generalas', 'OrderController@massRegenerateInvoices');
 
-    //Javascript számára megjegyzéseket küld vissza, HTML/Text.
+    // Javascript számára megjegyzéseket küld vissza, HTML/Text.
     Route::get('megrendelesek/{orderID}/megjegyzesek/html', 'OrderController@getCommentsHTML');
 
     // Munkalapos dolgok

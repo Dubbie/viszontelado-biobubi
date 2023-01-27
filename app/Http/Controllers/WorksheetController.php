@@ -199,6 +199,7 @@ class WorksheetController extends Controller
         }
         $ss = resolve('App\Subesz\ShoprenterService');
         $orders = $ss->getBatchedOrdersByResourceIds($wsResourceIds);
+
         if (empty($orders)) {
             return redirect(url()->previous())->with([
                 'error' => 'Nem kaptunk vissza adatokat a Shoprentertől. Próbáld újra később.'
@@ -212,6 +213,7 @@ class WorksheetController extends Controller
             'discount' => 0,
             'items'    => [],
         ];
+
 
         foreach ($orders as $order) {
             foreach ($order->orderProducts as $item) {
