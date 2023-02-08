@@ -39,7 +39,7 @@
                         {{ $order->shippingPostcode }} {{ $order->shippingCity }}<br>
                         {{ sprintf('%s %s', $order->shippingAddress1, $order->shippingAddress2) }}<br>
                     </p>
-                    <p style="margin-top: 10px"><b>@if($order->statusData->name == 'BK. Függőben lévő') Bankkártyával fizetve @endif</b></p>
+                    <p style="margin-top: 10px"><b>@if(property_exists($order, 'statusData') && $order->statusData->name == 'BK. Függőben lévő') Bankkártyával fizetve @endif</b></p>
                     @if(strlen($order->comment) > 0)
                         <p>
                             <small><b>Megjegyzés: </b></small>
