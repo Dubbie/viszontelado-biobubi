@@ -419,6 +419,56 @@ class BillingoNewService
         return $items;
     }
 
+    public function createPartnerNew($order, $user) {
+        if ($order['paymentCountryName'] != 'Magyarország') {
+            Log::error('A megrendelés nem magyarországról jött, nincs támogatva!');
+
+            return false;
+        }
+
+        $partnerApi = $this->getPartnerApi($user);
+        $partner    = null;
+
+        // 1. Generálunk partner upsertet
+        $partnerUpsert = $this->getPartnerUpsertFromOrderNew($order);
+        // 2. Elmentjük a partnert
+        try {
+            $partner = $partnerApi->createPartner($partnerUpsert);
+        } catch (ApiException $e) {
+            Log::error(sprintf('Hiba történt a PartnerApi->createPartner meghívásakor: %s %s', $e->getMessage(), PHP_EOL));
+        }
+
+        return $partner;
+    }
+
+    public function getPartnerUpsertFromOrderNew($order): ?PartnerUpsert {
+        // Céget kezelünk
+        $taxType = PartnerTaxType::NO_TAX_NUMBER;
+        $name    = sprintf('%s %s', $order['firstname'], $order['lastname']);
+        $taxCode = null;
+        if (strlen($order['taxNumber']) > 0 && strlen($order['paymentCompany']) > 0) {
+            $taxType = PartnerTaxType::HAS_TAX_NUMBER;
+            $name    = $order['paymentCompany'];
+            $taxCode = $order['taxNumber'];
+        }
+
+        $partnerUpsertData = [
+            'name'     => $name,
+            'address'  => [
+                'country_code' => Country::HU,
+                'post_code'    => $order['paymentPostcode'],
+                'city'         => $order['paymentCity'],
+                'address'      => trim(sprintf('%s %s', $order['paymentAddress1'], $order['paymentAddress2'])),
+            ],
+            'emails'   => [$order['email']],
+            'taxcode'  => $taxCode,
+            'phone'    => $order['phone'],
+            'tax_type' => $taxType,
+        ];
+
+        return new PartnerUpsert($partnerUpsertData);
+    }
+
     /**
      * @param  int   $invoiceId
      * @param  int   $orderId

@@ -150,40 +150,6 @@ class OrderController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function updateStatus(Request $request) {
-        $data = $request->validate([
-            'order-id'          => 'required',
-            'order-status-now'  => 'required',
-            'order-status-href' => 'required',
-        ]);
-
-        // Ellenőrizzük le, hogy változott-e a státusz href
-        $os = resolve('App\Subesz\StatusService')->getOrderStatusByID($data['order-status-href']);
-        if ($os->name == $data['order-status-now']) {
-            return redirect(url()->previous())->with([
-                'error' => 'A megrendelés státusza már a kiválasztott státuszban van',
-            ]);
-        }
-
-        // Kiszedjük a státusz HREF-et
-        $statusId = $data['order-status-href'];
-
-        // Frissítjük az új státuszra
-        $result    = $this->orderService->updateStatus($data['order-id'], $statusId);
-        $alertType = 'error';
-        if ($result['success']) {
-            $alertType = 'success';
-        }
-
-        return redirect(url()->previous(action('OrderController@show', ['orderId' => $data['order-id']])))->with([
-            $alertType => $result['message'],
-        ]);
-    }
-
-    /**
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
@@ -228,6 +194,40 @@ class OrderController extends Controller
     }
 
     /**
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function updateStatus(Request $request) {
+        $data = $request->validate([
+            'order-id'          => 'required',
+            'order-status-now'  => 'required',
+            'order-status-href' => 'required',
+        ]);
+
+        // Ellenőrizzük le, hogy változott-e a státusz href
+        $os = resolve('App\Subesz\StatusService')->getOrderStatusByID($data['order-status-href']);
+        if ($os->name == $data['order-status-now']) {
+            return redirect(url()->previous())->with([
+                'error' => 'A megrendelés státusza már a kiválasztott státuszban van',
+            ]);
+        }
+
+        // Kiszedjük a státusz HREF-et
+        $statusId = $data['order-status-href'];
+
+        // Frissítjük az új státuszra
+        $result    = $this->orderService->updateStatus($data['order-id'], $statusId);
+        $alertType = 'error';
+        if ($result['success']) {
+            $alertType = 'success';
+        }
+
+        return redirect(url()->previous(action('OrderController@show', ['orderId' => $data['order-id']])))->with([
+            $alertType => $result['message'],
+        ]);
+    }
+
+    /**
      * @param  Request  $request
      * @return RedirectResponse|Redirector
      */
@@ -238,12 +238,11 @@ class OrderController extends Controller
             'create-invoice' => 'nullable',
         ]);
 
-
         // Frissítjük, a kifizetés módját
         $this->orderService->updatePaymentMethod($data['order-id'], $data['payment-method']);
 
         // Frissítjük, a számla generálását
-        if (!array_key_exists('create-invoice', $data)) {
+        if (! array_key_exists('create-invoice', $data)) {
             $this->orderService->updateCreateInvoice($data['order-id'], false);
         }
 
@@ -430,7 +429,7 @@ class OrderController extends Controller
                     'error' => 'Nincs ilyen azonosítójú megrendelés a helyi adatbázisban: '.$orderResourceId,
                 ]);
             } else {
-                if ($localOrder->reseller_id !== Auth::id() && !Auth::user()->admin) {
+                if ($localOrder->reseller_id !== Auth::id() && ! Auth::user()->admin) {
                     return redirect(url()->previous(action('OrderController@index')))->with([
                         'error' => sprintf('Egy vagy több megrendelés még folyamatban van, ezért nem lehet újra generálni számlát. (%s %s)', $localOrder->firstname, $localOrder->lastname),
                     ]);

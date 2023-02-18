@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 use App\OrderStatus;
 use App\Product;
+use Carbon\Carbon;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -410,8 +411,8 @@ class ShoprenterService
     }
 
     public function getBatchedOrdersByResourceIds($resourceIds) {
-        $apiUrl     = sprintf('%s/batch', env('SHOPRENTER_API'));
-        $data       = [
+        $apiUrl = sprintf('%s/batch', env('SHOPRENTER_API'));
+        $data   = [
             'data' => [
                 'requests' => [],
             ],
@@ -438,16 +439,15 @@ class ShoprenterService
 
         // Végigmegyünk a kapott eredményeken és ha 200-as a státusz akkor hozzáadjuk a listánkhoz amit visszaadunk
         $data['data']['requests'] = [];
-        $orderData = [];
+        $orderData                = [];
         if ($response) {
             foreach ($response->requests->request as $responseData) {
                 if ($responseData->response->header->statusCode == 200) {
-                    $orderData[] = $responseData->response->body;
+                    $orderData[]                = $responseData->response->body;
                     $data['data']['requests'][] = [
                         'method' => 'GET',
-                        'uri'    => str_replace('orderStatuses/','orderStatusDescriptions?orderStatusId=',$responseData->response->body->orderStatus->href) . '&full=1',
+                        'uri'    => str_replace('orderStatuses/', 'orderStatusDescriptions?orderStatusId=', $responseData->response->body->orderStatus->href).'&full=1',
                     ];
-
                 }
             }
         }
@@ -472,7 +472,6 @@ class ShoprenterService
                     foreach ($orderData as $order) {
                         if ($order->orderStatus->href == $responseData->response->body->items[0]->orderStatus->href) {
                             $order->statusData = $responseData->response->body->items[0];
-                            break;
                         }
                     }
                 }
@@ -480,6 +479,73 @@ class ShoprenterService
         }
 
         return $orderData;
+    }
+
+    /**
+     * @return void
+     */
+    public function getRecentOrders() {
+        $start  = Carbon::now()->subHours(12);
+        $apiUrl = sprintf('%s/orderExtend?full=1&excludeAbandonedCart=1&limit=200&createdAtMin=%s&createdAtMax=%s&excludeStorno=1', env('SHOPRENTER_API'), $start->toDateTimeLocalString(), Carbon::now()->toDateTimeLocalString());
+
+        // Megrendelés lekérése
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $apiUrl,
+            CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        $response = json_decode(curl_exec($ch), true);
+        $orders   = array_key_exists('items', $response) ? $response['items'] : null;
+        curl_close($ch);
+
+        $data = [
+            'data' => [
+                'requests' => [],
+            ],
+        ];
+
+        foreach ($orders as $order) {
+            $data['data']['requests'][] = [
+                'method' => 'GET',
+                'uri'    => str_replace('orderStatuses/', 'orderStatusDescriptions?orderStatusId=', $order['orderStatus']['href']).'&full=1',
+            ];
+        }
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => sprintf('%s/batch', env('SHOPRENTER_API')),
+            CURLOPT_HTTPHEADER     => ['Accept:application/json'],
+            CURLOPT_USERPWD        => sprintf('%s:%s', env('SHOPRENTER_USER'), env('SHOPRENTER_PASSWORD')),
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_POST           => 1,
+            CURLOPT_RETURNTRANSFER => true,
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data));
+        $response = json_decode(curl_exec($ch), true);
+        curl_close($ch);
+        if ($response) {
+            foreach ($response['requests']['request'] as $responseData) {
+                if ($responseData['response']['header']['statusCode'] == 200) {
+                    // Megkeressük, h melyik megrendeléshez való
+                    $found = false;
+                    foreach ($orders as &$order) {
+                        if ($order['orderStatus']['href'] == $responseData['response']['body']['items'][0]['orderStatus']['href']) {
+                            $order['statusData'] = $responseData['response']['body']['items'][0];
+                            $found               = true;
+                        }
+                    }
+
+                    if (! $found) {
+                        Log::info('Nem található státusz egyik megrendeléshez sem:');
+                        Log::info('- ID: '.$responseData['response']['body']['items'][0]['id']);
+                    }
+                }
+            }
+        }
+
+        return $orders;
     }
 
     /**

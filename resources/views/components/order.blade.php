@@ -222,16 +222,6 @@
                             </form>
                         @endif
 
-{{--                                                <form action="{{ action('OrderController@completeOrder') }}"--}}
-{{--                                                      class="form-complete-order d-inline-block ml-2" method="POST">--}}
-{{--                                                    @csrf--}}
-{{--                                                     Rejtett mező a megrendelésnek--}}
-{{--                                                    <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">--}}
-{{--                                                    <button type="submit" class="btn btn-success font-weight-semibold h-100">--}}
-{{--                                                        <span>Teljesítés</span>--}}
-{{--                                                    </button>--}}
-{{--                                                </form>--}}
-
 
                         @if($order->status_text == 'BK. Függőben lévő')
                                 <form action="{{ action('OrderController@completeOrder') }}"

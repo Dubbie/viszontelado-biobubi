@@ -131,6 +131,7 @@
                                 {{-- Rejtett mező a megrendelésnek--}}
                                 <input type="hidden" name="order-id" value="{{ $order->inner_resource_id }}">
                                 <input type="hidden" name="payment-method" value="Online Bankkártya">
+                                <input type="hidden" name="create-invoice" value="true">
                                 <button type="submit" class="btn btn-sm btn-success font-weight-semibold h-100">
                                     <span>Teljesítés</span>
                                 </button>
