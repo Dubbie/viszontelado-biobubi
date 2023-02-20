@@ -337,42 +337,6 @@ class BillingoNewService
         }
 
         foreach ($order['totals'] as $total) {
-            //switch ($total->type) {
-            //    case 'COUPON':
-            //        $items[] = [
-            //            'name'            => 'Kupon kedvezmény',
-            //            'quantity'        => 1,
-            //            'unit'            => 'db',
-            //            'vat'             => $vat,
-            //            'unit_price'      => round(floatval($total->value)),
-            //            'unit_price_type' => UnitPriceType::GROSS,
-            //        ];
-            //        break;
-            //    case 'SHIPPING':
-            //        if (intval($total->value) > 0) {
-            //            $items[] = [
-            //                'name'            => 'Szállítási költség',
-            //                'quantity'        => 1,
-            //                'unit'            => 'db',
-            //                'vat'             => $vat,
-            //                'unit_price'      => round(floatval($total->value)),
-            //                'unit_price_type' => UnitPriceType::GROSS,
-            //            ];
-            //        }
-            //        break;
-            //    case 'LOYALTYPOINTS_TO_USE':
-            //        $items[] = [
-            //            'name'            => 'Beváltandó hűségpontok',
-            //            'quantity'        => 1,
-            //            'unit'            => 'db',
-            //            'vat'             => $vat,
-            //            'unit_price'      => round(floatval($total->value)),
-            //            'unit_price_type' => UnitPriceType::GROSS,
-            //        ];
-            //        break;
-            //    default:
-            //        break;
-            //}
             if ($total->type == 'COUPON') {
                 $items[] = [
                     'name'            => 'Kupon kedvezmény',
@@ -419,6 +383,120 @@ class BillingoNewService
         return $items;
     }
 
+    /**
+     * @param  array    $order
+     * @param  Partner  $partner
+     * @param  User     $user
+     * @return null|Document
+     */
+    public function createDraftInvoiceNew(array $order, Partner $partner, User $user): ?Document {
+        //$documentApi = $this->getDocumentApi($user);
+        $documentApi = new DocumentApi(new Client(), Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '39a00170-e005-11eb-8883-0254eb6072a0'));
+
+        $createdAt  = Carbon::createFromTimeString($order['dateCreated']);
+        $due        = $createdAt->copy()->addDays(8);
+        $invoice    = null;
+        $statusHref = str_replace(env('SHOPRENTER_API').'/orderStatuses/', '', $order['orderStatus']['href']);
+
+        $items = $this->getOrderItemsNew($order, $user);
+
+        $documentInsertData = [
+            'partner_id'       => $partner->getId(),
+            'block_id'         => $user->block_uid,
+            'type'             => DocumentType::DRAFT,
+            'fulfillment_date' => $createdAt->format('Y-m-d'),
+            'due_date'         => $due->format('Y-m-d'),
+            'payment_method'   => ($statusHref == $this->creditCardStatusHref || $statusHref == $this->creditCardPaidStatusHref) ? PaymentMethod::ONLINE_BANKCARD : PaymentMethod::CASH_ON_DELIVERY,
+            'language'         => DocumentLanguage::HU,
+            'currency'         => Currency::HUF,
+            'conversion_rate'  => 1,
+            'electronic'       => false,
+            'paid'             => false,
+            'items'            => $items,
+            'settings'         => [
+                'round' => Round::ONE,
+            ],
+        ];
+
+        $documentInsert = new DocumentInsert($documentInsertData);
+        try {
+            $invoice = $documentApi->createDocument($documentInsert);
+        } catch (ApiException $e) {
+            Log::error(sprintf('Exception when calling DocumentApi->createDocument: %s %s', $e->getMessage(), PHP_EOL));
+        }
+
+        return $invoice;
+    }
+
+    /**
+     * @param  array  $order
+     * @param         $user
+     * @return array
+     */
+    public function getOrderItemsNew(array $order, $user): array {
+        $items = [];
+        $vat   = $user->vat_id == 992 ? Vat::AAM : Vat::_27;
+
+        foreach ($order['orderProducts'] as $item) {
+            $netUnitPrice = $vat == Vat::AAM ? round($item['price'] * ((100 + floatval($item['taxRate'])) / 100)) : floatval($item['price']);
+
+            $items[] = [
+                'name'            => $item['name'],
+                'quantity'        => intval($item['stock1']),
+                'unit'            => 'db',
+                'vat'             => $vat,
+                'unit_price'      => $netUnitPrice,
+                'unit_price_type' => UnitPriceType::NET,
+            ];
+        }
+
+        foreach ($order['orderTotals'] as $total) {
+            if ($total['type'] == 'COUPON') {
+                $items[] = [
+                    'name'            => 'Kupon kedvezmény',
+                    'quantity'        => 1,
+                    'unit'            => 'db',
+                    'vat'             => $vat,
+                    'unit_price'      => round(floatval($total['value'])),
+                    'unit_price_type' => UnitPriceType::GROSS,
+                ];
+            } else {
+                if ($total['type'] == 'SHIPPING' && intval($total['value']) > 0) {
+                    $items[] = [
+                        'name'            => 'Szállítási költség',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total['value'])),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
+                if ($total['type'] == 'LOYALTYPOINTS_TO_USE' && intval($total['value']) < 0) {
+                    $items[] = [
+                        'name'            => 'Hűségpont kedvezmény',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total['value'])),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
+                if ($total['type'] == 'PAYMENT') {
+                    $items[] = [
+                        'name'            => 'Gls utánvét',
+                        'quantity'        => 1,
+                        'unit'            => 'db',
+                        'vat'             => $vat,
+                        'unit_price'      => round(floatval($total['value'])),
+                        'unit_price_type' => UnitPriceType::GROSS,
+                    ];
+                }
+            }
+        }
+
+        return $items;
+    }
+
     public function createPartnerNew($order, $user) {
         if ($order['paymentCountryName'] != 'Magyarország') {
             Log::error('A megrendelés nem magyarországról jött, nincs támogatva!');
@@ -427,7 +505,8 @@ class BillingoNewService
         }
 
         $partnerApi = $this->getPartnerApi($user);
-        $partner    = null;
+        //$partnerApi = new PartnerApi(new Client(), Configuration::getDefaultConfiguration()->setApiKey('X-API-KEY', '39a00170-e005-11eb-8883-0254eb6072a0'));
+        $partner = null;
 
         // 1. Generálunk partner upsertet
         $partnerUpsert = $this->getPartnerUpsertFromOrderNew($order);

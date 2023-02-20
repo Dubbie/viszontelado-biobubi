@@ -371,6 +371,7 @@ class ShoprenterController extends Controller
     public function checkMissingOrders($privateKey) {
         set_time_limit(0);
         Log::info('- Hiányzó megrendelések ellenőrzése... -');
+        $missing = 0;
 
         // Ellenőrizzük a kulcsot
         if (env('PRIVATE_KEY') != $privateKey) {
@@ -378,22 +379,15 @@ class ShoprenterController extends Controller
         }
         $recentOrders = $this->shoprenterApi->getRecentOrders();
         if (! $recentOrders) {
-            Log::error('Nem kaptunk vissza megredneléseket a hiányzó megrendelések ellenőrzésekor...');
+            Log::error('Nem kaptunk vissza megrendeléseket a hiányzó megrendelések ellenőrzésekor...');
 
             return false;
         }
 
-        $recentOrderIds = [];
-        foreach ($recentOrders as $recentOrder) {
-            $recentOrderIds[] = $recentOrder['id'];
-        }
-
-        // $existingOrders = Order::whereIn('inner_resource_id', $recentOrderIds)->get();
-        $missing = [];
         foreach ($recentOrders as $recentOrder) {
             // Ellenőrizzük le, hogy nincs-e már ilyen megrendelés, ne duplikáljunk!
             if ($this->orderService->getLocalOrderByResourceId($recentOrder['id'])) {
-                Log::warning('- Már létezik ilyen megrendelés, nem hozzuk létre...');
+                // Log::warning('- Már létezik ilyen megrendelés, nem hozzuk létre...');
                 continue;
             }
 
@@ -404,6 +398,8 @@ class ShoprenterController extends Controller
             }
 
             // Elmentése a Megrendelések db-be
+            $missing++;
+
             $localOrder                       = new Order();
             $localOrder->shipping_postcode    = $recentOrder['shippingPostcode'];
             $localOrder->shipping_city        = $recentOrder['shippingCity'];
@@ -463,9 +459,7 @@ class ShoprenterController extends Controller
             $reseller = $localOrder->getReseller()['correct'];
             Log::info('Hozzátartozó számlázó fiók neve: '.$reseller->name);
 
-            // TODO: Tömeges levélküldés lesz erről...
-
-            // Ha nincs billing összekötés ne hozzunk létre semmit
+            // Ha nincs billingo összekötés ne hozzunk létre semmit
             if (! $this->billingoNewService->isBillingoConnected($reseller)) {
                 Log::info('A viszonteladónak nincs beállítva billingo összekötés, ezért nem hozunk létre számlát.');
             } else {
@@ -474,16 +468,15 @@ class ShoprenterController extends Controller
                     continue;
                 }
 
-                $order = $this->shoprenterApi->getOrder($recentOrder['id']);
                 // 1. Partner
-                $partner = $this->billingoNewService->createPartner($order, $reseller);
+                $partner = $this->billingoNewService->createPartnerNew($recentOrder, $reseller);
                 if (! $partner) {
                     Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
                     continue;
                 }
 
                 // 2. Számla
-                $invoice = $this->billingoNewService->createDraftInvoice($order, $partner, $reseller);
+                $invoice = $this->billingoNewService->createDraftInvoiceNew($recentOrder, $partner, $reseller);
                 if (! $invoice) {
                     Log::error('Hiba történt a piszkozat számla létrehozásakor.');
                     continue;
@@ -494,8 +487,141 @@ class ShoprenterController extends Controller
                 $localOrder->draft_invoice_id = $invoice->getId();
                 $localOrder->save();
                 Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                dd($invoice);
             }
             // TODO: Trackeljük Klaviyo-ba
         }
+
+        Log::info(sprintf('Összesen %s db megrendelés került vizsgálásra, ebből %s db hiányzott.', count($recentOrders), $missing));
+    }
+
+    public function checkMissingOrdersMonthly($privateKey) {
+        set_time_limit(0);
+        Log::info('- Hiányzó megrendelések ellenőrzése... -');
+        $missing = 0;
+
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            return ['error' => 'Hibás privát kulcs lett megadva'];
+        }
+        $start        = Carbon::now()->subDays(7);
+        $recentOrders = $this->shoprenterApi->getOrdersSince($start);
+        if (! $recentOrders) {
+            Log::error('Nem kaptunk vissza megrendeléseket a hiányzó megrendelések ellenőrzésekor...');
+
+            return false;
+        }
+
+        foreach ($recentOrders as $recentOrder) {
+            // Ellenőrizzük le, hogy nincs-e már ilyen megrendelés, ne duplikáljunk!
+            if ($this->orderService->getLocalOrderByResourceId($recentOrder['id'])) {
+                // Log::warning('- Már létezik ilyen megrendelés, nem hozzuk létre...');
+                continue;
+            }
+
+            // Ellenőrizzük le, hogy van a státuszáról adat.
+            if (! array_key_exists('statusData', $recentOrder)) {
+                Log::warning(sprintf('- Nincs adat a megrendelés státuszáról ezért nem hozzuk létre!!! (ShopRenter Azonosítós: %s)', $recentOrder['innerId']));
+                continue;
+            }
+
+            // Elmentése a Megrendelések db-be
+            $missing++;
+
+            $localOrder                       = new Order();
+            $localOrder->shipping_postcode    = $recentOrder['shippingPostcode'];
+            $localOrder->shipping_city        = $recentOrder['shippingCity'];
+            $localOrder->shipping_address     = sprintf('%s %s', $recentOrder['shippingAddress1'], $recentOrder['shippingAddress2']);
+            $localOrder->inner_id             = $recentOrder['innerId'];
+            $localOrder->inner_resource_id    = $recentOrder['id'];
+            $localOrder->total_gross          = $recentOrder['total'];
+            $localOrder->firstname            = $recentOrder['firstname'];
+            $localOrder->lastname             = $recentOrder['lastname'];
+            $localOrder->email                = $recentOrder['email'];
+            $localOrder->phone                = $recentOrder['phone'];
+            $localOrder->shipping_method_name = $recentOrder['shippingMethodName'];
+            $localOrder->payment_method_name  = $recentOrder['paymentMethodName'];
+            $localOrder->status_text          = $recentOrder['statusData']['name'];
+            $localOrder->status_color         = $this->statusService->getColorByStatusName($recentOrder['statusData']['name']);
+            $localOrder->created_at           = Carbon::createFromTimeString($recentOrder['dateCreated']);
+
+            // Nettó összeg és ÁFA kinyerése
+            foreach ($recentOrder['orderTotals'] as $orderTotal) {
+                if ($orderTotal['type'] == 'SUB_TOTAL') {
+                    $localOrder->total = round($orderTotal['value']);
+                }
+                if ($orderTotal['type'] == 'TAX') {
+                    $localOrder->tax_price = round($orderTotal['value']);
+                }
+            }
+
+            // Eldöntjük, hogy kapjon-e online fizetéses végső fizetés típust
+            if ($localOrder->payment_method_name == 'Online bankkártyás fizetés') {
+                $localOrder->final_payment_method = 'Online Bankkártya';
+            }
+
+            if (! $localOrder->save()) {
+                Log::error('Nem sikerült elmenteni a megrendelést, de ennek már úgyis nyoma van.');
+            }
+
+            // Termékeket kiszedjük maszekba
+            $productsList = [];
+            foreach ($recentOrder['orderProducts'] as $orderProduct) {
+                $productsList[] = [
+                    'sku'   => $orderProduct['sku'],
+                    'count' => intval($orderProduct['stock1']),
+                ];
+            }
+            $this->orderService->saveOrderedProducts($productsList, $localOrder->id);
+
+            // Létrehozzuk az ügyfelet, ha még nincs
+            $customer = $this->customerService->createCustomerFromLocalOrder($localOrder);
+            if ($customer->orders()->count() == 1) {
+                $this->customerService->createCall($customer->id, $localOrder->created_at);
+            } else {
+                $this->customerService->removeCall($customer->id);
+            }
+
+            // Mentsük el a számlát
+            /** @var \App\User $reseller */
+            $reseller = $localOrder->getReseller()['correct'];
+            Log::info('Hozzátartozó számlázó fiók neve: '.$reseller->name);
+
+            // Ha nincs billingo összekötés ne hozzunk létre semmit
+            if (! $this->billingoNewService->isBillingoConnected($reseller)) {
+                Log::info('A viszonteladónak nincs beállítva billingo összekötés, ezért nem hozunk létre számlát.');
+            } else {
+                if (env('APP_ENV') != 'production') {
+                    Log::info('- Nem prodon vagyunk, nem csinálunk számlákat :)');
+                    continue;
+                }
+
+                // 1. Partner
+                $partner = $this->billingoNewService->createPartnerNew($recentOrder, $reseller);
+                if (! $partner) {
+                    Log::error('Hiba történt a partner létrehozásakor, a számlát nem lehet létrehozni.');
+                    continue;
+                }
+
+                // 2. Számla
+                $invoice = $this->billingoNewService->createDraftInvoiceNew($recentOrder, $partner, $reseller);
+                if (! $invoice) {
+                    Log::error('Hiba történt a piszkozat számla létrehozásakor.');
+                    continue;
+                }
+                Log::info(sprintf('A piszkozat számla sikeresen létrejött (Megrendelés: %s, Azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                // 3. Elmentjük a piszkozatot
+                $localOrder->draft_invoice_id = $invoice->getId();
+                $localOrder->save();
+                Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
+
+                dd($invoice);
+            }
+            // TODO: Trackeljük Klaviyo-ba
+        }
+
+        Log::info(sprintf('Összesen %s db megrendelés került vizsgálásra, ebből %s db hiányzott.', count($recentOrders), $missing));
     }
 }

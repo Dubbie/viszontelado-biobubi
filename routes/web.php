@@ -210,6 +210,7 @@ Route::get('/test-shoprenter', 'ShoprenterController@testShoprenter');
 Route::post('/sr/termek-lekerdezes', 'ShoprenterController@getProduct');
 Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
 Route::get('/api/hianyzo-megrendelesek/{privateKey}', 'ShoprenterController@checkMissingOrders');
+Route::get('/api/hianyzo-megrendelesek-havi/{privateKey}', 'ShoprenterController@checkMissingOrdersMonthly');
 
 /**
  * Runs database migrations
