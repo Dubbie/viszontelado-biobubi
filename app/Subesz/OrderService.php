@@ -5,6 +5,7 @@ namespace App\Subesz;
 use App\MoneyTransferOrder;
 use App\Order;
 use App\OrderProducts;
+use App\Region;
 use App\RegionZip;
 use App\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -93,7 +94,12 @@ class OrderService
         // Régió
         if (array_key_exists('region', $filter)) {
             /** @var \App\Region $region */
-            $region = Auth::user()->regions()->find($filter['region']);
+            if (Auth::user()->admin) {
+                $region = Region::find($filter['region']);
+            } else {
+                $region = Auth::user()->regions()->find($filter['region']);
+            }
+
             if ($region) {
                 $orders = $orders->whereIn('shipping_postcode', $region->zips->pluck('zip')->toArray());
             }

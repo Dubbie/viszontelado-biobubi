@@ -30,18 +30,6 @@
                     </select>
                 </div>
 
-                @if(Auth::user()->regions()->count() > 0)
-                    <div class="form-group col-xl-3 col-lg-5 col-md-4">
-                        <label for="filter-region">Régió</label>
-                        <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
-                            <option value="">Összes</option>
-                            @foreach(Auth::user()->regions as $region)
-                                <option value="{{ $region->id }}"
-                                        @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                @endif
                 @if(Auth::user()->admin)
                     <div class="form-group col-xl-3 col-lg-5 col-md-5">
                         <label for="filter-reseller">Viszonteladó</label>
@@ -59,6 +47,31 @@
                         </select>
                     </div>
                 @endif
+
+                @if(Auth::user()->admin)
+                    <div id="admin-regions" class="form-group col-xl-3 col-lg-5 col-md-4">
+                        <label for="filter-region">Régió</label>
+                        <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
+                            <option value="">Összes</option>
+                            @foreach($regions as $region)
+                                <option value="{{ $region->id }}"
+                                        @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @elseif(Auth::user()->regions()->count() > 0)
+                    <div class="form-group col-xl-3 col-lg-5 col-md-4">
+                        <label for="filter-region">Régió</label>
+                        <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
+                            <option value="">Összes</option>
+                            @foreach(Auth::user()->regions as $region)
+                                <option value="{{ $region->id }}"
+                                        @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
+
                 <div class="col-xl text-right">
                     <div class="form-group">
                         <button type="submit" class="btn btn-sm btn-success">Szűrés</button>
@@ -148,18 +161,67 @@
     {{-- Szűrő --}}
     <script>
         $(function () {
-            $('#form-orders-filter').submit(function () {
-                // if (selectStatus.options[selectStatus.selectedIndex].value !== '') {
-                //     console.log(window.location);
-                //     $(containerCompleted).find('select')[0].disabled = true;
-                // }
+            const selectReseller = document.getElementById('filter-reseller');
+            const selectRegion = document.getElementById('filter-region');
+            const filteredRegionId = '{{ $filter['region'] ?? '' }}';
+            const grpAdminRegions = document.getElementById('admin-regions');
 
+            $('#form-orders-filter').submit(function () {
                 var $empty_fields = $(this).find(':input').filter(function () {
                     return $(this).val() === '';
                 });
                 $empty_fields.prop('disabled', true);
                 return true;
             });
+
+            async function updateRegions() {
+                const selectedValue = selectReseller.options[selectReseller.selectedIndex].value;
+
+                if (selectedValue === 'ALL') {
+                    updateOptions();
+                } else if (selectedValue === '') {
+                    await fetch("/users/{{ Auth::id() }}/elerheto-regiok").then(res => res.json()).then(data => updateOptions(data));
+                } else {
+                    await fetch("/users/" + selectedValue + "/elerheto-regiok").then(res => res.json()).then(data => updateOptions(data));
+                }
+            }
+
+            function updateOptions(newOptions) {
+                while (selectRegion.children.length > 1) {
+                    selectRegion.removeChild(selectRegion.lastChild);
+                }
+
+                for (const entry of newOptions) {
+                    const option = document.createElement('option');
+                    option.value = entry.id;
+                    option.innerText = entry.name;
+
+                    if (filteredRegionId !== '' && filteredRegionId === entry.id.toString()) {
+                        option.selected = true;
+                    }
+
+                    selectRegion.appendChild(option);
+                }
+
+                if (selectRegion.children.length > 1) {
+                    $(grpAdminRegions).show();
+                } else {
+                    $(grpAdminRegions).hide();
+                }
+            }
+
+            // Csak akkor nézzük a változásokat, ha admin a user
+            function init() {
+                $(selectReseller).on('change', () => {
+                    updateRegions();
+                });
+
+                updateRegions();
+            }
+
+            if (selectReseller) {
+                init();
+            }
         });
     </script>
 

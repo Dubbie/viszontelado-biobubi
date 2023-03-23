@@ -195,4 +195,8 @@ class RegionController extends Controller
             'success' => 'Régió sikeresen törölve',
         ]);
     }
+
+    public function getRegionsByUserId($userId) {
+        return Region::where('user_id', $userId)->get();
+    }
 }

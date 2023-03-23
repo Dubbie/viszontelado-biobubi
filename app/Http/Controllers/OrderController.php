@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Customer;
 use App\Order;
+use App\Region;
 use App\Subesz\BillingoNewService;
 use App\Subesz\OrderService;
 use App\Subesz\ShoprenterService;
@@ -104,12 +105,15 @@ class OrderController extends Controller
             'human'    => $this->orderService->getLastUpdateHuman(),
         ];
 
+        $regions = Auth::user()->admin ? Region::all() : [];
+
         return view('order.index')->with([
             'orders'     => $orders,
             'resellers'  => $resellers,
             'statuses'   => $this->shoprenterApi->getStatusesFiltered(),
             'filter'     => $filter,
             'lastUpdate' => $lastUpdate,
+            'regions'    => $regions,
         ]);
     }
 

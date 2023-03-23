@@ -190,7 +190,7 @@ class ShoprenterService
         $result['order'] = json_decode(curl_exec($ch));
 
         // Státusz lekérése
-        if (property_exists($result['order'], 'orderStatus') && $result['order']->orderStatus) {
+        if ($result['order'] && property_exists($result['order'], 'orderStatus') && $result['order']->orderStatus) {
             curl_setopt_array($ch, [
                 CURLOPT_URL            => $result['order']->orderStatus->href,
                 CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
@@ -212,7 +212,7 @@ class ShoprenterService
         }
 
         // Termékek lekérése
-        if (property_exists($result['order'], 'orderProducts') && $result['order']->orderProducts) {
+        if ($result['order'] && property_exists($result['order'], 'orderProducts') && $result['order']->orderProducts) {
             curl_setopt_array($ch, [
                 CURLOPT_URL            => $result['order']->orderProducts->href.'&full=1',
                 CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],
@@ -224,7 +224,7 @@ class ShoprenterService
         }
 
         // order gift wrappings:
-        if (property_exists($result['order'], 'orderTotals') && $result['order']->orderTotals) {
+        if ($result['order'] && property_exists($result['order'], 'orderTotals') && $result['order']->orderTotals) {
             curl_setopt_array($ch, [
                 CURLOPT_URL            => $result['order']->orderTotals->href.'&full=1',
                 CURLOPT_HTTPHEADER     => ['Content-Type:application/json', 'Accept:application/json'],

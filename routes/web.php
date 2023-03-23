@@ -94,6 +94,8 @@ Route::group(['middleware' => 'auth'], function () {
         // Régió
         Route::get('regiok/generalas', 'RegionController@generateByResellers');
         Route::resource('regiok', 'RegionController');
+
+        Route::get('users/{userId}/elerheto-regiok', 'RegionController@getRegionsByUserId');
     });
 
     // Index
