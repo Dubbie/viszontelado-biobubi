@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SendDeliveryNotificationsRequest;
+use App\Mail\OrderDeliveryNotification;
 use App\Product;
 use App\Subesz\OrderService;
 use App\Worksheet;
@@ -14,6 +16,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\App;
 use Log;
+use Mail;
 
 /**
  * Class WorksheetController
@@ -233,7 +236,7 @@ class WorksheetController extends Controller
                 } else {
                     if (! $localProduct) {
                         // Nincs nálunk ilyen termék az adatbázisban...
-                        \Log::info(sprintf('- A(z) %s termék cikkszáma nem szerepel a helyi adatbázisban! (Cikkszám: %s)', $item->name, $item->sku));
+                        Log::info(sprintf('- A(z) %s termék cikkszáma nem szerepel a helyi adatbázisban! (Cikkszám: %s)', $item->name, $item->sku));
                     }
 
                     $pieces[] = [
@@ -281,5 +284,45 @@ class WorksheetController extends Controller
         $filename = sprintf('szs_szallitolevel_%s.pdf', date('Y_m_d_his'));
 
         return $pdf->download($filename);
+    }
+
+    public function getOrdersHTML() {
+        return view('inc.notification.delivery')->with([
+            'worksheetEntries' => Auth::user()->worksheet
+        ])->render();
+    }
+
+    /**
+     * @param  \App\Http\Requests\SendDeliveryNotificationsRequest  $request
+     * @return \Illuminate\Routing\Redirector|\Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse
+     */
+    public function sendDeliveryNotifications(SendDeliveryNotificationsRequest $request): Redirector|Application|RedirectResponse {
+        $data = $request->validated();
+
+        $message = trim($data['notification-body']);
+
+        foreach ($data['ch-notification-order-select'] as $orderResourceId) {
+            /** @var \App\Order $localOrder */
+            $localOrder = $this->orderService->getLocalOrderByResourceId($orderResourceId);
+            if (!$localOrder->delivery_notification_sent) {
+                try {
+                    // Send mail
+                    Mail::to($localOrder->email)->send(new OrderDeliveryNotification($message));
+
+                    // Set sent notifications in DB
+                    $localOrder->setDeliveryNotificationSent();
+                    Log::info(sprintf("Értesítő küldve, adatbázisban feljegyezve (Megrendelés azonosító: %s (%s))", $localOrder->id, $localOrder->getFormattedName()));
+                } catch (Exception $e) {
+                    Log::error('Hiba az értesítő küldésekor: ');
+                    Log::error($e->getMessage());
+                }
+            } else {
+                Log::info(sprintf("Már kapott értesítő levelet kézbesítésről, ezért nem küldünk újat. (Megrendelés azonosító: %s (%s))", $localOrder->id, $localOrder->getFormattedName()));
+            }
+        }
+
+        return redirect(url()->previous())->with([
+            'success' => 'Kiszállítási értesítők elküldve!'
+        ]);
     }
 }

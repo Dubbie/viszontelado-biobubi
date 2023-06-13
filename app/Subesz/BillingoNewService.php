@@ -961,22 +961,38 @@ class BillingoNewService
 
             // Leellenőrizzük, hogy végül mi lett a kifizetés módja, ha nem online bankkártyás
             Log::info('Fizetési mód eldöntése...');
-            if ($localOrder->payment_method_name == 'Utánvétel') {
-                if ($localOrder->final_payment_method == 'Készpénz') {
-                    $documentInsertData['payment_method'] = PaymentMethod::CASH;
-                    $documentInsertData['due_date']       = date('Y-m-d');
-                    Log::info('A kifizetés módja Készpénz volt');
-                } elseif ($localOrder->final_payment_method == 'Bankkártya') {
-                    $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
-                    $documentInsertData['due_date']       = date('Y-m-d');
-                    Log::info('A kifizetés módja Bankkártya volt');
-                } elseif ($localOrder->final_payment_method == 'Átutalás') {
-                    $documentInsertData['due_date']       = Carbon::now()->addDays(2)->format('Y-m-d');
-                    $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
-                    Log::info('A kifizetés módja Átutalás volt');
-                } else {
-                    Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
-                }
+            //if ($localOrder->payment_method_name == 'Utánvétel') {
+            //    if ($localOrder->final_payment_method == 'Készpénz') {
+            //        $documentInsertData['payment_method'] = PaymentMethod::CASH;
+            //        $documentInsertData['due_date']       = date('Y-m-d');
+            //        Log::info('A kifizetés módja Készpénz volt');
+            //    } elseif ($localOrder->final_payment_method == 'Bankkártya') {
+            //        $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
+            //        $documentInsertData['due_date']       = date('Y-m-d');
+            //        Log::info('A kifizetés módja Bankkártya volt');
+            //    } elseif ($localOrder->final_payment_method == 'Átutalás') {
+            //        $documentInsertData['due_date']       = Carbon::now()->addDays(2)->format('Y-m-d');
+            //        $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
+            //        Log::info('A kifizetés módja Átutalás volt');
+            //    } else {
+            //        Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
+            //    }
+            //}
+
+            if ($localOrder->final_payment_method == 'Készpénz') {
+                $documentInsertData['payment_method'] = PaymentMethod::CASH;
+                $documentInsertData['due_date']       = date('Y-m-d');
+                Log::info('A kifizetés módja Készpénz volt');
+            } elseif ($localOrder->final_payment_method == 'Bankkártya') {
+                $documentInsertData['payment_method'] = PaymentMethod::BANKCARD;
+                $documentInsertData['due_date']       = date('Y-m-d');
+                Log::info('A kifizetés módja Bankkártya volt');
+            } elseif ($localOrder->final_payment_method == 'Átutalás') {
+                $documentInsertData['due_date']       = Carbon::now()->addDays(2)->format('Y-m-d');
+                $documentInsertData['payment_method'] = PaymentMethod::WIRE_TRANSFER;
+                Log::info('A kifizetés módja Átutalás volt');
+            } else {
+                Log::error('Hiba a kifizetés módjával: Olyan kifizetés mód ami nem kezelt... '.$localOrder->final_payment_method);
             }
 
             $documentInsert = new DocumentInsert($documentInsertData);

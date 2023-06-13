@@ -29,7 +29,6 @@
                         </svg>
                     </span>
                     <span class="flex-grow-1">Megrendelések</span>
-                    {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
                 </a>
             </li>
             <li class="nav-item">
@@ -68,7 +67,6 @@
                         </svg>
                     </span>
                     <span class="flex-grow-1">Teendők</span>
-                    {{--<span class="badge badge-primary">{{ count(Auth::user()->getVehicles()) }}</span>--}}
                 </a>
             </li>
             <li class="nav-item">

@@ -351,14 +351,19 @@ class OrderService
             \Log::info('-- -- Megrendelt termékek rögzítése az adatbázisba...');
             $lp = $ss->getLocalProductBySku($orderedProduct['sku']);
 
-            foreach ($lp->getSubProducts() as $subProduct) {
-                $op              = new OrderProducts();
-                $op->order_id    = $orderId;
-                $op->product_sku = $subProduct['product']->sku;
-                $op->product_qty = $subProduct['count'] * $orderedProduct['count'];
-                $op->save();
+            if ($lp) {
+                foreach ($lp->getSubProducts() as $subProduct) {
+                    $op              = new OrderProducts();
+                    $op->order_id    = $orderId;
+                    $op->product_sku = $subProduct['product']->sku;
+                    $op->product_qty = $subProduct['count'] * $orderedProduct['count'];
+                    $op->save();
+                }
+
+                \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
+            } else {
+                Log::info('-- -- ... a termék nem létezik az adatbázisban!');
             }
-            \Log::info('-- -- ... a megrendelt termékek rögzítése sikeres!');
         }
     }
 

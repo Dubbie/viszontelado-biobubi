@@ -16,10 +16,16 @@
                 </div>
 
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-sm btn-link" data-dismiss="modal">Vissza</button>
-                <a href="{{ route('worksheet.shipping-mail') }}" class="btn btn-sm btn-primary">Szállítólevél letöltése</a>
-                <button id="btn-update-ws-orders" type="button" class="btn btn-sm btn-success">Sorrend mentése</button>
+            <div class="modal-footer justify-content-md-between">
+                <div class="text-left">
+                    <a href="#deliveryNotificationModal"
+                       data-toggle="modal" class="btn btn-sm btn-outline-info">Értesítő levél küldése</a>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-link" data-dismiss="modal">Vissza</button>
+                    <a href="{{ route('worksheet.shipping-mail') }}" class="btn btn-sm btn-primary">Szállítólevél letöltése</a>
+                    <button id="btn-update-ws-orders" type="button" class="btn btn-sm btn-success">Sorrend mentése</button>
+                </div>
             </div>
         </div>
     </div>

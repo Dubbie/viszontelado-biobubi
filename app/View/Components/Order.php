@@ -46,6 +46,8 @@ class Order extends Component
         switch ($this->type) {
             case 'worksheet':
                 return view('components.worksheet-order');
+            case 'delivery-notification':
+                return view('components.delivery-notification-order');
             case 'regular':
             default:
                 return view('components.order');

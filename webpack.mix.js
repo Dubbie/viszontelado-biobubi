@@ -17,7 +17,8 @@ mix.js([
     'resources/js/income.js',
     'resources/js/hq-finance.js',
     'resources/js/reseller-finance.js',
-    'resources/js/marketing.js'
+    'resources/js/marketing.js',
+    'resources/js/worksheet.js'
 ], 'public/js')
     .sourceMaps()
     .version();

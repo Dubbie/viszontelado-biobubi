@@ -57,6 +57,7 @@
         </footer>
 
         @include('modal.worksheet')
+        @include('modal.delivery-notification')
         @include('modal.payment-method')
     </div>
 </div>

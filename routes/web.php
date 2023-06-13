@@ -142,6 +142,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/munkalap/torles', 'WorksheetController@remove');
     Route::post('/munkalap/sorrend-frissites', 'WorksheetController@updateOrdering');
     Route::get('/munkalap/szallitolevel', 'WorksheetController@downloadShippingMail')->name('worksheet.shipping-mail');
+    Route::get('/munkalap/megrendelesek/html', 'WorksheetController@getOrdersHTML')->name('worksheet.orders.fetch.html');
+    Route::post('/munkalap/megrendelesek/ertesites', 'WorksheetController@sendDeliveryNotifications')->name('worksheet.orders.notify-delivery');
 
     // Szállítólevél
     Route::post('/szallitolevel/letoltes', 'DocumentController@download');

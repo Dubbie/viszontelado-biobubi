@@ -40,7 +40,7 @@ class StatusService
         ];
 
         // Teljesített státusz szövegek alapján
-        $this->completedStatusTextMap = ['Teljesítve', 'FOXPOST Teljesítve'];
+        $this->completedStatusTextMap = ['Teljesítve'];
 
         $this->creditCardPaidStatus = 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTE4'; // BK. Függőben lévő
     }

@@ -12,6 +12,8 @@ use App\Subesz\ShoprenterService;
 use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use Carbon\Carbon;
+use DB;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Mail;
@@ -199,7 +201,12 @@ class ShoprenterController extends Controller
             //    $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
             //}
 
-            $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            try {
+                $this->orderService->saveOrderedProducts($orderedProducts, $localOrder->id);
+            } catch (Exception $exception) {
+                Log::error('Hiba a megrendelt termékek elmentésekor.');
+                Log::error($exception->getMessage());
+            }
 
             // Létrehozzuk az ügyfelet, ha még nincs
             $customer = $this->customerService->createCustomerFromLocalOrder($localOrder);
@@ -320,7 +327,7 @@ class ShoprenterController extends Controller
 
         $duplicates = Order::select([
             'inner_resource_id',
-            \DB::raw('COUNT(*) as db'),
+            DB::raw('COUNT(*) as db'),
         ])->groupBy('inner_resource_id')->having('db', '>', '1')->get()->toArray();
 
         foreach ($duplicates as $row) {

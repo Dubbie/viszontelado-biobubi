@@ -547,6 +547,15 @@ class Order extends Model
         return $success;
     }
 
+    public function setDeliveryNotificationSent() {
+        $this->delivery_notification_sent = true;
+        $this->save();
+    }
+
+    public function getFormattedName() {
+        return sprintf('%s %s', $this->firstname, $this->lastname);
+    }
+
     /**
      * @param  \Illuminate\Database\Eloquent\Builder  $query
      * @return \Illuminate\Database\Eloquent\Builder
