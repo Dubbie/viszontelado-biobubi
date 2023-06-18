@@ -121,15 +121,19 @@ class StatusService
             // Logolunk kicsit, aztán számlázunk
             Log::info(sprintf('Megrendelés teljesítve (Azonosító: %s)', $localOrder->id));
 
-            if ($localOrder->create_invoice) {
-                Log::info('Számla gyártás megkezdése...');
-                $invoiceResponse = $localOrder->createInvoice();
-                if (! $invoiceResponse['success']) {
-                    $response['message'] = $invoiceResponse['message'];
-                }
-                Log::info('... számla elintézve.');
+            if ($newStatus->status_id == 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTI0') {
+                Log::info("FoxPost megrendelés, nem hozunk létre számlát");
             } else {
-                Log::info('Számla gyártás kihagyása, a Teljesítéskor nem került bepipálásra számla generálás és küldés.');
+                if ($localOrder->create_invoice) {
+                    Log::info('Számla gyártás megkezdése...');
+                    $invoiceResponse = $localOrder->createInvoice();
+                    if (! $invoiceResponse['success']) {
+                        $response['message'] = $invoiceResponse['message'];
+                    }
+                    Log::info('... számla elintézve.');
+                } else {
+                    Log::info('Számla gyártás kihagyása, a Teljesítéskor nem került bepipálásra számla generálás és küldés.');
+                }
             }
 
             $ks->fulfillOrder($shoprenterOrder); // Klaviyo-ba frissítjük a megrendelést
