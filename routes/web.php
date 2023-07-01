@@ -216,6 +216,9 @@ Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
 Route::get('/api/hianyzo-megrendelesek/{privateKey}', 'ShoprenterController@checkMissingOrders');
 Route::get('/api/hianyzo-megrendelesek-havi/{privateKey}', 'ShoprenterController@checkMissingOrdersMonthly');
 
+// GLS Tesztelés
+Route::get('/test-gls', 'GlsController@test')->name('gls.test');
+
 /**
  * Runs database migrations
  */

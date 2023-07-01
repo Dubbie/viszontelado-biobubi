@@ -242,4 +242,10 @@ return [
 
     ],
 
+    // GLS config
+    'gls' => [
+        'api_url' => env('GLS_API_URL'),
+        'username' => env('GLS_USERNAME'),
+        'password' => env('GLS_PASSWORD'),
+    ],
 ];
