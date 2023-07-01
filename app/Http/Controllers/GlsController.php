@@ -11,14 +11,24 @@ use Illuminate\Http\Request;
 
 class GlsController extends Controller
 {
-    private GlsService $glsService;
+	private GlsService $glsService;
 
-    public function __construct(GlsService $glsService) {
-        $this->glsService = $glsService;
-    }
+	/**
+	 * Constructor for the class.
+	 *
+	 * @param GlsService $glsService The GlsService dependency.
+	 */
+	public function __construct(GlsService $glsService)
+	{
+		$this->glsService = $glsService;
+	}
 
-    public function test() {
-
-      dd($this->glsService->getParcelList(Carbon::now()->startOfDay(), Carbon::now()));
-    }
+	public function test()
+	{
+		if ($this->glsService->isApiWorking()) {
+			echo "GLS API is working";
+		} else {
+			echo "GLS API is not working";
+		}
+	}
 }

@@ -9,53 +9,49 @@
                 <div class="col-xl-5">
                     <div class="form-group">
                         <label for="filter-query">Keresett kifejezés</label>
-                        <input type="text" id="filter-query" name="filter-query"
-                               class="form-control form-control-sm"
-                               value="@if(array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
+                        <input type="text" id="filter-query" name="filter-query" class="form-control form-control-sm"
+                            value="@if (array_key_exists('query', $filter)) {{ $filter['query'] }} @endif">
                     </div>
                 </div>
                 <div class="form-group col-xl-3 col-lg-5 col-md-4">
                     <label for="filter-status">Állapot</label>
                     <select name="filter-status" id="filter-status" class="custom-select custom-select-sm">
                         <option value="">Mindegy</option>
-                        <option value="ONGOING"
-                                @if(array_key_exists('status', $filter) && $filter['status'] == 'ONGOING') selected @endif>
+                        <option value="ONGOING" @if (array_key_exists('status', $filter) && $filter['status'] == 'ONGOING') selected @endif>
                             Szállítandó
                         </option>
                         <option disabled>---------</option>
-                        @foreach($statuses as $status)
-                            <option value="{{ $status->name }}"
-                                    @if(array_key_exists('status', $filter) && $filter['status'] == $status->name) selected @endif>{{ $status->name }}</option>
+                        @foreach ($statuses as $status)
+                            <option value="{{ $status->name }}" @if (array_key_exists('status', $filter) && $filter['status'] == $status->name) selected @endif>
+                                {{ $status->name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                @if(Auth::user()->admin)
+                @if (Auth::user()->admin)
                     <div class="form-group col-xl-3 col-lg-5 col-md-5">
                         <label for="filter-reseller">Viszonteladó</label>
-                        <select name="filter-reseller" id="filter-reseller"
-                                class="custom-select custom-select-sm">
+                        <select name="filter-reseller" id="filter-reseller" class="custom-select custom-select-sm">
                             <option value="">Saját megrendeléseim</option>
-                            @foreach($resellers as $reseller)
-                                <option value="{{ $reseller->id }}"
-                                        @if(array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>{{ $reseller->name }}</option>
+                            @foreach ($resellers as $reseller)
+                                <option value="{{ $reseller->id }}" @if (array_key_exists('reseller', $filter) && $filter['reseller'] == $reseller->id) selected @endif>
+                                    {{ $reseller->name }}</option>
                             @endforeach
-                            <option value="ALL"
-                                    @if(array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>
+                            <option value="ALL" @if (array_key_exists('reseller', $filter) && $filter['reseller'] == 'ALL') selected @endif>
                                 Összes viszonteladó
                             </option>
                         </select>
                     </div>
                 @endif
 
-                @if(Auth::user()->admin)
+                @if (Auth::user()->admin)
                     <div id="admin-regions" class="form-group col-xl-3 col-lg-5 col-md-4">
                         <label for="filter-region">Régió</label>
                         <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
                             <option value="">Összes</option>
-                            @foreach($regions as $region)
-                                <option value="{{ $region->id }}"
-                                        @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
+                            @foreach ($regions as $region)
+                                <option value="{{ $region->id }}" @if (array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>
+                                    {{ $region->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -64,9 +60,9 @@
                         <label for="filter-region">Régió</label>
                         <select name="filter-region" id="filter-region" class="custom-select custom-select-sm">
                             <option value="">Összes</option>
-                            @foreach(Auth::user()->regions as $region)
-                                <option value="{{ $region->id }}"
-                                        @if(array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>{{ $region->name }}</option>
+                            @foreach (Auth::user()->regions as $region)
+                                <option value="{{ $region->id }}" @if (array_key_exists('region', $filter) && $filter['region'] == $region->id) selected @endif>
+                                    {{ $region->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -86,12 +82,12 @@
             </div>
             <div class="col text-right">
                 <div class="d-flex justify-content-between justify-content-md-end mb-3">
-                    @if(Auth::user()->admin)
+                    @if (Auth::user()->admin)
                         <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                           data-toggle="tooltip"
-                           title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                           data-placement="left"
-                           class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>
+                            data-toggle="tooltip"
+                            @if ($lastUpdate['datetime']) title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}" @else title="Nem volt frissítve" @endif
+                            data-placement="left" class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések
+                            frissítése</a>
                     @endif
                     <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
                         leadása</a>
@@ -99,7 +95,7 @@
             </div>
         </div>
 
-        @if(Auth::user()->admin && count(Auth::user()->regions) == 0)
+        @if (Auth::user()->admin && count(Auth::user()->regions) == 0)
             <div class="alert alert-info">
                 <p class="mb-0">A fiókodhoz nincs hozzárendelve régió,
                     ezért nem kapsz megrendeléseket.</p>
@@ -107,17 +103,16 @@
         @endif
 
         @include('modal.order-comments')
-        @if(count($orders) > 0)
-            @foreach($orders as $order)
+        @if (count($orders) > 0)
+            @foreach ($orders as $order)
                 <x-order :order="$order" type="regular" :worksheet="null"></x-order>
             @endforeach
         @else
-            @if(!empty($filter))
+            @if (!empty($filter))
                 <div class="card card-body">
                     <div class="row align-items-center">
                         <div class="col-12 col-md-3">
-                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100"
-                                 alt="Üres lista ikon">
+                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
                         </div>
                         <div class="col">
                             <p class="lead">Az általad beállított szűrők alapján nem találtunk megfelelő
@@ -125,7 +120,7 @@
                             <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
                                 leadása</a>
                             <a href="{{ action('OrderController@index') }}"
-                               class="btn btn-sm btn-outline-secondary">Szűrési
+                                class="btn btn-sm btn-outline-secondary">Szűrési
                                 feltételek törlése</a>
                         </div>
                     </div>
@@ -134,8 +129,7 @@
                 <div class="card card-body">
                     <div class="row align-items-center">
                         <div class="col-12 col-md-3">
-                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100"
-                                 alt="Üres lista ikon">
+                            <img src="{{ url('storage/img/empty.png') }}" class="d-block w-100" alt="Üres lista ikon">
                         </div>
                         <div class="col">
                             <p class="lead">Jelenleg még nincs egy megrendelésed sem.<br>Aggodalomra semmi ok, amint
@@ -160,14 +154,14 @@
 @section('scripts')
     {{-- Szűrő --}}
     <script>
-        $(function () {
+        $(function() {
             const selectReseller = document.getElementById('filter-reseller');
             const selectRegion = document.getElementById('filter-region');
             const filteredRegionId = '{{ $filter['region'] ?? '' }}';
             const grpAdminRegions = document.getElementById('admin-regions');
 
-            $('#form-orders-filter').submit(function () {
-                var $empty_fields = $(this).find(':input').filter(function () {
+            $('#form-orders-filter').submit(function() {
+                var $empty_fields = $(this).find(':input').filter(function() {
                     return $(this).val() === '';
                 });
                 $empty_fields.prop('disabled', true);
@@ -180,9 +174,11 @@
                 if (selectedValue === 'ALL') {
                     updateOptions();
                 } else if (selectedValue === '') {
-                    await fetch("/users/{{ Auth::id() }}/elerheto-regiok").then(res => res.json()).then(data => updateOptions(data));
+                    await fetch("/users/{{ Auth::id() }}/elerheto-regiok").then(res => res.json()).then(
+                        data => updateOptions(data));
                 } else {
-                    await fetch("/users/" + selectedValue + "/elerheto-regiok").then(res => res.json()).then(data => updateOptions(data));
+                    await fetch("/users/" + selectedValue + "/elerheto-regiok").then(res => res.json()).then(
+                        data => updateOptions(data));
                 }
             }
 
@@ -288,7 +284,8 @@
             });
 
             $(statusSelect).on('change', e => {
-                if (statusSelect.options[statusSelect.selectedIndex].value === 'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=') {
+                if (statusSelect.options[statusSelect.selectedIndex].value ===
+                    'b3JkZXJTdGF0dXMtb3JkZXJfc3RhdHVzX2lkPTU=') {
                     $(paymentMethodgroup).slideDown();
                     $(paymentMethodgroup).find('select')[0].required = true;
                 } else {
@@ -316,7 +313,8 @@
             let id = e.currentTarget.getAttribute("data-order-id");
             //feltölti a modal testét
             let modal = document.getElementById("modal-body-content");
-            await fetch("/megrendelesek/" + id + "/megjegyzesek/html").then(res => res.text()).then(data => modal.innerHTML = data);
+            await fetch("/megrendelesek/" + id + "/megjegyzesek/html").then(res => res.text()).then(data => modal
+                .innerHTML = data);
         }
     </script>
 @endsection
