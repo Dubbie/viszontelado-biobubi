@@ -217,6 +217,8 @@ Route::get('/api/iranyitoszam/ellenorzes', 'ShoprenterController@checkZip');
 Route::get('/api/hianyzo-megrendelesek/{privateKey}', 'ShoprenterController@checkMissingOrders');
 Route::get('/api/hianyzo-megrendelesek-havi/{privateKey}', 'ShoprenterController@checkMissingOrdersMonthly');
 
+Route::get('/api/tharanis/test', 'TharanisController@test')->name('tharanis.test');
+
 /**
  * Runs database migrations
  */
