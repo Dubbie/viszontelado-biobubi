@@ -87,11 +87,15 @@
             <div class="col text-right">
                 <div class="d-flex justify-content-between justify-content-md-end mb-3">
                     @if(Auth::user()->admin)
-                        <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"
-                           data-toggle="tooltip"
-                           title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"
-                           data-placement="left"
-                           class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>
+{{--                        <a href="{{ action('ShoprenterController@updateOrders', ['privateKey' => env('PRIVATE_KEY')]) }}"--}}
+{{--                           data-toggle="tooltip"--}}
+{{--                           title="Utoljára {{ $lastUpdate['human'] }} frissítve  -  {{ $lastUpdate['datetime']->format('Y. m. d. H:i') }}"--}}
+{{--                           data-placement="left"--}}
+{{--                           class="btn btn-sm btn-outline-secondary has-tooltip mr-2">Megrendelések frissítése</a>--}}
+                        <form id="form-refresh-orders" action="{{ action('ShoprenterController@updateOrdersByIDs', ['privateKey' => env('PRIVATE_KEY')]) }}" method="POST">
+                            @csrf
+                            <button id="btn-refresh-orders" class="btn btn-sm btn-outline-secondary has-tooltip mr-2" type="submit">Megrendelések frissítése</button>
+                        </form>
                     @endif
                     <a href="https://biobubi.hu/" target="_blank" class="btn btn-sm btn-teal">Új rendelés
                         leadása</a>

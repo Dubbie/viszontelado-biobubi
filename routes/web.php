@@ -205,6 +205,7 @@ Route::post('/api/megrendeles/uj/{privateKey}', 'ShoprenterController@handleWebh
 Route::get('/api/megrendelesek/duplikaltak-torlese/{privateKey}', 'ShoprenterController@handleDuplicates');
 Route::post('/api/allapot-valtozas/{privateKey}', 'OrderStatusController@handleStatusWebhook');
 Route::get('/api/havi-riportok/generalas/{privateKey}', 'ReportController@generateMonthlyReports');
+Route::post('/megrendelesek/frissites/ids/{privateKey}', 'ShoprenterController@updateOrdersByIDs');
 Route::get('/megrendelesek/frissites/{privateKey}', 'ShoprenterController@updateOrders');
 Route::get('/megrendelesek/bevetelek/frissites/{privateKey}', 'RevenueController@generateOrderIncomes');
 Route::get('/statuszok/frissites/{privateKey}', 'OrderStatusController@updateStatuses');

@@ -135,6 +135,30 @@ class ShoprenterController extends Controller
     }
 
     /**
+     * @param $privateKey
+     * @return bool
+     */
+    public function updateOrdersByIDs($privateKey) {
+        set_time_limit(0);
+
+        // Ellenőrizzük a kulcsot
+        if (env('PRIVATE_KEY') != $privateKey) {
+            Log::error('-- Hiba a Shoprenterből való frissítéskor, nem egyezett a privát kulcs --');
+
+            return false;
+        }
+
+        $orders = $this->shoprenterApi->getOrdersSince(Carbon::now()->subDays(1));
+
+        foreach ($orders as $order) {
+            $this->orderService->updateLocalOrderByArray($order);
+        }
+
+
+        return true;
+    }
+
+    /**
      * @param  string   $privateKey
      * @param  Request  $request
      * @return array

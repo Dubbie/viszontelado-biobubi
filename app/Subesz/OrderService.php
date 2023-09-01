@@ -250,6 +250,83 @@ class OrderService
     }
 
     /**
+     * @param  array  $order
+     * @param  bool      $muted
+     * @return \App\Order|bool|\Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Eloquent\Model|object
+     */
+    public function updateLocalOrderByArray($order, $muted = false) {
+        if (! $muted) {
+            Log::info('-- Megrendelés frissítése --');
+        }
+
+        $local = Order::where('inner_resource_id', $order['id'])->first();
+        if (! $local) {
+            if (! $muted) {
+                Log::info(sprintf("A keresett megrendelés nem létezik (Azonosító: '%s')", $order['id']));
+                Log::info('Új megrendelés létrehozása...');
+            }
+            $local = new Order();
+        }
+
+        $tax        = ($order['paymentMethodTaxRate'] + 100) / 100;
+        $total      = round($order['total'] / $tax);
+        $taxPrice   = round($order['total'] - $total);
+        $totalGross = round($order['total']);
+
+        $orderStatusId = str_replace(sprintf('%s/orderStatuses/', env('SHOPRENTER_API')), '', $order['orderStatus']['href']);
+
+        if (! array_key_exists($orderStatusId, $this->statusMap)) {
+            Log::error('Nem volt megtalálható a státusz azonosító a státusz leíró térképben.');
+            Log::error(var_dump($this->statusMap));
+
+            return false;
+        }
+
+        // Változások...
+        $changed = false;
+        if ($local->total != $total || $local->total_gross != $totalGross || $local->tax_price != $taxPrice || $local->firstname != $order['firstname'] || $local->lastname != $order['lastname'] || $local->email != $order['email'] || $local->phone != $order['phone'] || $local->status_text != $this->statusMap[$orderStatusId]['name'] || $local->shipping_method_name != $order['shippingMethodName'] || $local->payment_method_name != $order['paymentMethodName'] || $local->shipping_postcode != $order['shippingPostcode'] || $local->shipping_city != $order['shippingCity'] || $local->shipping_address != sprintf('%s %s', $order['shippingAddress1'], $order['shippingAddress2'])) {
+            $changed = true;
+        }
+
+        if ($changed) {
+            Log::info('Változott');
+
+            $local->fill([
+                'inner_id'             => $order['innerId'],
+                'inner_resource_id'    => $order['id'],
+                'total'                => $total,
+                'total_gross'          => $totalGross,
+                'tax_price'            => $taxPrice,
+                'firstname'            => $order['firstname'],
+                'lastname'             => $order['lastname'],
+                'email'                => $order['email'],
+                'phone'                => $order['phone'],
+                'status_text'          => $this->statusMap[$orderStatusId]['name'],
+                'status_color'         => $this->statusMap[$orderStatusId]['color'],
+                'shipping_method_name' => $order['shippingMethodName'],
+                'payment_method_name'  => $order['paymentMethodName'],
+                'shipping_postcode'    => $order['shippingPostcode'],
+                'shipping_city'        => $order['shippingCity'],
+                'shipping_address'     => sprintf('%s %s', $order['shippingAddress1'], $order['shippingAddress2']),
+                'created_at'           => date('Y-m-d H:i:s', strtotime($order['dateCreated'])),
+                'updated_at'           => date('Y-m-d H:i:s'),
+            ]);
+
+            if ($local->save()) {
+                if (! $muted) {
+                    Log::info(sprintf('Megrendelés mentve (Azonosító: %s, inner resource id: %s)', $local->id, $local->inner_resource_id));
+                }
+
+                return $local;
+            } else {
+                return false;
+            }
+        } else {
+            return $local;
+        }
+    }
+
+    /**
      * @param  int  $limit
      * @return Builder|Model|null|object
      */
