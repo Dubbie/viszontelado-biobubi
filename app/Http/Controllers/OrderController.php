@@ -453,7 +453,13 @@ class OrderController extends Controller
             // Generáljuk le újra a számlákat
             Log::info(sprintf(' - Jelenlegi megrendelés: %s (%s %s)', $localOrder->id, $localOrder->firstname, $localOrder->lastname));
             Log::info(' -- Számla készítése ...');
-            $invoiceResponse = $localOrder->createInvoice(false);
+
+            if ($localOrder->reseller->use_tharanis) {
+                $invoiceResponse = $localOrder->createTharanisInvoice(false);
+            } else {
+                $invoiceResponse = $localOrder->createInvoice(false);
+            }
+
             if (! $invoiceResponse['success']) {
                 $errors[] = sprintf('%s %s (%s) - %s', $localOrder->firstname, $localOrder->lastname, $localOrder->id, $invoiceResponse['message']);
             } else {

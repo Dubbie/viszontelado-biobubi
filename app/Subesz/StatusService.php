@@ -126,7 +126,13 @@ class StatusService
             } else {
                 if ($localOrder->create_invoice) {
                     Log::info('Számla gyártás megkezdése...');
-                    $invoiceResponse = $localOrder->createInvoice();
+
+                    if ($localOrder->reseller->use_tharanis) {
+                        $invoiceResponse = $localOrder->createTharanisInvoice();
+                    } else {
+                        $invoiceResponse = $localOrder->createInvoice();
+                    }
+
                     if (! $invoiceResponse['success']) {
                         $response['message'] = $invoiceResponse['message'];
                     }

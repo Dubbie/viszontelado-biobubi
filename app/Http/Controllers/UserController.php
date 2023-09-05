@@ -203,6 +203,7 @@ class UserController extends Controller
             'u-shipping-address2'      => 'nullable',
             'u-marketing-balance'      => 'required',
             'u-email-notifications'    => 'nullable',
+            'u-integration-type'        => 'required',
         ]);
 
         $user                      = User::find($userId);
@@ -213,6 +214,7 @@ class UserController extends Controller
         $user->block_uid           = array_key_exists('u-block-uid', $data) ? $data['u-block-uid'] : $user->block_uid;
         $user->balance             = array_key_exists('u-marketing-balance', $data) ? (double) $data['u-marketing-balance'] : $user->balance;
         $user->email_notifications = array_key_exists('u-email-notifications', $data) && $data['u-email-notifications'] == 'on';
+        $user->use_tharanis        = $data['u-integration-type'] == 'THARANIS';
 
         $detailsKeys       = [
             'u-billing-name',

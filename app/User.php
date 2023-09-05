@@ -229,6 +229,14 @@ class User extends Authenticatable
         return $this->details && ($this->details->billing_account_number && $this->details->billing_address_id && $this->details->billing_name && $this->details->billing_tax_number);
     }
 
+    public function usesBillingo(): bool {
+        return $this->billingo_api_key && $this->block_uid && !$this->use_tharanis;
+    }
+
+    public function usesTharanis(): bool {
+        return $this->use_tharanis;
+    }
+
     /**
      * Visszaadja a felhasználóhoz tartozó megrendeléseket
      *

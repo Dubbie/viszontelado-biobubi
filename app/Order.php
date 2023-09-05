@@ -475,6 +475,27 @@ class Order extends Model
     }
 
     /**
+     * @param  bool  $notifyCustomer
+     * @return array
+     */
+    public function createTharanisInvoice(bool $notifyCustomer = true): array {
+        $ts = resolve('App\Subesz\TharanisService');
+
+        $srOrder = $this->getShoprenterOrder();
+        $response = $ts->createInvoice($srOrder);
+
+        if ($notifyCustomer) {
+            $this->sendInvoice();
+        } else {
+            Log::info('Nem küldünk róla értesítést az ügyfélnek, paraméterezés miatt');
+        }
+        $response['success'] = true;
+        $response['message'] = 'Számla sikeresen létrehozva és elküldve az ügyfélnek';
+
+        return $response;
+    }
+
+    /**
      * @return bool
      */
     public function isInvoiceSaved(): bool {

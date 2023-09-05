@@ -40,6 +40,26 @@
     </div>
 </div>
 
+<div class="row mt-5">
+    <div class="col-md-5">
+        <h4 class="font-weight-bold mb-3">Tharanis Integráció</h4>
+        <p class="mb-4 text-muted">Amennyiben a felhasználóhoz kapcsolódó megrendelések létrehozásához a <b>Tharanis</b> rendszerét szeretnéd használni, a <b>Szerkesztés</b> menüpontban válaszd ki, a megfelelő opciót.</p>
+    </div>
+    <div class="col-md-6 offset-md-1">
+        <img src="{{ url('/storage/tharanis.png') }}" alt="Billingo logo" class="d-block mw-100"
+             style="width: 100px;">
+        <div class="row">
+            <div class="col-md-12">
+                @if($user->use_tharanis)
+                    <p class="font-weight-bold text-success mt-2 mb-0">Jelenleg, a számlákat a Tharanis rendszere állítja ki.</p>
+                @else
+                    <p class="font-weight-bold text-muted mt-2 mb-0">Jelenleg, a számlákat <b class="text-dark">NEM</b> a Tharanis rendszere állítja ki</p>
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+
 <p class="h5 font-weight-bold mt-4 mb-3">Régiók</p>
 <div class="row">
     <div class="col-md-5">

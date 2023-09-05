@@ -18,8 +18,9 @@ class TharanisController extends Controller
         $ss = resolve('App\Subesz\ShoprenterService');
         $srOrder = $ss->getOrder($testID);
 
-        //dd($this->tharanisService->test());
         dd($this->tharanisService->createInvoice($srOrder));
+        //dd($this->tharanisService->test());
+        //dd($this->tharanisService->downloadInvoice('SA23/H002781'));
         //dd($this->tharanisService->getPaymentMethods());
         //dd($this->tharanisService->getShippingMethod());
     }

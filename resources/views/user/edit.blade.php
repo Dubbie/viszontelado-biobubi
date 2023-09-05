@@ -211,6 +211,22 @@
 
                         <div class="row">
                             <div class="col-lg-4">
+                                <h5 class="font-weight-bold mb-1">Integráció</h5>
+                            </div>
+                            <div class="col-lg-8">
+                                <div class="form-group">
+                                    <label for="u-integration-type">Számlázó rendszer</label>
+                                    <select name="u-integration-type" id="u-integration-type" class="form-control">
+                                        <option value="">Nem használ</option>
+                                        <option value="BILLINGO" @if($user->usesBillingo()) selected @endif>Billingo</option>
+                                        <option value="THARANIS" @if($user->usesTharanis()) selected @endif>Tharanis ERP</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="billingo-row" class="row" style="display: none">
+                            <div class="col-lg-4">
                                 <h5 class="font-weight-bold mb-1">Billingo integráció</h5>
                             </div>
                             <div class="col-lg-8">
@@ -245,6 +261,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <div class="row">
                             <div class="col-lg-4">
                                 <h5 class="font-weight-bold mb-1">Marketing egyenleg</h5>
@@ -284,7 +301,35 @@
 @section('scripts')
     <script>
         $(() => {
-           $('#u-billing-account-number').mask('00000000-00000000-00000000');
+            const selectIntegrationType = document.getElementById('u-integration-type');
+            const rowBillingo = document.getElementById('billingo-row');
+
+            $('#u-billing-account-number').mask('00000000-00000000-00000000');
+
+            const updateIntegrationRows = () => {
+                const selected =selectIntegrationType.options[selectIntegrationType.selectedIndex].value;
+
+                if (selected === 'BILLINGO') {
+                    $(rowBillingo).show();
+                } else if (selected === 'THARANIS') {
+                    $(rowBillingo).hide();
+                } else {
+                    $(rowBillingo).hide();
+                }
+            }
+
+            const bindElements = () => {
+                $(selectIntegrationType).on('change', () => {
+                    updateIntegrationRows();
+                });
+            }
+
+            const init = () =>{
+                bindElements();
+                updateIntegrationRows();
+            }
+
+            init();
         });
     </script>
 @endsection

@@ -4,6 +4,7 @@ namespace App\Subesz;
 
 use Exception;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Log;
 use SoapClient;
 use SoapFault;
@@ -33,6 +34,14 @@ class TharanisService
     }
 
     public function createInvoice($order) {
+        $os = resolve('App\Subesz\OrderService');
+        /** @var \App\Order $localOrder */
+        $localOrder = $os->getLocalOrderByResourceId($order['order']->id);
+        $response = [
+            'success' => false,
+            'message' => 'Számla létrehozásának inicalizálása',
+        ];
+
         $data = [
             'fej' => [
                 'technikai' => false, //  TODO: Ellenőrizzük
@@ -112,25 +121,34 @@ class TharanisService
             }
         }
 
-        $xml = ArrayToXml::convert($data, 'szamla', true, 'UTF-8');
-        return $this->berak('kimeno_szamla', $xml);
-    }
+        $xml = ArrayToXml::convert($data, [
+            'rootElementName' => 'szamla',
+            '_attributes' => [
+                'valasz' => 1
+            ],
+        ]);
 
-    public function getShippingMethod() {
-        $products = $this->leker('cikk');
-        if ($products['hiba'] == 1) {
-            return $products;
+        $response = $this->berak('kimeno_szamla', $xml);
+
+        if ($response['hiba'] != "0") {
+            Log::error('Hiba történt a Tharanis számla létrehozásakor!');
+            Log::error($response['valasz']);
+
+            $response['message'] = "Hiba történt a Tharanis számla létrehozásakor!";
         }
 
-        $results = [];
-        foreach ($products['valasz']['elem'] as $product) {
-            //echo $product['alap']['megnev']['hu'] . "<br>";
-            if (in_array($product['alap']['megnev']['hu'], ['Kupon kedvezmény', 'Hűségpont kedvezmény'])) {
-                $results[] = $product;
-            }
+        // Nincs hiba, mentsük el a számlát.
+        $path = $this->saveInvoiceByEncodedPDF($localOrder, $response['valasz']['pdf']);
+        if ($path) {
+            $localOrder->invoice_id = $response['valasz']['sorszam'];
+            $localOrder->invoice_path = $path;
+            $localOrder->save();
+            Log::info(sprintf("Számla hozzárendelve a megrendeléshez (ID: %s, Számla: %s)", $localOrder->id, $path));
+            $response['message'] = "Számla sikeresen létrejött és hozzá lett rendelve a megrendeléshez";
         }
 
-        return $results;
+        $response['success'] = true;
+        return $response;
     }
 
     public function test() {
@@ -150,25 +168,19 @@ class TharanisService
         return $this->leker( 'cikk', $xml);
     }
 
-    public function stock($skus) {
-        $data = [
-            'szurok' => [
-                'szuro' => [
-                    'mezo' => 'cikksz',
-                    'relacio' => [
-                        '_cdata' => '='
-                    ],
-                    'ertek' => implode('|', $skus),
-                ],
-            ],
-        ];
+    public function saveInvoiceByEncodedPDF($localOrder, $pdfData): bool|string {
+        $fname = 'ssz-tharanis-szamla-'.date('Ymd_His').'.pdf';
+        $path  = sprintf('invoices/%s/%s', $localOrder->id, $fname);
 
-        $xml = ArrayToXml::convert($data, 'leker', true, 'UTF-8');
-        return $this->leker( 'keszlet', $xml);
-    }
+        if (Storage::put($path, base64_decode($pdfData))) {
+            Log::info(sprintf('Számla sikeresen elmentve (Fájl: %s)', $path));
 
-    public function getPaymentMethods() {
-        return $this->leker( 'fiz_mod');
+            return $path;
+        } else {
+            Log::info('Hiba történt a számla elmentésekor a rendszerbe!');
+
+            return false;
+        }
     }
 
     private function leker($function, $xml = null) {
@@ -200,5 +212,9 @@ class TharanisService
             "Gls házhozszállítás flakonvisszaküldéssel" => "Gls házhozszállítás flakonvisszaküldéssel",
             default => $shippingMethod,
         };
+    }
+
+    private function convertToXml($data, $rootElement = 'leker') {
+        return ArrayToXml::convert($data, $rootElement, true, 'UTF-8');
     }
 }
