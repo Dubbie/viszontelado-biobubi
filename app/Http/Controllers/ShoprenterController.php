@@ -255,7 +255,22 @@ class ShoprenterController extends Controller
                 }
             }
 
-            // Ha nincs billing összekötés ne hozzunk létre semmit
+            // Trackeljük Klaviyo-ba
+            try {
+                $ks = resolve('App\Subesz\KlaviyoService');
+                $ks->trackOrder($order);
+            } catch (Exception $e) {
+                Log::error("Hiba történt a Klaviyo trackeléskor a beérkező megrendelésnél.");
+                Log::error($e->getMessage());
+            }
+
+            // Ha nincs billingo összekötés ne hozzunk létre semmit
+            if ($reseller->usesTharanis()) {
+                Log::info('A viszonteladó Tharanist használt, ezért nem hozunk létre piszkozat számlát.');
+
+                return ['success' => true];
+            }
+
             if (! $this->billingoNewService->isBillingoConnected($reseller)) {
                 Log::info('A viszonteladónak nincs beállítva billingo összekötés, ezért nem hozunk létre számlát.');
 
@@ -283,10 +298,6 @@ class ShoprenterController extends Controller
             $localOrder->draft_invoice_id = $invoice->getId();
             $localOrder->save();
             Log::info(sprintf('A piszkozat számla sikeresen elmentve a megrendeléshez (Megr. Azonosító: %s, Számla azonosító: %s)', $localOrder->id, $invoice->getId()));
-
-            // Trackeljük Klaviyo-ba
-            $ks = resolve('App\Subesz\KlaviyoService');
-            $ks->trackOrder($order);
         }
 
         return ['success' => true];
