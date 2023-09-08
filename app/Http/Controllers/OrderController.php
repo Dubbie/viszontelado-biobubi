@@ -12,6 +12,7 @@ use App\Subesz\StatusService;
 use App\Subesz\StockService;
 use App\Subesz\WorksheetService;
 use App\User;
+use Exception;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Contracts\View\Factory;
 use Illuminate\Http\RedirectResponse;
@@ -119,17 +120,21 @@ class OrderController extends Controller
 
     /**
      * @param $orderId
-     * @return Factory|View
+     * @return  Redirector|RedirectResponse|Application
      */
-    public function show($orderId) {
-        $order = $this->shoprenterApi->getOrder($orderId);
+    public function show($orderId): Redirector|RedirectResponse|Application {
+        $order = null;
+        try {
+            $order = $this->shoprenterApi->getOrder($orderId);
+        } catch (Exception $exception) {
+            Log::error("[OrderService] Hiba történt a megrendelés lekérdezésekor");
+            Log::error($exception->getMessage());
 
-        if ($order && array_key_exists('order', $order) && property_exists($order['order'], 'error')) {
-            return redirect(url()->previous())->with(['error' => 'Shoprenter hiba történt a megrendelés betöltésekor: '.$order['order']->message]);
+            return redirect(url()->previous())->with(['error' => 'Shoprenter API hiba történt a megrendelés betöltésekor.']);
         }
 
         // Kezeljük le a státusz frissítéskor létrejövő session-t
-        if (! session()->has('updateLocalOrder') || session('updateLocalOrder') != false) {
+        if (! session()->has('updateLocalOrder') || session('updateLocalOrder') !== false) {
             $this->orderService->updateLocalOrder($order['order']);
         }
 

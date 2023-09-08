@@ -128,19 +128,20 @@ class TharanisService
             ],
         ]);
 
-        $response = $this->berak('kimeno_szamla', $xml);
+        $result = $this->berak('kimeno_szamla', $xml);
 
-        if ($response['hiba'] != "0") {
+        if ($result['hiba'] != "0") {
             Log::error('Hiba történt a Tharanis számla létrehozásakor!');
-            Log::error($response['valasz']);
+            Log::error($result['valasz']);
 
-            $response['message'] = "Hiba történt a Tharanis számla létrehozásakor!";
+            $response['message'] = $result['valasz'];
+            return $response;
         }
 
         // Nincs hiba, mentsük el a számlát.
-        $path = $this->saveInvoiceByEncodedPDF($localOrder, $response['valasz']['pdf']);
+        $path = $this->saveInvoiceByEncodedPDF($localOrder, $result['valasz']['pdf']);
         if ($path) {
-            $localOrder->invoice_id = $response['valasz']['sorszam'];
+            $localOrder->invoice_id = $result['valasz']['sorszam'];
             $localOrder->invoice_path = $path;
             $localOrder->save();
             Log::info(sprintf("Számla hozzárendelve a megrendeléshez (ID: %s, Számla: %s)", $localOrder->id, $path));

@@ -4,7 +4,9 @@ namespace App\Subesz;
 
 use App\OrderStatus;
 use App\Product;
+use Auth;
 use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 
@@ -174,7 +176,7 @@ class ShoprenterService
      * @param $orderId
      * @return array
      */
-    public function getOrder($orderId) {
+    public function getOrder($orderId): ?array {
         $apiUrl = sprintf('%s/orders/%s', env('SHOPRENTER_API'), $orderId);
         $result = [];
 
@@ -344,7 +346,7 @@ class ShoprenterService
             ['name', '!=', 'Törölt'],
         ]);
 
-        if (! \Auth::user()->admin) {
+        if (! Auth::user()->admin) {
             $query->where('name', 'LIKE', 'Bk.%')->orWhere('name', 'LIKE', 'Függőben%')->orWhere('name', 'LIKE', 'Teljesítve')->orWhere('name', 'LIKE', 'MyGls Függőben%')->orWhere('name', 'LIKE', 'Értesítve Függőben%')->orWhere('name', 'LIKE', 'Értesítve függőben%')->orWhere('name', 'LIKE', 'Törölve');
             //$query->where('name', 'NOT LIKE', '%FOXPOST%')->where('name', 'NOT LIKE', 'GLS%');
         }

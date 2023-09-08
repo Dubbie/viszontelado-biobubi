@@ -484,6 +484,10 @@ class Order extends Model
         $srOrder = $this->getShoprenterOrder();
         $response = $ts->createInvoice($srOrder);
 
+        if (! $response['success']) {
+            return $response;
+        }
+
         if ($notifyCustomer) {
             $this->sendInvoice();
         } else {
