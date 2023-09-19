@@ -120,9 +120,8 @@ class OrderController extends Controller
 
     /**
      * @param $orderId
-     * @return  Redirector|RedirectResponse|Application
      */
-    public function show($orderId): Redirector|RedirectResponse|Application {
+    public function show($orderId) {
         $order = null;
         try {
             $order = $this->shoprenterApi->getOrder($orderId);
