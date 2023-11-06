@@ -244,6 +244,8 @@ class TharanisService
 		$partnerData['szall_telepul'] = $order['order']->shippingCity;
 		$partnerData['szall_utca'] = trim(sprintf('%s %s', $order['order']->shippingAddress1, $order['order']->shippingAddress2));
 
+		dump($partnerData);
+
 		return $partnerData;
 	}
 
@@ -335,12 +337,14 @@ class TharanisService
 	private function getTharanisShippingMethodByName($shippingMethod): string
 	{
 		return match ($shippingMethod) {
-			"Biobubi futár" => "Biobubi futár",
+			"Biobubi futá" => "Biobubi futár",
 			"FoxPost Csomagautomata" => "FoxPost Csomagautomata",
 			"Gls házhozszállítás" => "GLS",
 			"GLS Csomagautomata" => "GLS Csomagpont",
 			"Gls házhozszállítás flakonvisszaküldéssel" => "Gls házhozszállítás flakonvisszaküldéssel",
-			"Országos hulladékmentes szállítás" => "Trans-Sped",
+			"Országos hulldékmentes szállítás" => "Trans-Sped",
+			"Országos házhozszállítás" => "Trans-Sped",
+			"Biobubi futár" => "Trans-Sped",
 			default => $shippingMethod,
 		};
 	}
