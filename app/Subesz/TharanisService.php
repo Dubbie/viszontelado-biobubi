@@ -216,6 +216,15 @@ class TharanisService
 		if (strlen($order['order']->taxNumber) > 0 && strlen($order['order']->paymentCompany) > 0) {
 			$partnerResponse = $this->createPartner($order['order'], $localOrder);
 
+			try {
+				Log::info("-----------------------------------------------------------");
+				Log::info("Partner response");
+				Log::info($partnerResponse);
+				Log::info("-----------------------------------------------------------");
+			} catch (Exception $e) {
+				Log::error("Hiba a partner response kiiratásakor");
+			}
+
 			// Eldöntjük, hogy létrejött-e a partner, ha igen akkor létezik az 'elem' kulcs
 			if ($partnerResponse['elem']['hiba'] == 1) {
 				Log::error("Hiba történt a Tharanis partner létrehozásakor!");
@@ -317,8 +326,8 @@ class TharanisService
 			$paymentMethod = 'Utánvét';
 			$this->logInfo('A kifizetés módja: "Készpénz" volt, de nem használják ezért "Utánvét" kerül rá.');
 		} elseif ($localOrder->final_payment_method == 'Bankkártya') {
-			$paymentMethod = 'Bankkártya POS';
-			$this->logInfo('A kifizetés módja: "Bankkártya" volt');
+			$paymentMethod = 'Utánvét';
+			$this->logInfo('A kifizetés módja: "Bankkártya" volt, de nem használják ezért "Utánvét" kerül rá.');
 		} elseif ($localOrder->final_payment_method == 'Átutalás') {
 			$paymentMethod = 'Átutalás';
 			$this->logInfo('A kifizetés módja: "Átutalás" volt');
