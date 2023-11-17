@@ -217,13 +217,13 @@ class TharanisService
 			$partnerResponse = $this->createPartner($order['order'], $localOrder);
 
 			// Eldöntjük, hogy létrejött-e a partner, ha igen akkor létezik az 'elem' kulcs
-			if (array_key_exists('elem', $partnerResponse)) {
-				$partnerData['szla_partkod'] = $partnerResponse['elem']['valasz']['azon'];
-			} else {
+			if ($partnerResponse['elem']['hiba'] == 1) {
 				Log::error("Hiba történt a Tharanis partner létrehozásakor!");
-				Log::error($partnerResponse['valasz']);
+				Log::error($partnerResponse['elem']['valasz']);
 
 				return null;
+			} else {
+				$partnerData['szla_partkod'] = $partnerResponse['elem']['valasz']['azon'];
 			}
 		} else {
 			$partnerData = [
@@ -243,8 +243,6 @@ class TharanisService
 		$partnerData['szall_irsz'] = $order['order']->shippingPostcode;
 		$partnerData['szall_telepul'] = $order['order']->shippingCity;
 		$partnerData['szall_utca'] = trim(sprintf('%s %s', $order['order']->shippingAddress1, $order['order']->shippingAddress2));
-
-		dump($partnerData);
 
 		return $partnerData;
 	}
