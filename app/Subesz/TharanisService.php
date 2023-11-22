@@ -278,7 +278,8 @@ class TharanisService
 				'telefon' => $order->phone,
 				'email' => $order->email,
 				'adoszam' => $order->taxNumber,
-				'fizmod' => $this->getTharanisPaymentMethodByName($localOrder),
+				// 'fizmod' => $this->getTharanisPaymentMethodByName($localOrder),
+				'fizmod' => 'Utánvét',
 				'tipus' => 'V',
 			]
 		];
