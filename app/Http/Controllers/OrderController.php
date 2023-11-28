@@ -94,7 +94,7 @@ class OrderController extends Controller
 		$orders = $this->orderService->getOrdersFiltered($filter);
 
 		$resellers = [];
-		$ignoreList = [1, 5, 8, 12, 13, 15, 19, 23, 25, 33, Auth::id()];
+		$ignoreList = [1, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15, 17, 18, 19, 23, 24, 25, 28, 29, 33, Auth::id()];
 		foreach (User::all() as $u) {
 			if (in_array($u->id, $ignoreList)) {
 				continue;
