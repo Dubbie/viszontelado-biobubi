@@ -249,13 +249,18 @@ class ShoprenterController extends Controller
 			Log::info('Hozzátartozó számlázó fiók neve: ' . $reseller->name);
 
 			// Elküldjük róla a levelet is
-			if ($reseller->email != 'hello@semmiszemet.hu') {
-				if ($reseller->emailNotificationsEnabled()) {
-					Mail::to($reseller)->send(new NewOrder($order, $reseller));
-					Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
-				} else {
-					Log::info('A felhasználó nem kért e-mail értesítéseket, ezért nem küldünk. (' . $reseller->email . ')');
+			try {
+				if ($reseller->email != 'hello@semmiszemet.hu') {
+					if ($reseller->emailNotificationsEnabled()) {
+						Mail::to($reseller)->send(new NewOrder($order, $reseller));
+						Log::info('Levél elküldve az alábbi e-mail címre: ' . $reseller->email);
+					} else {
+						Log::info('A felhasználó nem kért e-mail értesítéseket, ezért nem küldünk. (' . $reseller->email . ')');
+					}
 				}
+			} catch (Exception $e) {
+				Log::error("Hiba történt az értesítő levél kiküldésekor a partner felé.");
+				Log::error($e->getMessage());
 			}
 
 			// Trackeljük Klaviyo-ba
