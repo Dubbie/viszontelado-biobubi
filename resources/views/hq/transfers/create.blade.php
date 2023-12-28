@@ -6,7 +6,7 @@
             <div class="col-12 col-md">
                 <p class="mb-0">
                     <a href="{{ url()->previous(action('MoneyTransferController@index')) }}"
-                       class="btn-muted font-weight-bold text-decoration-none">
+                        class="btn-muted font-weight-bold text-decoration-none">
                         <span class="icon icon-sm">
                             <i class="fas fa-arrow-left"></i>
                         </span>
@@ -20,38 +20,19 @@
         <div class="row mt-4">
             <div class="col">
                 <div class="card card-body text-center">
-                    <h3 class="mb-4 font-weight-bold">CSV Export kiválasztása</h3>
-
-                    <div class="row">
-                        <div class="col-md-10 offset-md-1">
-                            <form action="{{ action('MoneyTransferController@store') }}" method="POST" enctype="multipart/form-data">
-                                @csrf
-                                <div class="form-group">
-                                    <label for="mt-csv-export" class="d-flex align-items-center mb-0">CSV Export
-                                        *</label>
-                                    <div class="custom-file">
-                                        <input type="file" class="custom-file-input" name="mt-csv-export" id="mt-csv-export">
-                                        <label class="custom-file-label" for="mt-csv-export" data-browse="Böngészés">Fájl kiválasztása</label>
-                                    </div>
-                                </div>
-
-                                <div class="form-group mt-4 mb-0 text-right">
-                                    <button type="submit" class="btn btn-sm btn-success">Létrehozás
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
+                    <p>Melyik szolgáltató által exportált adatot szeretnéd feldolgozni?</p>
+                    <div class="d-flex w-100 justify-content-center">
+                        <a href="{{ action('SimpleController@create') }}" class="mr-4">
+                            <img src="{{ url('storage/splogo.png') }}" alt="" class="d-block"
+                                style="max-height:100px">
+                        </a>
+                        <a href="{{ action('BarionController@create') }}">
+                            <img src="{{ url('storage/barion.png') }}" alt="" class="d-block"
+                                style="max-height:100px">
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-@endsection
-
-@section('scripts')
-    <script>
-        $(document).ready(function () {
-            bsCustomFileInput.init()
-        })
-    </script>
 @endsection

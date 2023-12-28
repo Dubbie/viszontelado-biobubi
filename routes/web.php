@@ -80,7 +80,10 @@ Route::group(['middleware' => 'auth'], function () {
 
 		// Átutalások adminisztrátori funkcói
 		Route::get('kozpont/atutalasok/uj', 'MoneyTransferController@create');
-		Route::post('kozpont/atutalasok/uj/mentes', 'MoneyTransferController@store');
+		Route::get('/kozpont/atutalasok/simple/uj', 'SimpleController@create');
+		Route::get('/kozpont/atutalasok/barion/uj', 'BarionController@create');
+		Route::post('/kozpont/atutalasok/simple/mentes', 'SimpleController@store');
+		Route::post('/kozpont/atutalasok/barion/mentes', 'BarionController@store');
 		//Route::post('kozpont/atutalasok/viszontelado/mentes', 'MoneyTransferController@storeReseller');
 		//Route::get('kozpont/atutalasok/megrendelesek', 'MoneyTransferController@chooseOrders');
 		//Route::post('kozpont/atutalasok/megrendelesek/mentes', 'MoneyTransferController@storeOrders');
