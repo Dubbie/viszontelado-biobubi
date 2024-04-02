@@ -408,6 +408,8 @@ class MoneyTransferController extends Controller
         $ws->setCellValue('E1', 'Fizetett Összeg');
         $ws->setCellValue('F1', 'Jutalékkal csökkentett Összeg');
         $ws->setCellValue('G1', 'Vásárló');
+		$ws->setCellValue('H1', 'Rendelés Azonosító');
+		$ws->setCellValue('I1', 'E-mail cím');
 
         foreach ($transfers as $resellerTransfers) {
             /** @var MoneyTransfer $moneyTransfer */
@@ -446,6 +448,8 @@ class MoneyTransferController extends Controller
                         $ws->setCellValueByColumnAndRow(6, $row, '-');
                     }
                     $ws->setCellValueByColumnAndRow(7, $row, $to->order->firstname.' '.$to->order->lastname);
+					$ws->setCellValueByColumnAndRow(8, $row, $to->order->inner_id);
+					$ws->setCellValueByColumnAndRow(9, $row, $to->order->email);
                     $row++;
                 }
             }
